@@ -1,2 +1,0 @@
-# transcendence
-concept before start
