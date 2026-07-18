@@ -1,0 +1,37 @@
+# Modules
+
+You will need to earn 14 points in total to complete your project. Each major module is worth 2 points, and each minor module is worth 1 point.
+ต้องการ 14 แต้มเพื่อให้ผ่านโปรเจค แต่ละ major module เท่ากับ 2 แต้ม และ minor module เท่ากับ 1 แต้ม
+
+The following categories are available. You may choose multiple modules from any category(ข้างล่างมี module เยอะมากเลือกอะไรก็เลือกเลย)
+1. Web
+2. Accessibility and Internationalization
+3. User Management
+4. Artificial Intelligence
+5. Cybersecurity
+6. Gaming and user experience
+7. DevOps
+8. Data and Analytics
+9. Blockchain
+10. Modules of choice
+
+We strongly recommend choosing modules only after your ideas are clear and you have a good understanding of what you want to build.(เขาแนะนำว่าต้องเป็นmodule ที่เข้าใจจริงๆ แล้วรู้ว่าจะสร้างอะไรบ้าง)
+
+Additionally, aimming for more than 14 points in total may be a good idea, especially if some modules aren't validated during the evaluation.(การเลือกคะแนนมากกว่า 14 ในทั้งหมดถือว่าดีกว่าเพราะถ้าบาง module ถูกเช็คว่าไม่ผ่านเมื่อไหร่ module ตัวอื่นๆจะเป็นคะแนนทดแทนกันได้)
+
+
+
+
+
+
+Important - Module Dependencies and evaluation(ส่วนสำคัญ ในการเลือกโมดูลอย่างอิสระ และ การตรวจโปรเจค):
+  - Some modules require other modules to be implemented first()marked with info notes).(บาง module จำเป็นที่ต้องมี moduleตัวอื่นเอาไปใช้ในเว็บก่อนถึงจะใช้ module ที่เลือกตัวนั้นๆได้)
+  - Gaming modules (AI Opponent, Tournament, Game customization, Spectator mode, Multiplayer 3+, Add another game) require that at least one game be implemented first.
+  ตัวเกมจำเป็นต้องเอาฟีเจอร์เหล่านี้ไปใช้อย่างน้อยหนึ่งอย่างเช่น ฝั่งตรงข้ามเป็นบอท AI, ระบบแข่งขัน, ระบบปรับแต่งเกม, ระบบเป็นผู้ชมเกม, เล่นหลายคน 3 คนขึ้นไป
+  - The Game Statistics module requires that a game be implemented. (ระบบคะแนน จะต้องถูกใช้ในเกมด้วย)
+  - Advanced chat features require the basic chat functionality from the "User interaction" module.(moduleระบบแชทต้องมีฟีเจอร์"แสดงความรู้สึก"ด้วย)
+  - SSR is incompatible with ICP bloackchain backend.(SSR ต้องเข้ากันได้กับ ICP blockchain backend)
+  - Plan your modules carefully to ensure they work together coherently! (เลือกใช้โมดูลให้สอดคล้องกันทำงานด้วยกันได้)
+  - During evaluation:(ระหว่างตรวจงาน): You will be asked to demostrate each claimed module. Only fully functional and properly implemented modules will be counted toward your final score.
+  Non-functional or incomplete modules = 0 points.(module ที่เลือกต้องใช้งานได้ ใช้ไม่ได้ = 0 แต้ม)
+    
