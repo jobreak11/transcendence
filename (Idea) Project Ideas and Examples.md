@@ -176,3 +176,11 @@ These projects target specific niches or industries *(โปรเจกต์�
   * **Concept:** Create campaigns, donations, updates, and community engagement. *(แพลตฟอร์มระดมทุน สร้างแคมเปญ, รับเงินบริจาค, อัปเดตข่าวสาร และการสร้างมีส่วนร่วมในชุมชน)*
   * **Suggested Modules:** User interaction, File upload, Public API, Analytics dashboard, Notification system
   * **Point Potential:** 14+ points
+ 
+These are just ideas to inspire you. The key is to choose a project that (ข้างบนนี้แค่ให้แนวทาง จุดประสงค์หลักๆของโปรเจคนี้อยู่ข้างล่าง):
+ - Interests your team and motivates everyone to work on it. (เป็นสิ่งที่คนในทีมสนใจร่วมกัน ทุกคนทำงานร่วมกันได้)
+ - Allows you to implement the required modules (14 points minimum). (ให้โปรเจคต้องทำตามคะแนนขั้นต่ำ 14 คะแนน)
+ - Demonstrates technical complexity and creativity. (มีการสาธิตความซับซ้อนทางเทคนิค และ ความสร้างสรรค์)
+ - Can be realistically completed within the project timeline. (โปรเจคที่เสร็จจะต้องสอดคล้องกับเวลาที่วางไว้ตามความเป็นจริง)
+ - Has coherent module combinations that work well together. (module ที่เราเลือก ต้องทำงานร่วมกันได้ไม่มีสะดุด)
+Discuss with your team, review the available modules, and choose wisely! (คุยกับเพื่อนดีๆเช็คmodule ให้ ถี่ถ้วน และ ถ้ามั่นใจแล้วก็เลือกให้ดี)
