@@ -55,7 +55,28 @@ These projects focus on interactive gameplay and user competition *(โปรเ
   * **Suggested Modules:** Web-based game, Multiplayer 3+, Tournament system, Gamification, Analytics dashboard
   * **Point Potential:** 15+ points
 
-on, Notification system, Organization system, Public API, Advanced search
+## V.3 Social and Collaborative Projects
+
+These projects emphasize user interaction and community building *(โปรเจกต์พวกนี้จะเน้นการปฏิสัมพันธ์ของผู้ใช้และการสร้างชุมชน)*:
+
+* **Social Network**
+  * **Concept:** User profiles, posts, comments, likes, friends, real-time chat, and notifications. *(เว็บโซเชียลมีเดีย มีโปรไฟล์, โพสต์, คอมเมนต์, กดไลก์, ระบบเพื่อน, แชต real-time และการแจ้งเตือน)*
+  * **Suggested Modules:** User interaction, Real-time features, Notification system, Advanced chat, File upload
+  * **Point Potential:** 14+ points
+
+* **Collaborative Workspace**
+  * **Concept:** Real-time document editing, project management, team chat, and file sharing. *(พื้นที่ทำงานร่วมกัน แก้ไขเอกสารพร้อมกันแบบ real-time, จัดการโปรเจกต์, แชตทีม และแชร์ไฟล์)*
+  * **Suggested Modules:** Real-time collaborative features, User interaction, Organization system, File upload, Advanced permissions
+  * **Point Potential:** 15+ points
+
+* **Forum Platform**
+  * **Concept:** Discussion boards with categories, threads, moderation tools, and user reputation systems. *(เว็บบอร์ดพูดคุย มีจัดหมวดหมู่กระทู้, เครื่องมือผู้ดูแลเว็บ และระบบคะแนนความน่าเชื่อถือ)*
+  * **Suggested Modules:** User interaction, Advanced permissions, Gamification, Content moderation AI, Advanced search
+  * **Point Potential:** 14+ points
+
+* **Event Management Platform**
+  * **Concept:** Create and manage events, RSVP system, calendar integration, and notifications. *(แพลตฟอร์มจัดการอีเวนต์ สร้างและจัดการงาน, ระบบตอบรับเข้าร่วม RSVP, เชื่อมต่อปฏิทิน และการแจ้งเตือน)*
+  * **Suggested Modules:** User interaction, Notification system, Organization system, Public API, Advanced search
   * **Point Potential:** 14+ points
 
 * **Learning Management System**
@@ -155,4 +176,3 @@ These projects target specific niches or industries *(โปรเจกต์�
   * **Concept:** Create campaigns, donations, updates, and community engagement. *(แพลตฟอร์มระดมทุน สร้างแคมเปญ, รับเงินบริจาค, อัปเดตข่าวสาร และการสร้างมีส่วนร่วมในชุมชน)*
   * **Suggested Modules:** User interaction, File upload, Public API, Analytics dashboard, Notification system
   * **Point Potential:** 14+ points
-
