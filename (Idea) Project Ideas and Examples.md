@@ -26,11 +26,11 @@ These projects focus on interactive gameplay and user competition (โปรเ�
     - Suggested modules: Web-based game, Remote players, Tournament system, AI Opponent, Game customization. (Module ที่แนะนำ: Web-based game(เว็บเกม), Remote players(เล่นข้ามเครื่องได้), Tournament system(ระบบแข่งขันแบบทัวร์นาเมนต์), AI Opponent(บอทฝั่งตรงข้าม) และ Game customization(ระบบปรับแต่งการเล่นเกม))
     - Point potential: 14+ points (ทั้งหมด 14 คะแนน)
 - Online Chess Platform: Real-time chess with matchmaking, ELO rating, game analysis, and spectator mode. (เกมหมากรุก ออนไลน์ มีระบบจับคู่, คิดคะแนนลำดับ, วิเคราะห์กระดาน/รูปเกม และ โหมดรับชมการแข่งขัน)
-      - Suggested modules: Web-based game, Remote players, AI Opponent, Spectator mode, Game statistics (module ที่แนะนำ: Web-based game(เว็บเกม), Remote players(เล่นข้ามเครื่องได้), AI Opponent(บอทฝั่งตรงข้าม), Spectator mode(โหมดคนดู) และ Game statistics(สถิติที่ผู้เล่นชนะ/แพ้))
-      - Point potential: 15+ points (ทั้งหมด 15 คะแนน)
+  - Suggested modules: Web-based game, Remote players, AI Opponent, Spectator mode, Game statistics (module ที่แนะนำ: Web-based game(เว็บเกม), Remote players(เล่นข้ามเครื่องได้), AI Opponent(บอทฝั่งตรงข้าม), Spectator mode(โหมดคนดู) และ Game statistics(สถิติที่ผู้เล่นชนะ/แพ้))
+    - Point potential: 15+ points (ทั้งหมด 15 คะแนน)
 - Card Game Arena: Multiplayer card games (Poker, Uno, etc.) with tournaments
 and leaderboards. (เกมการ์ด ที่เล่นได้หลายคน เช่น โป๊กเกอร์, Uno และ อื่นๆ ที่มีระบบ แข่งขันแบบ tournaments และ สรุปคะแนนทั้ง server)
-      - Suggested modules: Web-based game, Multiplayer 3+, Tournament system,
+    - Suggested modules: Web-based game, Multiplayer 3+, Tournament system,
 Gamification (Module ที่แนะนำ: Web-based game(เว็บเกม), Multiplayer 3+(เล่นได้สามคนขึ้นไป), Tournament system(ระบบแข่งขันแบบทัวร์นาเมนต์), Gamification(ระบบไต่ระดับ))
 - Battle Royale Mini-Game: Simple browser-based battle royale game with mul
 tiple players. (เกมแนวเล่นหลายๆคน ในสนามแข่งเดียวกัน แต่คนที่รอดคนสุดท้ายคือผู้ชนะ)
