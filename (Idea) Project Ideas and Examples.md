@@ -19,7 +19,7 @@ Total: 14 points (ทั้งหมด 14 คะแนน)
 ## V.2 Gaming Projects
 
 These projects focus on interactive gameplay and user competition (โปรเจคพวกนี้จะเน้นเกมที่ตอบสนองทันทีแบบ real-time และ เกมแนวแบบแข่งขันกันมีฝั่งตรงข้าม):
-    - Multiplayer Pong: Classic Pong with tournaments, remote play, AI opponents, and power-ups. (เกมปองปกจิ มีการแข่งขันแบบทัวร์นาเมนต์, เล่นข้ามเครื่องได้, มี บอทฝั่งตรงข้าง และ สามารถเพิ่มพลังได้) \n
+    - Multiplayer Pong: Classic Pong with tournaments, remote play, AI opponents, and power-ups. (เกมปองปกจิ มีการแข่งขันแบบทัวร์นาเมนต์, เล่นข้ามเครื่องได้, มี บอทฝั่งตรงข้าง และ สามารถเพิ่มพลังได้) \
     - Suggested modules: Web-based game, Remote players, Tourment system, AI Opponent, Game customization. (Module ที่แนะนำแล้ว:  Web-based game, Remote players, Tourment system, AI Opponent และ Game customization.)
     - Point potential: 14+ points (ทั้งหมด 14 คะแนน)
     - Online Chess Platform: Real-time chess with matchmaking, ELO rating, game analysis, and spectator mode. ()
