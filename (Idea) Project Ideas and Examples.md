@@ -24,7 +24,7 @@ These projects focus on interactive gameplay and user competition (โปรเ�
 
 - Multiplayer Pong: Classic Pong with tournaments, remote play, AI opponents, and power-ups. (เกมปองปกติ มีการแข่งขันแบบทัวร์นาเมนต์, เล่นข้ามเครื่องได้, มีบอทฝั่งตรงข้าม และสามารถเพิ่มพลังได้)
     - Suggested modules: Web-based game, Remote players, Tournament system, AI Opponent, Game customization. (Module ที่แนะนำ: Web-based game(เว็บเกม), Remote players(เล่นข้ามเครื่องได้), Tournament system(ระบบแข่งขันแบบทัวร์นาเมนต์), AI Opponent(บอทฝั่งตรงข้าม) และ Game customization(ระบบปรับแต่งการเล่นเกม))
-    - Point potential: 14+ points (ทั้งหมด 14 คะแนน)
+     - Point potential: 14+ points (ทั้งหมด 14 คะแนน)
 - Online Chess Platform: Real-time chess with matchmaking, ELO rating, game analysis, and spectator mode. (เกมหมากรุก ออนไลน์ มีระบบจับคู่, คิดคะแนนลำดับ, วิเคราะห์กระดาน/รูปเกม และ โหมดรับชมการแข่งขัน)
   - Suggested modules: Web-based game, Remote players, AI Opponent, Spectator mode, Game statistics (module ที่แนะนำ: Web-based game(เว็บเกม), Remote players(เล่นข้ามเครื่องได้), AI Opponent(บอทฝั่งตรงข้าม), Spectator mode(โหมดคนดู) และ Game statistics(สถิติที่ผู้เล่นชนะ/แพ้))
     - Point potential: 15+ points (ทั้งหมด 15 คะแนน)
