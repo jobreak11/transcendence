@@ -1,0 +1,49 @@
+
+services:
+  nginx:
+    build: ./dockers/nginx
+    environment:
+      TRANSCENDENCE_NGINX_CERT_DIR: ${NGINX_CERT_DIR}
+      TRANSCENDENCE_NGINX_EXPOSE_PORT: ${NGINX_EXPOSE_PORT}
+      TRANSCENDENCE_NEXTJS_EXPOSE_PORT: ${NEXTJS_EXPOSE_PORT}
+      TRANSCENDENCE_DOMAIN_NAME: ${TRANSCENDENCE_DOMAIN_NAME}
+    networks:
+      - transcendence-network
+    restart: unless-stopped
+    ports:
+      - "${NGINX_BIND_PORT}:${NGINX_EXPOSE_PORT}"
+    depends_on:
+      nextjs:
+        condition: service_healthy
+        restart: true
+
+# nextjs frontend
+  nextjs:
+    build: ./dockers/nextjs
+    networks:
+      - transcendence-network
+    environment:
+      TRANSCENDENCE_NEXTJS_EXPOSE_PORT: ${NEXTJS_EXPOSE_PORT}
+      TRANSCENDENCE_DOMAIN_NAME: ${TRANSCENDENCE_DOMAIN_NAME}
+    restart: unless-stopped
+    volumes:
+      - ${NEXTJS_DATA_DIR}:/nextjs
+
+    healthcheck:	
+      test: [ "CMD-SHELL", "/healthcheckscript.sh" ]
+      interval: 10s
+      retries: 10
+      start_period: 60s
+      timeout: 10s
+
+
+
+
+
+    
+
+    
+
+networks:
+  transcendence-network:
+    driver: bridge
