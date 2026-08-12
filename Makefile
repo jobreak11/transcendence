@@ -43,10 +43,10 @@ ${DOCKER_COMPOSE_UP_STAMPFILE}: ${DOCKER_COMPOSE_YAML_FILE} | ${TEMP_DIR} ${NEXT
 
 clean:
 	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" stop
+	rm -rf ${DOCKER_COMPOSE_UP_STAMPFILE}
 
 fclean: clean
 	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" down
-	rm -rf ${DOCKER_COMPOSE_UP_STAMPFILE}
 
 re: fclean all
 
