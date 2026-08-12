@@ -30,7 +30,7 @@ services:
       - ${NEXTJS_DATA_DIR}:/nextjs
 
     healthcheck:	
-      test: [ "CMD-SHELL", "/healthcheckscript.sh" ]
+      test: [ "CMD-SHELL", "/app/healthcheckscript.sh" ]
       interval: 10s
       retries: 10
       start_period: 60s

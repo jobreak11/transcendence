@@ -31,7 +31,7 @@ node -e '
   fs.writeFileSync(filePath, JSON.stringify(pkg, null, 2) + "\n");
 '
 
-npm i tailwindcss @tailwindcss/postcss postcss autoprefixer motion @babylonjs/core @babylonjs/loaders
+npm i tailwindcss @tailwindcss/postcss postcss autoprefixer motion tree @types/three @react-three/fiber @react-three/drei clsx
 
 node -e '
   const fs = require("fs");
@@ -41,6 +41,7 @@ node -e '
 cat <<EOF > ./next.config.js
 module.exports = {
     allowedDevOrigins: ['${TRANSCENDENCE_DOMAIN_NAME}'],
+    transpilePackages: ['three'],
 }
 EOF
 
