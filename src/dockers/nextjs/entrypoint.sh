@@ -76,6 +76,12 @@ export default function Page() {
 
 EOF
 
+# test for import tailwindcss
+cat <<EOF > ./app/globals.css
+
+@import "tailwindcss";
+EOF
+
 fi
 
 fi
