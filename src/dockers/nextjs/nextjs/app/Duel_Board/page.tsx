@@ -1,3 +1,4 @@
+import { div } from "motion/react-client";
 import Link from "next/link";
 
 // literal type
@@ -15,6 +16,20 @@ let is_placed_in_slot:boolean = false; // logic for placing slot in card status
 let currentPhase: GamePhase = "Main_Phase"
 
 
+
+function BoardSlot() {
+	return (
+		<div className='absolute bottom-10 w-full flex justify-center gap-6 px-4'>
+			<div className="w-[100px] h-[140px] bg-slate-900 border-2 border-dashed border-slate-500 rounded-lg"></div>
+			<div className="w-[100px] h-[140px] bg-slate-900 border-2 border-dashed border-slate-500 rounded-lg"></div>
+			<div className="w-[100px] h-[140px] bg-slate-900 border-2 border-dashed border-slate-500 rounded-lg"></div>
+			<div className="w-[100px] h-[140px] bg-slate-900 border-2 border-dashed border-slate-500 rounded-lg"></div>
+			<div className="w-[100px] h-[140px] bg-slate-900 border-2 border-dashed border-slate-500 rounded-lg"></div>
+		</div>
+		
+	)
+}
+
 export default function Page() {
 	return (
 		<div className='bg-black min-h-screen text-white flex flex-col items-center justify-center p-10'>
@@ -24,6 +39,7 @@ export default function Page() {
 			<Link href='../' className='bg-slate-700 p-3 rounded-xl hover:border-2 hover:border-white transition-all'>
 					Back to Home
 			</Link>
+			<BoardSlot />
 		</div>
 	)
 }

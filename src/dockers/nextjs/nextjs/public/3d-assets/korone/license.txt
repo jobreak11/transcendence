@@ -1,0 +1,11 @@
+Model Information:
+* title:	Inugami Korone
+* source:	https://sketchfab.com/3d-models/inugami-korone-79ac8befcfb94ac8a0b1bf546052ab69
+* author:	MMSkecthfab (https://sketchfab.com/MMDSKETCH)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Inugami Korone" (https://sketchfab.com/3d-models/inugami-korone-79ac8befcfb94ac8a0b1bf546052ab69) by MMSkecthfab (https://sketchfab.com/MMDSKETCH) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
