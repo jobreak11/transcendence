@@ -19,6 +19,8 @@ export default function Page() {
         </p>
       </div>
       <Link href='/Duel_Board' className='bg-slate-600 p-4 rounded-2xl hover:border-2'>Duel Board</Link>
+      <br/>
+      <Link href='/tic-tac-toe' className='bg-slate-600 p-4 rounded-2x1 hover:border-2'>Tic-Tac-Toe</Link>
     </div>
   )
 }
