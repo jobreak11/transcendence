@@ -20,7 +20,18 @@ function Square({ square, onSquareClick }: SquareProps) {
 export default function Board() {
   const [xIsNext, setXIsNext] = useState(true);
   const [squares, setSquares] = useState(Array(9).fill(null));
+  const winner: number | string | null = calculateWinner(squares);
+  let status:string;
+  if (winner){
+    status = "Winner: " + winner;
+  }
+  else {
+    status = "Next player: " + (xIsNext ? "X" : "O");
+  }
   function handleClick(i:number){
+    if (squares[i]){
+      return ;
+    }
     const nextSquares = squares.slice();
     if (xIsNext) {
       nextSquares[i] = "X";
@@ -33,6 +44,7 @@ export default function Board() {
   }
   return (
     <div className="flex flex-col items-center mt-10">
+      <div className="status">{status}</div>
       <div className="flex">
         <Square square={squares[0]} onSquareClick={() => handleClick(0)}/>
         <Square square={squares[1]} onSquareClick={() => handleClick(1)}/>
@@ -52,4 +64,23 @@ export default function Board() {
   );
 }
 
+function calculateWinner(squares){
+  const lines: number[][] = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
+  ];
+  for (let i = 0; i < lines.length; i++){
+    const [a, b, c] = lines[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a];
+    }
+  }
+  return null;
+}
 
