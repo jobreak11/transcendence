@@ -8,6 +8,9 @@ set -eu
 CERT_DIR=${TRANSCENDENCE_NGINX_CERT_DIR}
 TRANSCENDENCE_EXPOSE_PORT=${TRANSCENDENCE_NGINX_EXPOSE_PORT}
 NEXTJS_PORT=${TRANSCENDENCE_NEXTJS_EXPOSE_PORT}
+NESTJS_PORT=${TRANSCENDENCE_NESTJS_EXPOSE_PORT}
+DOZZLE_PORT=${TRANSCENDENCE_DOZZLE_EXPOSE_PORT}
+REDIS_INSIGHT_PORT=${TRANSCENDENCE_REDIS_INSIGHT_EXPOSE_PORT}
 NGINX_DOMAIN_NAME_TRANSC=${TRANSCENDENCE_DOMAIN_NAME}
 
 TRANSCENDENCE_INIT_FILE="./transcendence_nginx_init"
@@ -34,7 +37,10 @@ sed -i -E -e "s|^([[:space:]]+)ssl_certificate[[:space:]]+.*;$|\1ssl_certificate
 	-e "s|^([[:space:]]+)ssl_certificate_key[[:space:]]+.*;$|\1ssl_certificate_key ${CERT_DIR}/server.key;|" \
 	-e "s|^([[:space:]]+)listen[[:space:]]+[0-9]+[[:space:]]ssl;$|\1listen ${TRANSCENDENCE_NGINX_EXPOSE_PORT} ssl;|" \
 	-e "s|^([[:space:]]+)listen[[:space:]]+\[\:\:\]\:[0-9]+[[:space:]]ssl;$|\1listen [::]:${TRANSCENDENCE_NGINX_EXPOSE_PORT} ssl;|" \
-  -e "s|^([[:space:]]+)proxy_pass[[:space:]]+.*;$|\1proxy_pass http://nextjs:${NEXTJS_PORT};|" \
+  -e "s|^([[:space:]]+)proxy_pass[[:space:]]+http://nextjs.*;$|\1proxy_pass http://nextjs:${NEXTJS_PORT};|" \
+  -e "s|^([[:space:]]+)proxy_pass[[:space:]]+http://nestjs.*;$|\1proxy_pass http://nestjs:${NESTJS_PORT};|" \
+  -e "s|^([[:space:]]+)proxy_pass[[:space:]]+http://dozzle.*;$|\1proxy_pass http://dozzle:${DOZZLE_PORT};|" \
+  -e "s|^([[:space:]]+)proxy_pass[[:space:]]+http://redisinsight.*;$|\1proxy_pass http://redisinsight:${REDIS_INSIGHT_PORT};|" \
   -e "s|^([[:space:]]+)server_name[[:space:]]+.*;$|\1server_name ${NGINX_DOMAIN_NAME_TRANSC};|" \
 	"${TRANSCENDENCE_NGINX_CONF_PATH}"
 

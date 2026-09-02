@@ -1,6 +1,1 @@
-nextjs/.next
-nextjs/node_modules
-*.json
-next.config.js
-next-env.d.ts
-postcss.config.mjs
+data/

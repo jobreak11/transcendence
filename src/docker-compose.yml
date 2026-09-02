@@ -1,11 +1,15 @@
 
 services:
   nginx:
-    build: ./dockers/nginx
+    build:
+      context: ./dockers/nginx
     environment:
       TRANSCENDENCE_NGINX_CERT_DIR: ${NGINX_CERT_DIR}
       TRANSCENDENCE_NGINX_EXPOSE_PORT: ${NGINX_EXPOSE_PORT}
       TRANSCENDENCE_NEXTJS_EXPOSE_PORT: ${NEXTJS_EXPOSE_PORT}
+      TRANSCENDENCE_NESTJS_EXPOSE_PORT: ${NESTJS_EXPOSE_PORT}
+      TRANSCENDENCE_DOZZLE_EXPOSE_PORT: ${DOZZLE_EXPOSE_PORT}
+      TRANSCENDENCE_REDIS_INSIGHT_EXPOSE_PORT: ${REDIS_INSIGHT_PORT}
       TRANSCENDENCE_DOMAIN_NAME: ${TRANSCENDENCE_DOMAIN_NAME}
     networks:
       - transcendence-network
@@ -16,33 +20,155 @@ services:
       nextjs:
         condition: service_healthy
         restart: true
+      # nestjs:
+      #   condition: service_healthy
+      #   restart: true
+
+  nestjs:
+    build:
+      context: ./dockers/nestjs
+    networks:
+      - transcendence-network
+    environment:
+      PORT: ${NESTJS_EXPOSE_PORT}
+      POSTGRES_PASSWORD_FILE: /run/secrets/db-password
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PORT: ${POSTGRES_EXPOSE_PORT}
+      POSTGRES_HOST: postgresql
+      POSTGRES_SYNC: ${POSTGRES_SYNCHRONIZE}
+
+    restart: unless-stopped
+    volumes:
+      - ${NESTJS_DATA_DIR}:/app/nestjs
+    healthcheck:	
+      test: [ "CMD-SHELL", "/app/healthcheckscript.sh" ]
+      interval: 15s
+      retries: 10
+      start_period: 180s
+      timeout: 5s
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    secrets:
+      - db-password
+
 
 # nextjs frontend
   nextjs:
-    build: ./dockers/nextjs
+    build:
+      context: ./dockers/nextjs
     networks:
       - transcendence-network
     environment:
       TRANSCENDENCE_NEXTJS_EXPOSE_PORT: ${NEXTJS_EXPOSE_PORT}
       TRANSCENDENCE_DOMAIN_NAME: ${TRANSCENDENCE_DOMAIN_NAME}
+      TRANSCENDENCE_NESTJS_EXPOSE_PORT: ${NESTJS_EXPOSE_PORT}
     restart: unless-stopped
     volumes:
-      - ${NEXTJS_DATA_DIR}:/nextjs
-
+      - ${NEXTJS_DATA_DIR}:/app/nextjs
     healthcheck:	
       test: [ "CMD-SHELL", "/app/healthcheckscript.sh" ]
       interval: 10s
       retries: 10
-      start_period: 60s
+      start_period: 120s
       timeout: 10s
+    depends_on:
+      nestjs:
+       condition: service_healthy
 
+  postgresql:
+    build:
+      context: ./dockers/postgresql
+    restart: unless-stopped
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/db-password
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      PGPORT: ${POSTGRES_EXPOSE_PORT}
+      PGDATA: ${POSTGRES_DATA_PATH}
+    networks:
+      - transcendence-network
+    volumes:
+      - postgresql_data:${POSTGRES_DATA_PATH}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 120s
+    secrets:
+      - db-password
 
+  adminer:
+    shm_size: 128mb
+    build:
+      context: ./dockers/adminer
+    restart: unless-stopped
+    networks:
+      - transcendence-network
+    depends_on:
+      postgresql:
+        condition: service_healthy  
 
+  redis:
+    build:
+      context: ./dockers/redis
+    restart: unless-stopped
+    volumes:
+      - ${REDIS_DATA_DIR}:/data
+    environment:
+      TRANSCENDENCE_REDIS_PORT: ${REDIS_EXPOSE_PORT}
+    networks:
+      - transcendence-network
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -p ${REDIS_EXPOSE_PORT} ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
 
-
+  dozzle:
+    build:
+      context: ./dockers/dozzle
+    restart: unless-stopped
+    environment:
+      DOZZLE_ADDR: ":${DOZZLE_EXPOSE_PORT}"
+      DOZZLE_BASE: /dozzle
+    networks:
+      - transcendence-network
+    volumes:
+      - ${DOCKER_SOCKET_PATH}:/var/run/docker.sock:ro
     
+  redisinsight:
+    build:
+      context: ./dockers/redis-insight
+    restart: unless-stopped
+    environment:
+      RIPORT: ${REDIS_INSIGHT_PORT}
+      RI_PROXY_PATH: /redis-insight
+    networks:
+      - transcendence-network
+    depends_on:
+      redis:
+        condition: service_healthy
 
-    
+
+  
+  # postgresql
+  # adminer
+  # redis
+  # redis insight
+
+volumes:
+  postgresql_data:
+
+secrets:
+  db-password:
+    file: ./secrets/${POSTGRES_DB_PASSWORD_SECRET_FILENAME}
 
 networks:
   transcendence-network:

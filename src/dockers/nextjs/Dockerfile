@@ -1,10 +1,13 @@
 FROM node:alpine
-RUN apk update && apk add --no-cache grep sed
+RUN apk update && apk add --no-cache grep sed shadow su-exec
 WORKDIR /app
-COPY --chown=node:node ./entrypoint.sh ./entrypoint.sh
-COPY --chown=node:node ./healthcheckscript.sh ./healthcheckscript.sh
+# && chmod -R 777 /home/node/app
+COPY ./saves ./saves
+COPY ./entrypoint.sh ./entrypoint.sh
+COPY ./healthcheckscript.sh ./healthcheckscript.sh
 RUN chmod +x ./entrypoint.sh ./healthcheckscript.sh
+# RUN chmod -R 777 /home/node/app
+# USER node
 
-USER node
-
-CMD [ "./entrypoint.sh" ]
+ENTRYPOINT [ "./entrypoint.sh" ]
+CMD [ "npm", "run", "dev" ]
