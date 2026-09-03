@@ -11,6 +11,7 @@ async function bootstrap() {
     .setTitle('Backend API')
     .setDescription('NestJS Core API Documention')
     .setVersion('1.0')
+    .addServer('/nestjs', 'Relative Base Path')
     .addBearerAuth()
     .build()
 
