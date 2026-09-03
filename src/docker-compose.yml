@@ -32,6 +32,8 @@ services:
     environment:
       PORT: ${NESTJS_EXPOSE_PORT}
       POSTGRES_PASSWORD_FILE: /run/secrets/db-password
+      NESTJS_JWT_SECRET_FILE: /run/secrets/jwt-key
+      NESTJS_JWT_EXPIRE_TIME: ${NESTJS_JWT_EXPIRE_TIME}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_PORT: ${POSTGRES_EXPOSE_PORT}
@@ -54,6 +56,7 @@ services:
         condition: service_healthy
     secrets:
       - db-password
+      - jwt-key
 
 
 # nextjs frontend
@@ -169,6 +172,8 @@ volumes:
 secrets:
   db-password:
     file: ./secrets/${POSTGRES_DB_PASSWORD_SECRET_FILENAME}
+  jwt-key:
+    file: ./secrets/${NESTJS_JWT_KEY_RANDOM_SECRET_FILENAME}
 
 networks:
   transcendence-network:

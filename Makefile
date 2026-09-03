@@ -141,6 +141,7 @@ save-nextjs: | ${NEXTJS_SAVES_DIR} ${NEXTJS_DATA_DIR}/src ${NEXTJS_DATA_DIR}/pub
 
 save-nestjs: | ${NESTJS_SAVES_DIR} ${NESTJS_DATA_DIR}/src
 	cp -r ${NESTJS_DATA_DIR}/src ${NESTJS_SAVES_DIR} || true
+	cp -r ${NESTJS_DATA_DIR}/nest-cli.json ${NESTJS_SAVES_DIR} || true
 
 save: save-nextjs save-nestjs
 

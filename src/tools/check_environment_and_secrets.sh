@@ -2,7 +2,7 @@
 
 set -eu
 
-OPENSSL_RANDOM_PASSWORD_LENGTH=30
+#OPENSSL_RANDOM_PASSWORD_LENGTH=30
 DOCKER_COMPOSE_DIR="$1"
 ENV_EXAMPLE_PATH="$2"
 SECRETS_DIR_PATH="$3"
@@ -205,6 +205,7 @@ enter empty string for default value\n"
 # in which password must stored in secrets 
 check_secret() {
   local secret_file_path="$1"
+  local minimum_password_length="$2"
   local password_retry_max=3
   local password_retry_count=0
 
@@ -219,14 +220,14 @@ check_secret() {
     password_retry_count=$((password_retry_count + 1))
 
 
-    if [ ${#password} -ge 8 ]; then
+    if [ ${#password} -ge "${minimum_password_length}" ]; then
      # password than longer than 8 characters is allowed
       break
     fi
 
     if [ ${AUTOMATIC_INSTALL} = 1 ]; then
       printf "auto-generated password by openssl => ${secret_file_path}\n"
-      password="$(openssl rand -base64 ${OPENSSL_RANDOM_PASSWORD_LENGTH})"
+      password="$(openssl rand -base64 ${minimum_password_length})"
       break
     else
       printf "Please Enter Password for ${secret_file_path} (leave blank will auto generated using openssl)\n"
@@ -236,19 +237,19 @@ check_secret() {
       stty echo
       printf "\n"
       if [ -z "${user_password_input}" ]; then
-        password="$(openssl rand -base64 ${OPENSSL_RANDOM_PASSWORD_LENGTH})"
+        password="$(openssl rand -base64 ${minimum_password_length})"
         break
       else
         password="${user_password_input}"
       fi
 
-      if [ ${#password} -lt 8 ]; then
-        printf "Password cannot less than 8 characters\n"
+      if [ ${#password} -lt "${minimum_password_length}" ]; then
+        printf "Password cannot less than ${minimum_password_length} characters\n"
       fi
     fi
   done
 
-  if [ ${#password} -lt 8 ]; then
+  if [ ${#password} -lt "${minimum_password_length}" ]; then
    # password than longer than 8 characters is allowed
    printf "failed to password => ${secret_file_path} \n" >&2
    return 1
@@ -306,6 +307,10 @@ while IFS= read -r line <&3 || [ -n "$line" ]; do
         sed -i -E "s|(^${key}=).*$|\1${current_docker_socket_path}|" "${ENV_FILE}"
       fi
     
+    elif printf "${key}" | grep -qP "^.*RANDOM_SECRET_FILENAME"; then
+      check_env "${key}" "${value}" "check_normal_value_function"
+      combined_secret_path="${SECRETS_DIR_PATH}/${USER_INPUT_OUT}"
+      check_secret "${combined_secret_path}" "80"
   
     elif printf "${key}" | grep -qP "^.*SECRET_FILENAME"; then
     # this will promt user to type the password or auto generate the password
@@ -316,7 +321,7 @@ while IFS= read -r line <&3 || [ -n "$line" ]; do
       # and append like this
       combined_secret_path="${SECRETS_DIR_PATH}/${USER_INPUT_OUT}"
 
-      check_secret "${combined_secret_path}"
+      check_secret "${combined_secret_path}" "12"
        
 
 
