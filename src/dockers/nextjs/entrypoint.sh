@@ -55,7 +55,7 @@ if [ ! -d "./node_modules" ] || [ -z "$(ls -A ./node_modules)" ]; then
 
 run_suexec ${USER_ID} ${GROUP_ID} mkdir -p src/app node_modules
 
-run_suexec ${USER_ID} ${GROUP_ID} npm i next@latest react@latest react-dom@latest
+run_suexec ${USER_ID} ${GROUP_ID} pnpm add next@latest react@latest react-dom@latest
 
 
 run_suexec ${USER_ID} ${GROUP_ID} node -e "
