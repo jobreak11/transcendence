@@ -16,6 +16,7 @@ export async function signUp(state: FormState, formData: FormData)
   if (!validationFields.success) {
     return ({
       error: z.treeifyError(validationFields.error),
+      //error: validationFields.error.flatten().fieldErrors;
     });
   }
 

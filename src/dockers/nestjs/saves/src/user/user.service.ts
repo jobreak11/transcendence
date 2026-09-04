@@ -43,10 +43,11 @@ export class UserService {
     return this.UserRepo.findOne({
       where: { id },
       select: {
+        id: true,
         email: true,
         createdAt: true,
         avatarUrl: true,
-        hashedRefreshToken: true,
+        //hashedRefreshToken: true,
         role: true
       }
     })
