@@ -1,24 +1,4 @@
-import { zstdCompress } from "node:zlib";
 import z from 'zod'
-
-export type FormState = | {
-  error?: {
-    errors: string[];
-    properties?: {
-      displayName?: {
-        errors: string[]
-      },
-      email?: {
-        errors: string[]
-      },
-      password?: {
-        errors: string[]
-      },
-    }
-
-  };
-  message?: string;
-} | undefined
 
 export const SignupFormSchema = z.object({
   displayName: z
@@ -35,4 +15,12 @@ export const SignupFormSchema = z.object({
     .regex(/[0-9]/, {error: 'Contain at least one number.'})
     .regex(/[^a-zA-Z0-9]/, {error: 'Contain at least one special Character.'})
     .trim(),
+})
+
+export const LoginFormSchema = z.object({
+  email: z.email({ error: 'need a valid email' }).trim(),
+  password: z
+    .string()
+    .min(1, {error: "can't be empty password"})
+    .trim()
 })

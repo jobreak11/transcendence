@@ -1,4 +1,6 @@
-import { components } from "./api.js";
+import type { components } from "./api.js";
 
-export type CreateProfileDto = components['schemas']['CreateProfileDto'];
-export type UpdateProfileDto = components['schemas']['UpdateProfileDto'];
+export type CreateUserDto = components['schemas']['CreateUserDto'];
+export type LoginDto = components['schemas']['LoginDto'];
+export type LoginSuccessResponseDto = components['schemas']['LoginSuccessResponseDto']
+export type User = components['schemas']['User'];

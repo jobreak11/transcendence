@@ -1,2 +1,2 @@
 
-export const BACKEND_URL = `https://localhost:${process.env.TRANSCENDENCE_NESTJS_EXPOSE_PORT}`;
+export const BACKEND_URL = `http://nestjs:${process.env.TRANSCENDENCE_NESTJS_EXPOSE_PORT}`;
