@@ -151,5 +151,8 @@ go-postgres: ${DOCKER_COMPOSE_START_STAMPFILE}
 go-nestjs: ${DOCKER_COMPOSE_START_STAMPFILE}
 	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" exec nestjs ./entrypoint.sh /bin/sh
 
+go-nextjs: ${DOCKER_COMPOSE_START_STAMPFILE}
+	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" exec nextjs ./entrypoint.sh /bin/sh
 
-.PHONY: all start stop build down re purge nuke save-nextjs save-nestjs save ${NAME} go-postgres go-nestjs
+
+.PHONY: all start stop build down re purge nuke save-nextjs save-nestjs save ${NAME} go-postgres go-nestjs go-nextjs

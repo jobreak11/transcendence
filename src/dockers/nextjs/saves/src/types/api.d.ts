@@ -11,6 +11,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Basic Hello world test
+         * @description the most basic simple get to the backend service
+         */
         get: operations["AppController_getHello"];
         put?: never;
         post?: never;
@@ -29,6 +33,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Register a new user account */
         post: operations["UserController_create"];
         delete?: never;
         options?: never;
@@ -43,6 +48,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * get the current user profile
+         * @description use Authentication: Bearer <JWT token> in this get request     and the backend will retrieve the user profile infomation
+         */
         get: operations["UserController_getProfile"];
         put?: never;
         post?: never;
@@ -62,10 +71,31 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
+        /**
+         * Delete user from the database
+         * @description takes access_token from Authorization: Bearer header     and allow only role ADMIN and EDITOR to delete user
+         */
         delete: operations["UserController_remove"];
         options?: never;
         head?: never;
+        /** Not implemented yet. */
         patch: operations["UserController_update"];
+        trace?: never;
+    };
+    "/auth/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_registerUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/auth/login": {
@@ -77,7 +107,51 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * User Login
+         * @description Accepts email and password, verifies credentials,     and returns a JWT.
+         */
         post: operations["AuthController_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh JWT Token API
+         * @description takes the refresh token from 'Authorization: Bearer refreshToken'     in the header of the request
+         */
+        post: operations["AuthController_refreshToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/signout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke the jwt refresh token
+         * @description take the access_token from Authoriazation: Bearer header     from the POST request and set the hashedRefeshToken in the user table to     NULL
+         */
+        post: operations["AuthController_signOut"];
         delete?: never;
         options?: never;
         head?: never;
@@ -89,20 +163,106 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         CreateUserDto: {
-            /** Format: email */
+            /**
+             * Format: email
+             * @example alex@example.com
+             */
             email: string;
+            /** @example SecurePassword123 */
             password: string;
-            /** Format: uri */
-            avatarUrl?: string;
+            /** @example InwZa007 */
             displayName?: string;
         };
+        User: {
+            id: number;
+            email: string;
+            password: string;
+            /** @enum {string} */
+            role: "ADMIN" | "EDITOR" | "USER";
+            hashedRefreshToken: string | null;
+            displayName: string;
+            avatarUrl: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        UnauthorizedErrorDto: {
+            /**
+             * @description Http error status code
+             * @example 401
+             */
+            statusCode: number;
+            /** @example Unauthorized */
+            message: string;
+        };
+        GetUserProfileDto: {
+            /**
+             * @description your email
+             * @example user@example.com
+             */
+            email: string;
+            /**
+             * Format: date-time
+             * @description date that your account was created
+             * @example Date something dunno
+             */
+            createdAt: string;
+            /**
+             * @description your url to retrieve image of your avatar
+             * @example /asdf/sdf/asdf.asdf
+             */
+            avatarUrl: string;
+        };
         UpdateUserDto: {
-            /** Format: email */
+            /**
+             * Format: email
+             * @example alex@example.com
+             */
             email?: string;
+            /** @example SecurePassword123 */
             password?: string;
-            /** Format: uri */
-            avatarUrl?: string;
+            /** @example InwZa007 */
             displayName?: string;
+        };
+        LoginDto: {
+            /**
+             * @description The email registered to the account
+             * @example user@example.com
+             */
+            email: string;
+            /**
+             * @description The plain-text user password.
+             * @example password123
+             */
+            password: string;
+        };
+        LoginSuccessResponseDto: {
+            /**
+             * @description The authenticated user ID
+             * @example 1
+             */
+            id: number;
+            /**
+             * @description Signed JWT access token
+             * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
+             */
+            token: string;
+            /**
+             * @description Refresh JWT token
+             * @example egrsa9876sgb9788sbhuisdfhoui...
+             */
+            refreshToken: string;
+        };
+        RefreshTokenSuccessDto: {
+            /**
+             * @description The authenticated user ID
+             * @example 1
+             */
+            id: number;
+            /**
+             * @description Signed JWT access token
+             * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
+             */
+            token: string;
         };
     };
     responses: never;
@@ -145,12 +305,22 @@ export interface operations {
             };
         };
         responses: {
+            /** @description User created successfully */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+            /** @description validation failed. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
                 };
             };
         };
@@ -164,12 +334,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description your user profile data */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["GetUserProfileDto"];
+                };
+            };
+            /** @description missing or invalid JWT token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
                 };
             };
         };
@@ -185,13 +365,28 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: {
+            /** @description successfully deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description invalid role, invalid Token, or expired Token */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": string;
+                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
                 };
+            };
+            /** @description invalid role? */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -220,7 +415,64 @@ export interface operations {
             };
         };
     };
+    AuthController_registerUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUserDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+        };
+    };
     AuthController_login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description User login credentials */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginDto"];
+            };
+        };
+        responses: {
+            /** @description Logged in successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginSuccessResponseDto"];
+                };
+            };
+            /** @description Invalid email or password */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
+                };
+            };
+        };
+    };
+    AuthController_refreshToken: {
         parameters: {
             query?: never;
             header?: never;
@@ -229,11 +481,50 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description upon success would return new JWT token back */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
+                content: {
+                    "application/json": components["schemas"]["RefreshTokenSuccessDto"];
+                };
+            };
+            /** @description invalid to expired refresh token. need to re-login for new generated one. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
+                };
+            };
+        };
+    };
+    AuthController_signOut: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description successfully logged out */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content?: never;
+            };
+            /** @description invalid access_token or expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
+                };
             };
         };
     };

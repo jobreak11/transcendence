@@ -69,3 +69,4 @@ This project use <b>NextJs</b> as frontend framework. It is a nodejs webserver. 
 NextJS works with `app/` directory with `layout.tsx` , `page.tsx` and `public/` directory which stores the static files.
 
 NextJS use <b>React</b>, <b>TypeScript</b>. So having general knowledges on these is required to understand NextJS.
+

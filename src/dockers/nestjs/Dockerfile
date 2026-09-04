@@ -1,6 +1,7 @@
 FROM node:alpine
 WORKDIR /app
-RUN apk update && apk add --no-cache grep shadow sed su-exec
+RUN apk update && apk add --no-cache grep shadow sed su-exec python3 make g++
+RUN npm install -g pnpm
 COPY ./saves ./saves
 COPY entrypoint.sh ./entrypoint.sh
 COPY healthcheckscript.sh ./healthcheckscript.sh

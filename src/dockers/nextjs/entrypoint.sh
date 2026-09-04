@@ -76,12 +76,12 @@ run_suexec ${USER_ID} ${GROUP_ID} node -e "
   fs.writeFileSync(filePath, JSON.stringify(pkg, null, 2) + \"\n\");
 "
 
-run_suexec ${USER_ID} ${GROUP_ID} npm i tailwindcss @tailwindcss/postcss postcss  \
+run_suexec ${USER_ID} ${GROUP_ID} pnpm add tailwindcss @tailwindcss/postcss postcss  \
   autoprefixer motion three@latest \
   @types/three @react-three/fiber@latest \
   @react-three/drei@latest clsx use-sound \
   leva @react-three/rapier openapi-typescript \
-  socket.io-client
+  socket.io-client zod
 
 run_suexec ${USER_ID} ${GROUP_ID} node -e '
   const fs = require("fs");

@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,16 +11,19 @@ export class UserService {
   constructor(@InjectRepository(User) private UserRepo: Repository<User>)
   {}
 
+  async updateHashedRefreshToken(userId: number, hashedRefreshToken: string | null){
+    return await this.UserRepo.update({id: userId}, {hashedRefreshToken});
+  }
+
   async create(createUserDto: CreateUserDto) {
     
     // need to check if same email must not creatable
     const foundUser = await this.findByEmail(createUserDto.email);
     if (foundUser)
-      throw new ForbiddenException(`cannot create new user with email ${createUserDto.email} already exists!`)
+      throw new ConflictException(`cannot create new user with email ${createUserDto.email} already exists!`)
 
     const user = await this.UserRepo.create(createUserDto)
     return await this.UserRepo.save(user);
-    return 'This action adds a new user';
   }
 
   async findByEmail(email: string) {
@@ -42,7 +45,9 @@ export class UserService {
       select: {
         email: true,
         createdAt: true,
-        avatarUrl: true
+        avatarUrl: true,
+        hashedRefreshToken: true,
+        role: true
       }
     })
 
