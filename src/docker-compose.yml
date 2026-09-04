@@ -137,6 +137,24 @@ services:
       retries: 10
       start_period: 90s
 
+  redis-commander:
+    build:
+      context: ./dockers/redis-insight
+    restart: unless-stopped
+    environment:
+      - PORT=${REDIS_INSIGHT_PORT:-8081}
+      - REDIS_HOSTS=transcendence:redis:${REDIS_EXPOSE_PORT}
+      - URL_PREFIX=/redis-insight
+    command:
+      - "--redis-host=redis"
+      - "--redis-port=${REDIS_EXPOSE_PORT}"
+      - "--redis-label=transcendence"
+    networks:
+      - transcendence-network
+    depends_on:
+      redis:
+        condition: service_healthy
+
   dozzle:
     build:
       context: ./dockers/dozzle
@@ -149,18 +167,6 @@ services:
     volumes:
       - ${DOCKER_SOCKET_PATH}:/var/run/docker.sock:ro
     
-  redisinsight:
-    build:
-      context: ./dockers/redis-insight
-    restart: unless-stopped
-    environment:
-      RIPORT: ${REDIS_INSIGHT_PORT}
-      RI_PROXY_PATH: /redis-insight
-    networks:
-      - transcendence-network
-    depends_on:
-      redis:
-        condition: service_healthy
 
 
   
