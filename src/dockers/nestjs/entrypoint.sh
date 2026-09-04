@@ -22,6 +22,7 @@ run_suexec() {
 
 export POSTGRES_PASSWORD="$(cat ${POSTGRES_PASSWORD_FILE})"
 export NESTJS_JWT_SECRET_KEY="$(cat ${NESTJS_JWT_SECRET_FILE})"
+export NESTJS_JWT_REFRESH_SECRET_KEY="$(cat ${NESTJS_JWT_REFRESH_SECRET_FILE})"
 
 WORK_DIRECTORY=/app
 NESTJS_DIR=${WORK_DIRECTORY}/nestjs
@@ -56,13 +57,18 @@ cd ${NESTJS_DIR}
 if [ ! -f "package.json" ]; then
   printf "Create new project\n"
   cd ${WORK_DIRECTORY}
-  run_suexec ${USER_ID} ${GROUP_ID} npx -y @nestjs/cli new nestjs -p npm --strict --skip-git
+  #run_suexec ${USER_ID} ${GROUP_ID} npx -y @nestjs/cli new nestjs -p npm --strict --skip-git
+  run_suexec ${USER_ID} ${GROUP_ID} pnpm dlx @nestjs/cli new nestjs -p pnpm --strict --skip-git
   cd ${NESTJS_DIR}
-  run_suexec ${USER_ID} ${GROUP_ID} npm i class-validator class-transformer @nestjs/swagger @nestjs/websockets \
+
+  run_suexec ${USER_ID} ${GROUP_ID} printf "allowBuilds:\n  argon2: true\n  '@scarf/scarf': true\n" > pnpm-workspace.yaml
+
+  run_suexec ${USER_ID} ${GROUP_ID} pnpm add class-validator class-transformer @nestjs/swagger @nestjs/websockets \
      @nestjs/platform-socket.io @nestjs/typeorm typeorm \
      pg @nestjs/config @nestjs/jwt passport-jwt @nestjs/passport passport passport-local \
-     bcrypt
-  run_suexec ${USER_ID} ${GROUP_ID} npm i -D @types/bcrypt @types/passport-local @types/passport-jwt
+     argon2
+  run_suexec ${USER_ID} ${GROUP_ID} pnpm add -D @types/bcrypt @types/passport-local @types/passport-jwt \
+    @types/ms
 
   if [ -d "/app/saves" ] && [ -n "$(ls -A /app/saves 2>/dev/null)" ]; then
     printf "Restoring project from /app/saves\n"
@@ -74,7 +80,7 @@ fi
 if [ ! -d "${NESTJS_DIR}/node_modules" ] || [ -z "$(ls -A ${NESTJS_DIR}/node_modules)" ]; then
   cd ${NESTJS_DIR}
   printf "Install Dependencies\n"
-    run_suexec ${USER_ID} ${GROUP_ID} npm install
+    run_suexec ${USER_ID} ${GROUP_ID} pnpm install
 fi
 
 cd ${NESTJS_DIR}

@@ -28,6 +28,12 @@ export class LoginSuccessResponseDto {
     description: 'Signed JWT access token'
   })
   token: string;
+
+  @ApiProperty({
+    example: 'egrsa9876sgb9788sbhuisdfhoui...',
+    description: 'Refresh JWT token'
+  })
+  refreshToken: string;
 }
 
 export class UnauthorizedErrorDto {

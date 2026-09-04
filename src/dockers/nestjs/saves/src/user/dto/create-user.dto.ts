@@ -13,11 +13,6 @@ export class CreateUserDto {
   @MinLength(8)
   password: string;
 
-  @IsString()
-  @IsUrl()
-  @IsOptional()
-  avatarUrl?: string;
-
   @ApiProperty({ example: 'InwZa007'})
   @IsString()
   @IsOptional()

@@ -4,11 +4,13 @@ import { ExtractJwt, Strategy } from "passport-jwt"
 import jwtConfig from "../config/jwt.config.js";
 import { AuthJwtPayload } from "../types/auth-jwtPayload.js";
 import { Inject, Injectable } from "@nestjs/common";
+import { AuthService } from "../auth.service.js";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    @Inject(jwtConfig.KEY) private jwtConfiguration: ConfigType<typeof jwtConfig>
+    @Inject(jwtConfig.KEY) private jwtConfiguration: ConfigType<typeof jwtConfig>,
+    private authService: AuthService
   ) {
     const secret = jwtConfiguration.secret?.toString();
     if (!secret) {
@@ -16,13 +18,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: secret
+      secretOrKey: secret,
+      ignoreExpiration: false
     })
   }
 
   validate(payload: AuthJwtPayload) {
-    return ({
-      id: payload.sub
-    });
+    const userId = payload.sub;
+    return this.authService.validateJwtUser(userId);
   }
 }
