@@ -136,10 +136,12 @@ nuke: purge
 	rm -rf ${TEMP_DIR}
 
 save-nextjs: | ${NEXTJS_SAVES_DIR} ${NEXTJS_DATA_DIR}/src ${NEXTJS_DATA_DIR}/public
+	rm -rf ${NEXTJS_SAVES_DIR}/* || true
 	cp -r ${NEXTJS_DATA_DIR}/public ${NEXTJS_SAVES_DIR} || true
 	cp -r ${NEXTJS_DATA_DIR}/src ${NEXTJS_SAVES_DIR} || true
 
 save-nestjs: | ${NESTJS_SAVES_DIR} ${NESTJS_DATA_DIR}/src
+	rm -rf ${NESTJS_SAVES_DIR}/* || true
 	cp -r ${NESTJS_DATA_DIR}/src ${NESTJS_SAVES_DIR} || true
 	cp -r ${NESTJS_DATA_DIR}/nest-cli.json ${NESTJS_SAVES_DIR} || true
 

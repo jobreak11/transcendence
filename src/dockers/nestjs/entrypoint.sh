@@ -63,11 +63,26 @@ if [ ! -f "package.json" ]; then
 
   run_suexec ${USER_ID} ${GROUP_ID} printf "allowBuilds:\n  argon2: true\n  '@scarf/scarf': true\n" > pnpm-workspace.yaml
 
-  run_suexec ${USER_ID} ${GROUP_ID} pnpm add class-validator class-transformer @nestjs/swagger @nestjs/websockets \
-     @nestjs/platform-socket.io @nestjs/typeorm typeorm \
-     pg @nestjs/config @nestjs/jwt passport-jwt @nestjs/passport passport passport-local \
-     argon2
   run_suexec ${USER_ID} ${GROUP_ID} pnpm add -D @types/bcrypt @types/passport-local @types/passport-jwt \
+    @types/ms
+
+  #@nestjs/common @nestjs/core @nestjs/platform-express reflect-metadata rxjs \
+  run_suexec ${USER_ID} ${GROUP_ID} pnpm add \
+  class-validator class-transformer \
+  @nestjs/swagger \
+  @nestjs/websockets @nestjs/platform-socket.io \
+  @nestjs/typeorm typeorm pg \
+  @nestjs/config \
+  @nestjs/jwt @nestjs/passport passport passport-jwt passport-local \
+  argon2
+
+    #@types/node \
+    #@types/express \
+  run_suexec ${USER_ID} ${GROUP_ID} pnpm add -D \
+    typescript@npm:@typescript/typescript6 \
+    @types/passport \
+    @types/passport-jwt \
+    @types/passport-local \
     @types/ms
 
   if [ -d "/app/saves" ] && [ -n "$(ls -A /app/saves 2>/dev/null)" ]; then

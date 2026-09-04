@@ -78,10 +78,13 @@ run_suexec ${USER_ID} ${GROUP_ID} node -e "
 
 run_suexec ${USER_ID} ${GROUP_ID} pnpm add tailwindcss @tailwindcss/postcss postcss  \
   autoprefixer motion three@latest \
-  @types/three @react-three/fiber@latest \
+  @react-three/fiber@latest \
   @react-three/drei@latest clsx use-sound \
   leva @react-three/rapier openapi-typescript \
   socket.io-client zod
+
+run_suexec ${USER_ID} ${GROUP_ID} pnpm add -D typescript@npm:@typescript/typescript6 @types/node @types/react \
+  @types/react-dom @types/three
 
 run_suexec ${USER_ID} ${GROUP_ID} node -e '
   const fs = require("fs");
@@ -93,13 +96,13 @@ cat <<EOF > ./next.config.js
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
+  transpilePackages: ['three'],
   experimental: {
     serverActions: {
       allowedOrigins: [
         '${TRANSCENDENCE_DOMAIN_NAME}',
-        'localhost',
+        'localhost:${TRANSCENDENCE_NGINX_BIND_PORT}',
       ],
-      transpilePackages: ['three'],
     },
   },
 };
@@ -118,7 +121,7 @@ cp -r /app/saves/* ./ || true
 # chmod -R 777 ./app || true
 # chmod -R 777 ./public || true
 
-if [ -z $(ls -A ./src/app) ]; then
+if [ -z "$(ls -A ./src/app)" ]; then
 
 cat <<EOF > ./app/layout.tsx
 import React from 'react'

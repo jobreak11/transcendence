@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
+import { BACKEND_URL } from '../../../lib/constants';
 
 export async function GET() {
 	try {
-		const res = await fetch(`http://nestjs:${process.env.TRANSCENDENCE_NESTJS_EXPOSE_PORT}/`)
+		const res = await fetch(`${BACKEND_URL}/`)
 
 		const data = await res.text();
 		return new NextResponse(data);
