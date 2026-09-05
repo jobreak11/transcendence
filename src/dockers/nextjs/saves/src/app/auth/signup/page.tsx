@@ -8,7 +8,7 @@ const SignUpPage = () => {
     text-black
     ">
       <h1 className="text-center text-2xl font-bold mb-4">
-        Sign In Page
+        Sign Up Page
       </h1>
 
       {/* sign up form  */}
