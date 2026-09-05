@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8" name="viewport" content="width=device-width,initial-scale=1" />
-<title>Magia Mathos - A 42 Transcendence Project</title>
+<title>Transcend 888 - A 42 Transcendence Project</title>
 	<style id="style-normalize" type="text/css">
 		html {
 			font-family: sans-serif;
@@ -47,8 +47,23 @@
 			font-style: italic;
 		}
 	</style>
+	<link rel="stylesheet" href="style.css">
 </head>
 <body>
-	:D
+	<div><h1 class="startheader">Transcend 888</h1></div>
+	<div class="centerblock">
+		<form id="loginForm">
+			<label for="loginEmail">E-mail:</label> <input type="email" id="loginEmail" name="email" required><br>
+			<label for="loginPassword">Password:</label> <input type="password" id="loginPassword" name="password" required><br>
+			<div class="row"><button id="loginSubmit" type="submit">Login</button> or <a href="#" id="showRegister">Register?</a></div>
+		</form>
+		<form id="registerForm" hidden>
+			<label for="displayname">Display Name:</label> <input type="text" id="displayname" name="displayname" required><br>
+			<label for="registerEmail">E-mail:</label> <input type="email" id="registerEmail" name="email" required><br>
+			<label for="registerPassword">Password:</label> <input type="password" id="registerPassword" name="password" required><br>
+			<div class="row"><button id="registerSubmit" type="submit">Register</button> or <a href="#" id="showLogin">Login?</a></div>
+		</form>
+	</div>
+	<script src="script.js" defer></script>
 </body>
 </html>
