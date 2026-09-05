@@ -1,5 +1,29 @@
 import z from 'zod'
 
+export type FormState = | 
+{
+  error?: {
+    errors: string[];
+    properties?: {
+      displayName?: {
+        errors: string[];
+      };
+      email?: {
+        errors: string[];
+      };
+      password?: {
+        errors: string[];
+      };
+    };
+  };
+  message?: string;
+  fields?: {
+    displayName?: string;
+    email?: string;
+  };
+} 
+| undefined;
+
 export const SignupFormSchema = z.object({
   displayName: z
     .string()
