@@ -1,0 +1,43 @@
+body {
+	background-color: #262626;
+	color: white;
+}
+
+input {
+	background-color: #2a2a2a;
+	color: white;
+	border: 1px solid #666;
+	border-radius: 6px;
+	padding: 4px 10px;
+}
+
+button {
+	background-color: red;
+	color: white;
+	font-weight: bold;
+	border: transparent;
+	border-radius: 6px;
+	padding: 6px 6px;
+}
+
+a {
+	color: white;
+}
+
+.startheader {
+	text-align: center;
+	font-family: 'Times New Roman', Times, serif;
+	font-weight: bold;
+	font-size: clamp(32px, 2vw + 1rem, 64px);
+	color: gold;
+}
+
+.centerblock {
+	align-self: center;
+	vertical-align: middle;
+	text-align: center;
+}
+
+.row {
+	margin-top: 6px;
+}
