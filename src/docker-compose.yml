@@ -41,6 +41,7 @@ services:
       POSTGRES_PORT: ${POSTGRES_EXPOSE_PORT}
       POSTGRES_HOST: postgresql
       POSTGRES_SYNC: ${POSTGRES_SYNCHRONIZE}
+      REDIS_EXPOSE_PORT: ${REDIS_EXPOSE_PORT}
 
     restart: unless-stopped
     volumes:
