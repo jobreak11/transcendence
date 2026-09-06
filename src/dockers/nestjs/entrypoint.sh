@@ -63,8 +63,8 @@ if [ ! -f "package.json" ]; then
 
   run_suexec ${USER_ID} ${GROUP_ID} printf "allowBuilds:\n  argon2: true\n  '@scarf/scarf': true\n" > pnpm-workspace.yaml
 
-  run_suexec ${USER_ID} ${GROUP_ID} pnpm add -D @types/bcrypt @types/passport-local @types/passport-jwt \
-    @types/ms
+  #run_suexec ${USER_ID} ${GROUP_ID} pnpm add -D @types/bcrypt @types/passport-local @types/passport-jwt \
+  #  @types/ms
 
   #@nestjs/common @nestjs/core @nestjs/platform-express reflect-metadata rxjs \
   run_suexec ${USER_ID} ${GROUP_ID} pnpm add \
@@ -74,7 +74,7 @@ if [ ! -f "package.json" ]; then
   @nestjs/typeorm typeorm pg \
   @nestjs/config \
   @nestjs/jwt @nestjs/passport passport passport-jwt passport-local \
-  argon2
+  argon2 ioredis redis-mock socket.io
 
     #@types/node \
     #@types/express \
@@ -83,7 +83,7 @@ if [ ! -f "package.json" ]; then
     @types/passport \
     @types/passport-jwt \
     @types/passport-local \
-    @types/ms
+    @types/ms @types/ioredis @types/redis-mock
 
   if [ -d "/app/saves" ] && [ -n "$(ls -A /app/saves 2>/dev/null)" ]; then
     printf "Restoring project from /app/saves\n"
