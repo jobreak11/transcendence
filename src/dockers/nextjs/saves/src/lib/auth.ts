@@ -115,7 +115,7 @@ export async function signIn(state: FormState, formData: FormData): Promise<Form
   }
   else {
     return ({
-      message: response.status === 401 ? 'Invalid Credentials!' : response.statusText,
+      message: response.status === 401 ? 'Email or password is wrong' : response.statusText,
     })
   }
 
