@@ -3,6 +3,7 @@ import { SubmitButton } from "./submitButton";
 import React, { useActionState, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Signup } from "../../../lib/auth";
+import Link from "next/link"
 
 export default function SignupForm() {
 
@@ -13,9 +14,10 @@ export default function SignupForm() {
       <div className="flex flex-col gap-2 mb-6">
         {state?.message && (<p className="text-red-500 text-sm">{state.message}</p>)}
 
-        <div className="gap-3 flex">
-          <label htmlFor="displayName">displayName</label>
-          <input id="displayName" name="displayName" placeholder="John Doe" defaultValue={state?.fields?.displayName} />
+        <div className="w-full flex items-center justify-between gap-3">
+          <label htmlFor="displayName" className="text-white text-sm whitespace-nowrap">Display Name:</label>
+          <input id="displayName" name="displayName" placeholder="Username" defaultValue={state?.fields?.displayName} 
+          className="flex-1 min-w-0 bg-[#2a2a2a] text-white border border-[#666] rounded-md px-3 py-1.5 focus:outline-none focus:border-neutral-400" />
         </div>
         {state?.error?.properties?.displayName &&
           <p className="text-red-500 text-xs">
@@ -23,9 +25,10 @@ export default function SignupForm() {
           </p>
         }
 
-        <div className="flex gap-3">
-          <label htmlFor="email">Email</label>
-          <input id="email" name="email" placeholder='john@example.com' defaultValue={state?.fields?.email} />
+        <div className="w-full flex items-center justify-between gap-3">
+          <label htmlFor="email" className="text-white text-sm whitespace-nowrap">Email:</label>
+          <input id="email" name="email" placeholder='name@example.com' defaultValue={state?.fields?.email} 
+          className="flex-1 min-w-0 bg-[#2a2a2a] text-white border border-[#666] rounded-md px-3 py-1.5 focus:outline-none focus:border-neutral-400"/>
         </div>
         {state?.error?.properties?.email &&
           <p className="text-red-500 text-xs">
@@ -33,9 +36,10 @@ export default function SignupForm() {
           </p>
         }
 
-        <div className="flex gap-3">
-          <label htmlFor="password">Password</label>
-          <input className="bg-black/10" id="password" name="password" type="password" />
+        <div className="w-full flex items-center justify-between gap-3">
+          <label htmlFor="password" className="text-white text-sm whitespace-nowrap">Password:</label>
+          <input className="bg-black/10" id="password" name="password" placeholder="••••••••" type="password"
+          className="flex-1 min-w-0 bg-[#2a2a2a] text-white border border-[#666] rounded-md px-3 py-1.5 focus:outline-none focus:border-neutral-400" />
         </div>
         {state?.error?.properties?.password &&
           <div className="text-red-500 text-xs">
@@ -47,7 +51,13 @@ export default function SignupForm() {
           </div>
         }
 
-        <SubmitButton isPending={isPending}>Sign Up</SubmitButton>
+        <div className="pt-2 flex items-center justify-center w-full gap-2">
+        <SubmitButton isPending={isPending}>Sign up</SubmitButton>
+        <span>or</span>
+        <Link className="text-sm underline" href='/auth/signin'>
+            Sign in?
+        </Link>
+        </div>
       </div>
     </form>
   )
