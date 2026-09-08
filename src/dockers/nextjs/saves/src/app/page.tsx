@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { url } from 'node:inspector';
 import { useEffect } from 'react';
 
+import { signOut } from "../lib/auth";
 
 export default function Page() {
 
@@ -37,6 +38,14 @@ export default function Page() {
       <div>
         <button onClick={handle42Login}>Login with 42</button>
       </div>
+      <form action={signOut}>
+      <button 
+        type="submit"
+        className="bg-red-600 border-black hover:bg-red-700 text-white font-bold rounded-md px-4 py-1.5 cursor-pointer disabled:opacity-50"
+      >
+        Sign Out
+      </button>
+    </form>
     </div>
   )
 }

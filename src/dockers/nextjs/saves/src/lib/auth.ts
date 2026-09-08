@@ -6,6 +6,7 @@ import { BACKEND_URL } from "./constants";
 import { CreateUserDto, LoginDto, LoginSuccessResponseDto } from "../types/dto";
 import { parseURLObject } from "zod/v4/core";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
 export async function Signup(state: FormState, formData: FormData ): Promise<FormState> {
 
@@ -75,6 +76,7 @@ export async function signIn(state: FormState, formData: FormData): Promise<Form
   if (!validationFields.success) {
     return ({
       error: z.treeifyError(validationFields.error),
+      fields,
     });
   }
 
@@ -109,14 +111,33 @@ export async function signIn(state: FormState, formData: FormData): Promise<Form
       })
     }
 
-    // TO DO: Create the session for authenticate user
+    const token = result.accessToken || result.token;
 
-    console.log({result});
+    if (token) {
+      const cookieStore = await cookies();
+      cookieStore.set('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 1,
+      });
+      redirect('/');
   }
+  }
+  
   else {
     return ({
-      message: response.status === 401 ? 'Invalid Credentials!' : response.statusText,
+      message: response.status === 401 ? 'Email or password is wrong' : response.statusText,
+      fields,
     })
   }
 
+}
+
+export async function signOut() {
+  const cookieStore = await cookies();
+  
+  cookieStore.delete('token');
+  redirect('/auth/signin');
 }
