@@ -11,7 +11,7 @@ interface SubmitButtonProps {
 export function SubmitButton({children, isPending}: SubmitButtonProps) {
   return (
     <button type="submit" disabled={isPending}
-    className="bg-red-600 hover:bg-red-700 text-white font-bold rounded-md px-4 py-1.5 border-none cursor-pointer disabled:opacity-50"
+    className="bg-red-600 border-black hover:bg-red-700 text-white font-bold rounded-md px-4 py-1.5 cursor-pointer disabled:opacity-50"
     >
       {isPending ? 'Submitting...' : children}
     </button>

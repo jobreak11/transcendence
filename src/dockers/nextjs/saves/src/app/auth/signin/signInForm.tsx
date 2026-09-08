@@ -41,6 +41,17 @@ export function SignInForm() {
         </Link>
         </div>
 
+        <div className="pt-2 flex items-center justify-center w-full gap-2">
+          <button type="button" 
+          className="bg-black hover:bg-cyan-500 hover:text-black hover:border-cyan-500 font-bold rounded-md px-4 py-1.5 cursor-pointer disabled:opacity-50">
+            Continue with 42</button>
+          </div>
+          <div className="pt-2 flex items-center justify-center w-full gap-2">
+          <button type="button" 
+          className="bg-white text-black hover:bg-blue-500 hover:text-white hover:border-neutral-700 font-bold rounded-md px-4 py-1.5 cursor-pointer disabled:opacity-50">
+            Continue with Google</button>
+          </div>
+ 
       </div>
 
     </form>
