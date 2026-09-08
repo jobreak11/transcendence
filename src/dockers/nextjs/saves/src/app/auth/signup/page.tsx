@@ -1,27 +1,12 @@
-import Link from "next/link"
 import SignupForm from "./signupForm";
 
 const SignUpPage = () => {
   return (
-    <div className="bg-white p-8 rounded-lg w-96
-    flex flex-col justify-center items-center
-    text-black
-    ">
-      <h1 className="text-center text-2xl font-bold mb-4">
-        Sign Up Page
+    <div className="min-h-screen w-full max-w-md bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-400 flex flex-col items-center justify-center p-4 gap-4">
+      <h1 className="-mt-50 bg-gradient-to-r from-amber-400 via-orange-900 to-yellow-300 bg-clip-text text-4xl font-black uppercase tracking-wider text-transparent drop-shadow-[2px_2px_0px_rgba(255,255,255,0.3)]">
+        Sign Up
       </h1>
-
-      {/* sign up form  */}
       <SignupForm />
-
-      <div className="flex justify-between text-sm">
-        <p>Already have an account?</p>
-        <Link className="underline" href={'/auth/signin'}>
-          Sign In
-        </Link>
-
-      </div>
-
     </div>
   )
 }

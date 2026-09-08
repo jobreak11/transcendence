@@ -30,11 +30,11 @@ export const SignupFormSchema = z.object({
     .min(2, { error: "Name must be at least 2 Characters long." })
     .trim(),
   
-  email: z.email({ error: "Please enter a valid email."}).trim(),
+  email: z.email({ error: "Enter a valid email."}).trim(),
 
   password: z
     .string()
-    .min(8, { error: "Be at least 8 Characters long"})
+    .min(8, { error: "Please use at least 8 characters for your password."})
     .regex(/[a-zA-Z]/, {error: "Contain at least one letter."})
     .regex(/[0-9]/, {error: 'Contain at least one number.'})
     .regex(/[^a-zA-Z0-9]/, {error: 'Contain at least one special Character.'})
@@ -42,7 +42,7 @@ export const SignupFormSchema = z.object({
 })
 
 export const LoginFormSchema = z.object({
-  email: z.email({ error: 'need a valid email' }).trim(),
+  email: z.email({ error: 'Enter your email' }).trim(),
   password: z
     .string()
     .min(1, {error: "can't be empty password"})
