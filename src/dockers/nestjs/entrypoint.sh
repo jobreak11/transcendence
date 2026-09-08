@@ -74,7 +74,10 @@ if [ ! -f "package.json" ]; then
   @nestjs/typeorm typeorm pg \
   @nestjs/config \
   @nestjs/jwt @nestjs/passport passport passport-jwt passport-local \
-  argon2 ioredis redis-mock socket.io
+  argon2 ioredis redis-mock socket.io \
+  passport-google-oauth20 \
+  passport-oauth2 
+
 
     #@types/node \
     #@types/express \
@@ -83,7 +86,9 @@ if [ ! -f "package.json" ]; then
     @types/passport \
     @types/passport-jwt \
     @types/passport-local \
-    @types/ms @types/ioredis @types/redis-mock
+    @types/ms @types/ioredis @types/redis-mock \
+    @types/passport-google-oauth20 \
+    @types/passport-oauth2
 
   if [ -d "/app/saves" ] && [ -n "$(ls -A /app/saves 2>/dev/null)" ]; then
     printf "Restoring project from /app/saves\n"

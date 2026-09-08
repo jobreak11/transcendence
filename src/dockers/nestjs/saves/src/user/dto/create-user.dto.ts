@@ -17,4 +17,11 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   displayName?: string;
+
+  @ApiProperty({
+    description: 'the url to the profile image of the user'
+  })
+  @IsUrl()
+  @IsOptional()
+  avatarUrl?: string;
 }
