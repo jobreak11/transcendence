@@ -1,6 +1,7 @@
 import { SignInForm } from "./signInForm"
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { OauthButton } from "./oauthButton";
 
 export default async function SignInPage() {
   const cookieStore = await cookies();
@@ -16,9 +17,7 @@ export default async function SignInPage() {
         Transcend 888
       </h1> 
       <SignInForm/>
-
-      <div className="flex flex-col gap-3"></div>
-
+      <OauthButton/>
     </div>
   )
 }
