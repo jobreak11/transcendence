@@ -2,6 +2,28 @@ import { BeforeInsert, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn 
 import { Role } from "../../auth/enums/role.enum.js";
 import * as argon2 from 'argon2'
 
+/*
+
+  NOTE; should apply new name convention to
+  all tables and columns
+
+  '_' = underscroll
+
+  [linked_table_name]_[columm_name]
+
+  naming for Column should be in camelCase format.
+  First letter of table should be uppercase.
+  Tables' name should(recommend) append with 's'.
+
+  For Example: 
+  
+  We have table name: Users
+
+  in another table should be
+
+  user_<column_name>
+*/
+
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
