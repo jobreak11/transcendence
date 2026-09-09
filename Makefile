@@ -118,7 +118,7 @@ down: stop
 	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" down  || true
 	rm -f ${DOCKER_COMPOSE_BUILD_STAMPFILE} || true
 
-purge: down
+purge:save down
 	docker volume rm $$(docker volume ls -q) || true
 	docker system prune --volumes --force
 	rm -rf ${NEXTJS_DATA_DIR} ${NESTJS_DATA_DIR} ${POSTGRES_DATA_DIR} ${REDIS_DATA_DIR}

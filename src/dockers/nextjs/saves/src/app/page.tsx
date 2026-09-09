@@ -1,9 +1,8 @@
 'use client'
-import Link from 'next/link'
-import { url } from 'node:inspector';
-import { useEffect } from 'react';
 
 import { signOut } from "../lib/auth";
+import { useEffect } from 'react';
+
 
 export default function Page() {
 
@@ -30,13 +29,6 @@ export default function Page() {
     <div className='flex flex-col justify-center items-center'>
       <div>
         <h1>Transcendence Poker</h1>
-      </div>
-
-      <div>
-        <button onClick={handleGoogleLogin}>Login with google</button>
-      </div>
-      <div>
-        <button onClick={handle42Login}>Login with 42</button>
       </div>
       <form action={signOut}>
       <button 
