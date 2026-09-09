@@ -61,6 +61,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/user/profile/uploadProfilePic": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload user profile picture */
+        post: operations["UserController_uploadProfilePic"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Not implemented yet. */
+        patch: operations["UserController_update"];
+        trace?: never;
+    };
     "/user/{id}": {
         parameters: {
             query?: never;
@@ -78,8 +112,7 @@ export interface paths {
         delete: operations["UserController_remove"];
         options?: never;
         head?: never;
-        /** Not implemented yet. */
-        patch: operations["UserController_update"];
+        patch?: never;
         trace?: never;
     };
     "/auth/signup": {
@@ -428,6 +461,54 @@ export interface operations {
             };
         };
     };
+    UserController_uploadProfilePic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description Profile image file (JPG, JPEG, PNG, max 5MB)
+                     */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UserController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     UserController_remove: {
         parameters: {
             query?: never;
@@ -461,31 +542,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-        };
-    };
-    UserController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateUserDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": string;
-                };
             };
         };
     };
