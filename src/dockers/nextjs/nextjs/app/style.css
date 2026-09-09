@@ -1,6 +1,7 @@
 body {
 	background-color: #262626;
 	color: white;
+	font-size: clamp(14px, calc(6px + 2vw), 28px);
 }
 
 input {
@@ -16,21 +17,67 @@ button {
 	color: white;
 	font-weight: bold;
 	border: transparent;
-	border-radius: 6px;
-	padding: 6px 6px;
+	border-radius: 8px;
+	padding: 8px 10px;
 }
 
 a {
 	color: white;
 }
 
-.startheader {
+.goldfont {
+	font-family: 'Times New Roman', Times, serif;
+	font-weight: bold;
+	color: gold;
+}
+
+.headerbar {
+	display: flex;
+	flex-direction: column;
+	position: sticky;
+	top: 0;
+	z-index: 1000;
+	/* height: clamp(100px, 0.4vh + 1rem, 10vh); */
+	height: clamp(100px, calc(40px + 12vh), 20vh);
+	width: 100vw;
+	background-color: black;
+}
+
+.deheader {
+	display: flex;
+	height: 60%;
+	width: 100%;
+	align-items: center;
+	padding-top: 4px;
+}
+
+.bartab {
+	display: flex;
+	height: 40%;
+	width: 100%;
+	align-items: stretch;
+	margin-top: auto;
+	border-bottom: 4px solid red;
+}
+
+.tabcolumn {
+	margin-left: auto;
+	margin-right: auto;
+	border: transparent;
+	border-bottom: none;
+	border-radius: 6px 6px 0 0;
+	padding: 8px 10px;
+	font-size: clamp(14px, 0.2vw + 1rem, 80%);
+	font-weight: bold;
+}
+
+/* .startheader {
 	text-align: center;
 	font-family: 'Times New Roman', Times, serif;
 	font-weight: bold;
 	font-size: clamp(32px, 2vw + 1rem, 64px);
 	color: gold;
-}
+} */
 
 .centerblock {
 	align-self: center;
