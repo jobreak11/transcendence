@@ -73,6 +73,7 @@ if [ ! -f "package.json" ]; then
   @nestjs/websockets @nestjs/platform-socket.io \
   @nestjs/typeorm typeorm pg \
   @nestjs/config \
+  multer \
   @nestjs/jwt @nestjs/passport passport passport-jwt passport-local \
   argon2 ioredis redis-mock socket.io \
   passport-google-oauth20 \
@@ -85,6 +86,7 @@ if [ ! -f "package.json" ]; then
     typescript@npm:@typescript/typescript6 \
     @types/passport \
     @types/passport-jwt \
+    @types/multer \
     @types/passport-local \
     @types/ms @types/ioredis @types/redis-mock \
     @types/passport-google-oauth20 \
@@ -102,6 +104,8 @@ if [ ! -d "${NESTJS_DIR}/node_modules" ] || [ -z "$(ls -A ${NESTJS_DIR}/node_mod
   printf "Install Dependencies\n"
     run_suexec ${USER_ID} ${GROUP_ID} pnpm install
 fi
+
+chown -R ${USER_ID}:${GROUP_ID} /transcend_storage
 
 cd ${NESTJS_DIR}
 if [ "${USER_ID}" -ne 0 ]; then

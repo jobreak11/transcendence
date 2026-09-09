@@ -23,6 +23,8 @@ services:
       # nestjs:
       #   condition: service_healthy
       #   restart: true
+    volumes:
+      - shared_storage:/transcend_storage:ro
 
   nestjs:
     build:
@@ -52,6 +54,7 @@ services:
     restart: unless-stopped
     volumes:
       - ${NESTJS_DATA_DIR}:/app/nestjs
+      - shared_storage:/transcend_storage
     healthcheck:	
       test: [ "CMD-SHELL", "/app/healthcheckscript.sh" ]
       interval: 15s
@@ -185,6 +188,7 @@ services:
 
 volumes:
   postgresql_data:
+  shared_storage:
 
 secrets:
   db-password:
