@@ -78,7 +78,16 @@ export class UserController {
   async uploadProfilePic(@Req() req:any, @UploadedFile(
     new ParseFilePipe({
       validators: [
-        new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
+        
+        /* FIX: user can upload any type of file, any size
+        but would trim the size to be a square, maybe include another
+        type of image later
+
+        - scale, resize the image down ? if the profile picture
+        is too big to store.
+         */
+
+        new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 }), // 10MB
         new FileTypeValidator({ fileType: /(jpg|jpeg|png)$/ }),
       ],
     })
