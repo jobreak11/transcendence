@@ -116,4 +116,24 @@ export class AuthService {
     return currentUser;
   }
 
+  async validateGoogleUser(googleUser: CreateUserDto) {
+    const user = await this.userService.findByEmail(googleUser.email);
+
+    if (user) {
+      return user;
+    }
+
+    return await this.userService.create(googleUser);
+  }
+
+  async validate42User(fortyTwoUser: CreateUserDto) {
+    const user = await this.userService.findByEmail(fortyTwoUser.email);
+
+    if (user) {
+      return user;
+    }
+
+    return await this.userService.create(fortyTwoUser);
+  }
+
 }

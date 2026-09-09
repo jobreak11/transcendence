@@ -1,4 +1,4 @@
-import { Controller, HttpCode, HttpStatus, Body, Post, Req, Request, UseGuards, NotImplementedException } from '@nestjs/common';
+import { Controller, HttpCode, HttpStatus, Body, Post, Req, Request, UseGuards, NotImplementedException, Get, Res, ResponseDecoratorOptions } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 import { AuthGuard } from '@nestjs/passport';
 import { LocalAuthGuard } from './guards/local-auth/local-auth.guard.js';
@@ -9,6 +9,9 @@ import { RefreshTokenSuccessDto } from './dto/refresh-token.dto.js';
 import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard.js';
 import { Public } from './decorators/public.decorators.js';
 import { CreateUserDto } from '../user/dto/create-user.dto.js';
+import { GoogleAuthGuard } from './guards/google-auth/google-auth.guard.js';
+import type { Response } from 'express';
+import { FortytwoAuthGuard } from './guards/fortytwo-auth/fortytwo-auth.guard.js';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -89,6 +92,42 @@ export class AuthController {
   @Post('signout')
   signOut(@Req() req: any) {
     this.authService.signOut(req.user.id)
+  }
+
+  @Public()
+  @UseGuards(GoogleAuthGuard)
+  @Get('google/login')
+  googleLogin() {
+
+  }
+
+
+  @Public()
+  @UseGuards(GoogleAuthGuard)
+  @Get('google/callback')
+  async googleCallback(@Req() req:any) {
+
+    const response = await this.authService.login(req.user.id);
+
+    return response;
+  }
+
+  @Public()
+  @UseGuards(FortytwoAuthGuard)
+  @Get('42/login')
+  fortyTwoLogin() {
+
+  }
+
+
+  @Public()
+  @UseGuards(FortytwoAuthGuard)
+  @Get('42/callback')
+  async fortyTwoCallback(@Req() req:any) {
+
+    const response = await this.authService.login(req.user.id);
+
+    return response;
   }
 
 }

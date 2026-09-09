@@ -47,6 +47,7 @@ export class UserService {
         email: true,
         createdAt: true,
         avatarUrl: true,
+        displayName: true,
         //hashedRefreshToken: true,
         role: true
       }

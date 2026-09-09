@@ -18,6 +18,13 @@ async function bootstrap() {
     .addBearerAuth()
     .build()
 
+
+  console.log({
+    googleClientId: process.env.OAUTH_GOOGLE_CLIENT_ID,
+    googleSecret: process.env.OAUTH_GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.OAUTH_GOOGLE_CALLBACK_URL
+  });
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);
   await app.listen(process.env.PORT ?? 3000);
