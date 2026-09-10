@@ -52,31 +52,22 @@
 <body>
 	<div class="headerbar">
 		<div class="deheader">
-			<div class="goldfont" style="height: 80%; width: fit-content; max-width: 25vw; text-align: center; padding-left: 8%; font-size: clamp(28px, calc(16px + 2vw), 80px); white-space: nowrap; overflow: hidden;" id="auto-size">USERNAME</div>
-			<div class="goldfont" style="height: 50%; width: fit-content; max-width: 30vw; text-align: center; padding-left: 5%; font-size: clamp(14px, calc(6px + 2vw), 60px); white-space: normal; overflow-wrap: anywhere;">title/alias</div>
-			<div style="margin-left: auto; "><button style="font-size: clamp(16px, calc(6px + 2vw), 60px);">Play</button></div>
+			<div class="goldfont" style="height: 80%; width: fit-content; max-width: 25vw; text-align: center; padding-left: 8%; font-size: clamp(28px, calc(16px + 2vw), 40px); white-space: nowrap; overflow: hidden;" id="auto-size">USERNAME</div>
+			<div class="goldfont" style="height: 50%; width: fit-content; max-width: 30vw; text-align: center; padding-left: 5%; font-size: clamp(14px, calc(6px + 2vw), 30px); white-space: normal; overflow-wrap: anywhere;">title/alias</div>
+			<div style="margin-left: auto; "><button style="font-size: clamp(16px, calc(6px + 2vw), 30px);">Play</button></div>
 			<div style="margin-left: auto; padding-right: 3%; font-size: clamp(14px, 0.2vw + 1rem, 80%)"><a href="#" id="logout">Logout</a></div>
 		</div>
 		<div class="bartab">
-			<div class="tabcolumn" style="background-color: red;">Main</div>
-			<div class="tabcolumn" style="background-color: black;">Statistics</div>
-			<div class="tabcolumn" style="background-color: black;">History</div>
-			<div class="tabcolumn" style="background-color: black;">Settings</div>
+			<div class="tabcolumn active" data-tab="Main">Main Profile</div>
+			<div class="tabcolumn" data-tab="Stat">Player Statistics</div>
+			<div class="tabcolumn" data-tab="Hist">Match History</div>
+			<div class="tabcolumn" data-tab="Sett">Account Settings</div>
 		</div>
 	</div>
-	<!-- <div class="centerblock">
-		<form id="loginForm">
-			<label for="loginEmail">E-mail:</label> <input type="email" id="loginEmail" name="email" required><br>
-			<label for="loginPassword">Password:</label> <input type="password" id="loginPassword" name="password" required><br>
-			<div class="row"><button id="loginSubmit" type="submit">Login</button> or <a href="#" id="showRegister">Register?</a></div>
-		</form>
-		<form id="registerForm" hidden>
-			<label for="displayname">Display Name:</label> <input type="text" id="displayname" name="displayname" required><br>
-			<label for="registerEmail">E-mail:</label> <input type="email" id="registerEmail" name="email" required><br>
-			<label for="registerPassword">Password:</label> <input type="password" id="registerPassword" name="password" required><br>
-			<div class="row"><button id="registerSubmit" type="submit">Register</button> or <a href="#" id="showLogin">Login?</a></div>
-		</form>
-	</div> -->
+	<div class="content active" id="Main">USERNAME: title/alias</div>
+	<div class="content" id="Stat">Player Statistics</div>
+	<div class="content" id="Hist">Match History</div>
+	<div class="content" id="Sett">Account Settings</div>
 	<script src="script.js" defer></script>
 </body>
 </html>
