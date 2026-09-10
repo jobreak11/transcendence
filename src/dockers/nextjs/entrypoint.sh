@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-set -eu
+set -eux
 
 run_suexec() {
   if [ $# -lt 3 ]; then

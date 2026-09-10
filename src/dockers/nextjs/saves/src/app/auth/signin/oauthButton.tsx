@@ -1,24 +1,29 @@
 'use client'
 
+import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 
 export function OauthButton() {
 
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
+  console.log({callbackUrl});
+
   const handleGoogleLogin = () => {
-    window.location.href = 'https://localhost:4333/api/auth/google/login';
+    window.location.href = `https://localhost:4333/api/auth/google/login?callbackUrl=${encodeURIComponent(callbackUrl)}`;
   };
 
   const handle42Login = () => {
-    window.location.href = 'https://localhost:4333/api/auth/42/login';
+    window.location.href = `https://localhost:4333/api/auth/42/login?callbackUrl=${encodeURIComponent(callbackUrl)}`;
   };
 
   useEffect(() => {
 
     const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
+    const accessToken = urlParams.get('accesstoken');
 
-    if (token) {
-      localStorage.setItem('jwtToken', token);
+    if (accessToken) {
+      localStorage.setItem('accessToken', accessToken);
       window.location.href = 'https://localhost:4333/';
     }
   }, []);

@@ -92,7 +92,8 @@ export class UserController {
       ],
     })
   ) file: Express.Multer.File) {
-    console.log({ routeCheck: 'isHere', req});
+
+    //console.log({ routeCheck: 'isHere', req});
     return this.userService.uploadProfilePic(req.user.id, file);
   }
 

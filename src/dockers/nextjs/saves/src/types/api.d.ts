@@ -352,7 +352,7 @@ export interface components {
              * @description Signed JWT access token
              * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
              */
-            token: string;
+            accessToken: string;
             /**
              * @description Refresh JWT token
              * @example egrsa9876sgb9788sbhuisdfhoui...

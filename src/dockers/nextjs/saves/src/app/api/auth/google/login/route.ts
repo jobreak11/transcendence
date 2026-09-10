@@ -1,8 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { BACKEND_URL } from "../../../../../lib/constants";
 
-export async function GET() {
-  const apiPath = '/auth/google/login';
+export async function GET(request: NextRequest) {
+
+  const queryParams = request.nextUrl.searchParams;
+  const callbackUrl = queryParams.get('callbackUrl') || '';
+  const apiPath = `/auth/google/login?callbackUrl=${encodeURIComponent(callbackUrl)}`;
   try {
 
     const res = await fetch(`${BACKEND_URL}${apiPath}`, 

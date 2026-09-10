@@ -24,7 +24,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     done: VerifiedCallback
   ) {
 
-    console.log({ profile });
+    //console.log({ profile });
     const user = await this.authService.validateGoogleUser({
       email: profile.emails[0].value,
       password: "",

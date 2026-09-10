@@ -5,9 +5,12 @@ import { OauthButton } from "./oauthButton";
 
 export default async function SignInPage() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
 
-  if (token){
+  /* If the access token already exist wouldn't perform the login
+  and redirect to the page '/'
+   */
+  const accessToken = cookieStore.get("accessToken")?.value;
+  if (accessToken){
     redirect('/');
   }
 
