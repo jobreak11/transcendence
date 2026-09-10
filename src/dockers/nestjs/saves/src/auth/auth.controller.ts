@@ -1,4 +1,4 @@
-import { Controller, HttpCode, HttpStatus, Body, Post, Req, Request, UseGuards, NotImplementedException, Get, Res, ResponseDecoratorOptions } from '@nestjs/common';
+import { Controller, HttpCode, HttpStatus, Body, Post, Req, Request, UseGuards, NotImplementedException, Get, Res, ResponseDecoratorOptions, Query } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 import { AuthGuard } from '@nestjs/passport';
 import { LocalAuthGuard } from './guards/local-auth/local-auth.guard.js';
@@ -105,11 +105,15 @@ export class AuthController {
   @Public()
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
-  async googleCallback(@Req() req:any) {
+  async googleCallback(@Req() req:any, @Query('state') state: string) {
 
+
+
+    const decodeRedirect = state ? decodeURIComponent(state) : '/';
     const response = await this.authService.login(req.user.id);
 
-    return response;
+    console.log({state, response});
+    return {...response, callbackUrl: decodeRedirect};
   }
 
   @Public()
@@ -123,11 +127,12 @@ export class AuthController {
   @Public()
   @UseGuards(FortytwoAuthGuard)
   @Get('42/callback')
-  async fortyTwoCallback(@Req() req:any) {
+  async fortyTwoCallback(@Req() req:any, @Query('state') state: string) {
 
+    const decodeRedirect = state ? decodeURIComponent(state) : '/';
     const response = await this.authService.login(req.user.id);
 
-    return response;
+    return {...response, callbackUrl: decodeRedirect};
   }
 
 }

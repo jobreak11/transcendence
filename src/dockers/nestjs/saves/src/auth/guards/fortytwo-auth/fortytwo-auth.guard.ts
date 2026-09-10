@@ -7,4 +7,20 @@ export class FortytwoAuthGuard extends AuthGuard('fortyTwo') {
   constructor(@Optional() options?: AuthModuleOptions) {
     super(options);
   }
+
+  getAuthenticateOptions(context: ExecutionContext) {
+    const req = context.switchToHttp().getRequest();
+
+    const rawCallbackUrl = req.query.callbackUrl;
+    const isValidRelative =
+      typeof rawCallbackUrl === 'string' &&
+      rawCallbackUrl.startsWith('/') &&
+      !rawCallbackUrl.startsWith('//');
+    
+    const targetURL = isValidRelative ? rawCallbackUrl : '/';
+
+    return {
+      state: encodeURIComponent(targetURL)
+    }
+  }
 }

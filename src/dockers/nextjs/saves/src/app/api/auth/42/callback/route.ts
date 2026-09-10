@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { BACKEND_URL } from "../../../../../lib/constants";
+import { ACCESS_TOKEN_COOKIE_EXPIRE_TIME, BACKEND_URL, REFRESH_TOKEN_COOKIE_EXPIRE_TIME } from "../../../../../lib/constants";
 import { cookies } from "next/headers";
 
 export async function GET(request: NextRequest) {
@@ -27,7 +27,10 @@ export async function GET(request: NextRequest) {
       throw new Error(`Nest Js callback failed with status ${res.status}`);
     }
 
-    const { accessToken, refreshToken } = await res.json();
+    const { accessToken, refreshToken, callbackUrl} = await res.json();
+
+    const strCallbackUrl: string = callbackUrl ?? '/';
+    const safeCallbackUrl = (!strCallbackUrl.startsWith('//') && strCallbackUrl.startsWith('/')) ? strCallbackUrl : '/';
 
     const cookieStore = cookies();
 
@@ -35,21 +38,21 @@ export async function GET(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 12
+      maxAge: ACCESS_TOKEN_COOKIE_EXPIRE_TIME
     });
     (await cookieStore).set('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7
+      maxAge: REFRESH_TOKEN_COOKIE_EXPIRE_TIME
     });
 
-    const response = NextResponse.redirect(new URL(`/?accessToken=${accessToken}`, baseURL));
+    const response = NextResponse.redirect(new URL(safeCallbackUrl, baseURL));
 
     return response;
   } catch (error) {
     console.error('Oauth callback error', error);
-    return NextResponse.redirect(new URL('/?error=oauth_failed', baseURL));
+    return NextResponse.redirect(new URL(`auth/signin/?error=oauth_failed`, baseURL));
   }
 
 }

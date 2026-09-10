@@ -2,13 +2,15 @@
 
 import z, { email } from "zod";
 import { FormState, LoginFormSchema, SignupFormSchema } from "./type";
-import { BACKEND_URL } from "./constants";
+import { ACCESS_TOKEN_COOKIE_EXPIRE_TIME, BACKEND_URL, DEFAULT_LANDING_PAGE_URL, REFRESH_TOKEN_COOKIE_EXPIRE_TIME } from "./constants";
 import { CreateUserDto, LoginDto, LoginSuccessResponseDto } from "../types/dto";
 import { parseURLObject } from "zod/v4/core";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
-export async function Signup(state: FormState, formData: FormData ): Promise<FormState> {
+export async function Signup(
+  state: FormState,
+  formData: FormData ): Promise<FormState> {
 
   const delay = await new Promise((resolve) => setTimeout(resolve, 3000));
 
@@ -48,7 +50,11 @@ export async function Signup(state: FormState, formData: FormData ): Promise<For
   }
 
   if (response.ok) {
-    redirect('/auth/signin');
+
+    const callbackUrl = (formData.get('callbackUrl') as string) || '/';
+    const safeCallbackUrl = (!callbackUrl.startsWith('//') && callbackUrl.startsWith('/')) ? callbackUrl : DEFAULT_LANDING_PAGE_URL;
+
+    redirect(`/auth/signin?callbackUrl=${encodeURIComponent(safeCallbackUrl)}`);
   }
   else {
     return ({
@@ -58,8 +64,11 @@ export async function Signup(state: FormState, formData: FormData ): Promise<For
 
 }
 
-export async function signIn(state: FormState, formData: FormData): Promise<FormState> {
+export async function signIn(
+  state: FormState,
+  formData: FormData): Promise<FormState> {
 
+  // simulate the delay so see the loading component on work during local development
   const delay = await new Promise((resolve) => setTimeout(resolve, 3000));
 
   const requestPath = `${BACKEND_URL}/auth/login`;
@@ -111,19 +120,37 @@ export async function signIn(state: FormState, formData: FormData): Promise<Form
       })
     }
 
-    const token = result.accessToken || result.token;
+    const callbackUrl = (formData.get('callbackUrl') as string) || '/';
+    const safeCallbackUrl = (!callbackUrl.startsWith('//') && callbackUrl.startsWith('/')) ? callbackUrl : DEFAULT_LANDING_PAGE_URL;
 
-    if (token) {
-      const cookieStore = await cookies();
-      cookieStore.set('token', token, {
+    const accessToken = result.accessToken;
+    const refreshToken = result.refreshToken;
+
+    const cookieStore = await cookies();
+    if (accessToken) {
+      cookieStore.set('accessToken', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',
-        maxAge: 60 * 60 * 24 * 1,
+        maxAge: ACCESS_TOKEN_COOKIE_EXPIRE_TIME, // Max age for cookie is in seconds
       });
-      redirect('/');
-  }
+    }
+
+    if (refreshToken) {
+      cookieStore.set('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: REFRESH_TOKEN_COOKIE_EXPIRE_TIME, // Max age for cookie is in seconds
+      });
+
+    }
+
+    // should fix to redirecto to the callbackUrl from search params
+    //redirect('/');
+    redirect(safeCallbackUrl);
   }
   
   else {
@@ -136,8 +163,32 @@ export async function signIn(state: FormState, formData: FormData): Promise<Form
 }
 
 export async function signOut() {
+
   const cookieStore = await cookies();
-  
-  cookieStore.delete('token');
+  const apiPath = '/auth/signout'
+
+  const accessToken = cookieStore.get('accessToken')?.value || '';
+
+  if (!accessToken) {
+    cookieStore.delete('accessToken');
+    cookieStore.delete('refreshToken');
+    redirect('/auth/signin');
+  }
+
+  try {
+    await fetch(`${BACKEND_URL}${apiPath}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      },
+      cache: 'no-store'
+    });
+  } catch (error) {
+    console.error('Failed to notify backend of signout:', error);
+  } finally {
+    cookieStore.delete('accessToken');
+    cookieStore.delete('refreshToken');
+  }
+
   redirect('/auth/signin');
 }
