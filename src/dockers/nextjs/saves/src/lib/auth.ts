@@ -111,11 +111,19 @@ export async function signIn(state: FormState, formData: FormData): Promise<Form
       })
     }
 
-    const token = result.accessToken || result.token;
+    const accessToken = result.accessToken;
+    const refreshToken = result.refreshToken;
 
-    if (token) {
+    if (accessToken) {
       const cookieStore = await cookies();
-      cookieStore.set('token', token, {
+      cookieStore.set('accessToken', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 1,
+      });
+      cookieStore.set('refreshToken', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -139,5 +147,7 @@ export async function signOut() {
   const cookieStore = await cookies();
   
   cookieStore.delete('token');
+  cookieStore.delete('accessToken');
+  cookieStore.delete('refreshToken');
   redirect('/auth/signin');
 }

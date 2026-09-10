@@ -5,9 +5,9 @@ import { OauthButton } from "./oauthButton";
 
 export default async function SignInPage() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
+  const accessToken = cookieStore.get("accessToken")?.value;
 
-  if (token){
+  if (accessToken){
     redirect('/');
   }
 
