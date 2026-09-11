@@ -37,7 +37,7 @@ export class AuthService {
     return { id: user.id };
   }
 
-  async login(userId: number) {
+  async login(userId: string) {
 
     //const payload:AuthJwtPayload = {sub: userId};
     //const token = this.jwtService.sign(payload);
@@ -54,7 +54,7 @@ export class AuthService {
     };
   }
 
-  async generateTokens(userId: number) {
+  async generateTokens(userId: string) {
     const payload: AuthJwtPayload = { sub: userId}
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload),
@@ -67,7 +67,7 @@ export class AuthService {
     })
   }
 
-  async refreshToken(userId: number) {
+  async refreshToken(userId: string) {
     const {accessToken, refreshToken} = await this.generateTokens(userId)
     const hashedRefreshToken = await argon2.hash(refreshToken);
     await this.userService.updateHashedRefreshToken(userId, hashedRefreshToken);
@@ -79,7 +79,7 @@ export class AuthService {
     };
   }
 
-  async validateRefreshToken(userId: number, refreshToken: string) {
+  async validateRefreshToken(userId: string, refreshToken: string) {
     const user = await this.userService.findOne(userId);
 
     if (!user || !user.hashedRefreshToken) {
@@ -97,11 +97,11 @@ export class AuthService {
     })
   }
 
-  async signOut(userId: number){
+  async signOut(userId: string){
     await this.userService.updateHashedRefreshToken(userId, null)
   }
 
-  async validateJwtUser(userId: number) {
+  async validateJwtUser(userId: string) {
     const user = await this.userService.findOne(userId);
 
     if (!user) {
