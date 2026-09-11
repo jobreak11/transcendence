@@ -144,6 +144,7 @@ save-nestjs: | ${NESTJS_SAVES_DIR} ${NESTJS_DATA_DIR}/src
 	rm -rf ${NESTJS_SAVES_DIR}/* || true
 	cp -r ${NESTJS_DATA_DIR}/src ${NESTJS_SAVES_DIR} || true
 	cp -r ${NESTJS_DATA_DIR}/nest-cli.json ${NESTJS_SAVES_DIR} || true
+	cp -r ${NESTJS_DATA_DIR}/drizzle.config.ts ${NESTJS_SAVES_DIR} || true
 
 save: save-nextjs save-nestjs
 

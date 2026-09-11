@@ -61,23 +61,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/user/profile/uploadProfilePic": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Upload user profile picture */
-        post: operations["UserController_uploadProfilePic"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/user/update": {
         parameters: {
             query?: never;
@@ -275,20 +258,6 @@ export interface components {
              */
             avatarUrl?: string;
         };
-        User: {
-            id: number;
-            publicId: string;
-            tagId: string;
-            email: string;
-            password: string;
-            /** @enum {string} */
-            role: "ADMIN" | "EDITOR" | "USER";
-            hashedRefreshToken: string | null;
-            displayName: string;
-            avatarUrl: string;
-            /** Format: date-time */
-            createdAt: string;
-        };
         UnauthorizedErrorDto: {
             /**
              * @description Http error status code
@@ -414,9 +383,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["User"];
-                };
+                content?: never;
             };
             /** @description validation failed. */
             401: {
@@ -455,33 +422,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["UnauthorizedErrorDto"];
                 };
-            };
-        };
-    };
-    UserController_uploadProfilePic: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": {
-                    /**
-                     * Format: binary
-                     * @description Profile image file (JPG, JPEG, PNG, max 5MB)
-                     */
-                    file: string;
-                };
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -559,9 +499,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["User"];
-                };
+                content?: never;
             };
         };
     };

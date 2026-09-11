@@ -15,11 +15,11 @@ export async function GET(request: NextRequest) {
 
     let targetURL = res.headers.get('location');
 
-    //console.log({res});
+    console.log({res});
 
-    //if (!targetURL && res.url.includes('accounts.google.com')) {
-    //  targetURL = res.url;
-    //}
+    if (!targetURL && res.url.includes('accounts.google.com')) {
+     targetURL = res.url;
+    }
 
     if (!targetURL) {
       throw new Error('No redirect URL found from backend');
