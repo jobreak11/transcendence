@@ -1,6 +1,8 @@
-import { BeforeInsert, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, CreateDateColumn, Entity, Exclusion, Generated, PrimaryGeneratedColumn } from "typeorm";
 import { Role } from "../../auth/enums/role.enum.js";
 import * as argon2 from 'argon2'
+import { ColumnMetadata } from "typeorm/metadata/ColumnMetadata.js";
+import { Exclude } from "class-transformer";
 
 /*
 
@@ -26,8 +28,20 @@ import * as argon2 from 'argon2'
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({
+  })
   id: number;
+
+  //@Column({unique: true})
+  //// 260901-12341
+  //publicId: string;
+
+  @Generated()
+  @Column({ type: 'uuid' , unique: true })
+  publicId: string
+
+  @Column({ unique: true })
+  tagId: string
 
   @Column({unique: true})
   email: string;
@@ -49,7 +63,12 @@ export class User {
   })
   hashedRefreshToken: string | null
 
-  @Column({nullable: true})
+  @Column({
+    nullable: true,
+    type: "varchar",
+    length: 15
+    
+  })
   displayName: string;
 
   @Column({nullable: true})

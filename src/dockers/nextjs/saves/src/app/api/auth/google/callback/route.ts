@@ -7,11 +7,11 @@ export async function GET(request: NextRequest) {
 
 
   const queryParams = request.nextUrl.search;
-  console.log({
-    message: "OAUTH inspecting to queryParam from google redirect",
-    timeStamp: new Date().toISOString.toString(),
-    query: queryParams
-  });
+  //console.log({
+  //  message: "OAUTH inspecting to queryParam from google redirect",
+  //  timeStamp: new Date().toISOString.toString(),
+  //  query: queryParams
+  //});
 
   const apiPath = '/auth/google/callback'
   try {
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log({res});
+    //console.log({res});
 
     if (!res.ok) {
       throw new Error(`Nest Js callback failed with status ${res.status}`);

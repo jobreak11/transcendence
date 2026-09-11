@@ -6,11 +6,11 @@ export async function GET(request: NextRequest) {
   const baseURL = 'https://localhost:4333'
 
   const queryParams = request.nextUrl.search;
-  console.log({
-    message: "OAUTH inspecting to queryParam from 42 redirect",
-    timeStamp: new Date().toISOString.toString(),
-    query: queryParams
-  });
+  //console.log({
+  //  message: "OAUTH inspecting to queryParam from 42 redirect",
+  //  timeStamp: new Date().toISOString.toString(),
+  //  query: queryParams
+  //});
 
   const apiPath = '/auth/42/callback'
   try {
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log({res});
+    //console.log({res});
 
     if (!res.ok) {
       throw new Error(`Nest Js callback failed with status ${res.status}`);

@@ -6,6 +6,7 @@ import { BACKEND_URL } from "../../../../lib/constants";
 
 export async function POST(request: NextRequest) {
 
+  const searchParams  = request.nextUrl.searchParams;
   const apiPath = '/auth/login';
 
   let body: any;
