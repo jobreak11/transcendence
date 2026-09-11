@@ -277,6 +277,8 @@ export interface components {
         };
         User: {
             id: number;
+            publicId: string;
+            tagId: string;
             email: string;
             password: string;
             /** @enum {string} */
@@ -315,11 +317,6 @@ export interface components {
             avatarUrl: string;
         };
         UpdateUserDto: {
-            /**
-             * Format: email
-             * @example alex@example.com
-             */
-            email?: string;
             /** @example SecurePassword123 */
             password?: string;
             /** @example InwZa007 */
@@ -677,7 +674,9 @@ export interface operations {
     };
     AuthController_googleCallback: {
         parameters: {
-            query?: never;
+            query: {
+                state: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -711,7 +710,9 @@ export interface operations {
     };
     AuthController_fortyTwoCallback: {
         parameters: {
-            query?: never;
+            query: {
+                state: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
