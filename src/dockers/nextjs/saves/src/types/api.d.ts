@@ -70,6 +70,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Upload user profile picture */
         post: operations["UserController_uploadProfilePic"];
         delete?: never;
         options?: never;
@@ -448,7 +449,17 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description Profile image file (JPG, JPEG, PNG, max 5MB)
+                     */
+                    file: string;
+                };
+            };
+        };
         responses: {
             201: {
                 headers: {
