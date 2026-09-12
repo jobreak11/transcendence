@@ -71,11 +71,10 @@ allowBuilds:
 packages:
   - "."
 
-overrides:
-  "@nestjs/common": ^12.0.0
-  "@nestjs/core": ^12.0.0
 EOF
 '
+
+  # run_suexec ${USER_ID} ${GROUP_ID} node -e 'const fs=require("fs"),f="tsconfig.json",c=JSON.parse(fs.readFileSync(f,"utf8"));c.compilerOptions=c.compilerOptions||{};c.compilerOptions.paths=Object.assign(c.compilerOptions.paths||{},{"@nestjs/common":["./node_modules/@nestjs/common"],"@nestjs/common/*":["./node_modules/@nestjs/common/*"],"@nestjs/core":["./node_modules/@nestjs/core"],"@nestjs/core*":["./node_modules/@nestjs/core*"]});fs.writeFileSync(f,JSON.stringify(c,null,2)+"\n");'
 
   # run_suexec ${USER_ID} ${GROUP_ID} echo "dedupe-peer-dependents=true" >> .npmrc
 
@@ -98,7 +97,7 @@ EOF
   uuid \
   dotenv drizzle-orm \
   @nestjs/platform-fastify \
-  @fastify/static
+  @fastify/static @fastify/multipart
   # @nestjs/typeorm typeorm \
 
 
@@ -114,7 +113,7 @@ EOF
     @types/passport-google-oauth20 \
     @types/passport-oauth2 \
     @types/pg \
-    tsx drizzle-kit
+    drizzle-kit
 
   if [ -d "/app/saves" ] && [ -n "$(ls -A /app/saves 2>/dev/null)" ]; then
     printf "Restoring project from /app/saves\n"
@@ -131,7 +130,9 @@ fi
 
 chown -R ${USER_ID}:${GROUP_ID} /transcend_storage
 
+
 cd ${NESTJS_DIR}
+run_suexec ${USER_ID} ${GROUP_ID} pnpm drizzle-kit push
 if [ "${USER_ID}" -ne 0 ]; then
   exec su-exec "${USER_ID}:${GROUP_ID}" "$@"
 else

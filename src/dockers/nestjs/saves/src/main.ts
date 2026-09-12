@@ -2,20 +2,29 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify'
+import { NestFastifyApplication, FastifyAdapter } from "@nestjs/platform-fastify"
+import fastifyMultipart from "@fastify/multipart"
+import { GLOBAL_LIMIT_FASTIFY_MULTIPART_FILE_FIELD_MAX, GLOBAL_LIMIT_FASTIFY_MULTIPART_FILESIZE_LIMIT } from './constant.js';
 
 async function bootstrap() {
 
-  // const app = await NestFactory.create<NestFastifyApplication>(
-  //   AppModule,
-  //   new FastifyAdapter()
-  // )
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    new FastifyAdapter()
+  )
 
   // const app = await NestFactory.create(AppModule);
-  // app.useGlobalPipes(new ValidationPipe({
-  //   transform: true,
-  //   whitelist: true
-  // }))
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true,
+    whitelist: true
+  }))
+
+  app.register(fastifyMultipart, {
+    limits: {
+      fileSize: GLOBAL_LIMIT_FASTIFY_MULTIPART_FILESIZE_LIMIT,
+      files: GLOBAL_LIMIT_FASTIFY_MULTIPART_FILE_FIELD_MAX,
+    },
+  });
 
   const config = new DocumentBuilder()
     .setTitle('Backend API')
