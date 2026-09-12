@@ -112,31 +112,31 @@ export class UserService {
     // return this.UserRepo.update({id}, updateUserDto);
   }
 
-  // async uploadProfilePic(id: string, file: Express.Multer.File) {
+  async uploadProfilePic(id: string, fileBuffer: Buffer) {
 
-  //   const uploadDir = path.join(SHARED_STORAGE_PATH, String(id));
-  //   const destinationPath = path.join(uploadDir, 'profile.jpg');
+    const uploadDir = path.join(SHARED_STORAGE_PATH, String(id));
+    const destinationPath = path.join(uploadDir, 'profile.jpg');
 
-  //   await fs.mkdir(uploadDir, {recursive: true});
-  //   await fs.writeFile(destinationPath, file.buffer);
+    await fs.mkdir(uploadDir, {recursive: true});
+    await fs.writeFile(destinationPath, fileBuffer);
 
-  //   const newAvatarURL = path.join(STORAGE_URL_PATH, `${id}/profile.jpg`);
+    const newAvatarURL = path.join(STORAGE_URL_PATH, `${id}/profile.jpg`);
 
-  //   const [updatedUser] = await this.db
-  //     .update(users)
-  //     .set({avatarUrl: newAvatarURL})
-  //     .where(eq(users.id, id))
-  //     .returning();
+    const [updatedUser] = await this.db
+      .update(users)
+      .set({avatarUrl: newAvatarURL})
+      .where(eq(users.id, id))
+      .returning();
 
-  //   return updatedUser
+    return updatedUser
 
 
-  //   // await this.update(id, {avatarUrl: newAvatarURL});
-  //   // return {
-  //   //   success: true,
-  //   //   avatarUrl: newAvatarURL,
-  //   // };
-  // }
+    // await this.update(id, {avatarUrl: newAvatarURL});
+    // return {
+    //   success: true,
+    //   avatarUrl: newAvatarURL,
+    // };
+  }
 
 
   remove(id: number) {

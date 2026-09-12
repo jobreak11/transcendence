@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotImplementedException, SetMetadata, HttpCode, HttpStatus, ParseIntPipe, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotImplementedException, SetMetadata, HttpCode, HttpStatus, ParseIntPipe, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, BadRequestException, PayloadTooLargeException } from '@nestjs/common';
 import { UserService } from './user.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
@@ -14,6 +14,7 @@ import { FileInterceptor } from '@nestjs/platform-express'
 import { SHARED_STORAGE_PATH, STORAGE_URL_PATH } from '../constant.js';
 import * as path from 'path'
 import * as fs from 'fs/promises'
+import type { AuthJwtFastifyRequest } from '../auth/types/auth-jwtFastifyRequest.js';
 
 @Roles(Role.USER)
 @Controller('user')
@@ -58,23 +59,6 @@ export class UserController {
 
 
 
-  //   @HttpCode(HttpStatus.CREATED)
-  // @ApiBearerAuth()
-  // @ApiOperation({ summary: 'Upload user profile picture' })
-  // @ApiConsumes('multipart/form-data')
-  // @ApiBody({
-  //   schema: {
-  //     type: 'object',
-  //     required: ['file'],
-  //     properties: {
-  //       file: {
-  //         type: 'string',
-  //         format: 'binary',
-  //         description: 'Profile image file (JPG, JPEG, PNG, max 5MB)',
-  //       },
-  //     },
-  //   },
-  // })
   // @Post('profile/uploadProfilePic')
   // @UseInterceptors(FileInterceptor('file'))
   // async uploadProfilePic(@Req() req:any, @UploadedFile(
@@ -98,6 +82,61 @@ export class UserController {
   //   //console.log({ routeCheck: 'isHere', req});
   //   return this.userService.uploadProfilePic(req.user.id, file);
   // }
+
+    @HttpCode(HttpStatus.CREATED)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Upload user profile picture' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'Profile image file (JPG, JPEG, PNG, max 5MB)',
+        },
+      },
+    },
+  })
+  @Post('profile/uploadProfilePic')
+  async uploadProfilePic(@Req() req: AuthJwtFastifyRequest) {
+
+    if (! req.isMultipart()) {
+      throw new BadRequestException(`Expected multipart/form-data`);
+    }
+
+    const part = await req.file({
+      limits: {
+        fileSize: 1024 * 1024 * 10, // 10MB Limit
+      },
+    });
+
+    if (!part) {
+      throw new BadRequestException('File is required');
+
+    }
+
+    if (part.fieldname !== 'file') {
+      part.file.resume();
+      throw new BadRequestException('Field name must be "file"');
+    }
+
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (!allowedMimeTypes.includes(part.mimetype)) {
+      throw new BadRequestException('Only JPG, JPEG, and PNG files are allowed');
+    }
+
+    const buffer = await part.toBuffer();
+
+    if (part.file.truncated) {
+      throw new PayloadTooLargeException('File size exceeds the 10MB limit');
+    }
+
+
+    return this.userService.uploadProfilePic(req.user.id, buffer);
+  }
 
 
   @ApiBearerAuth()

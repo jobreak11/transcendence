@@ -61,6 +61,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/user/profile/uploadProfilePic": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["UserController_uploadProfilePic"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/user/update": {
         parameters: {
             query?: never;
@@ -422,6 +438,23 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["UnauthorizedErrorDto"];
                 };
+            };
+        };
+    };
+    UserController_uploadProfilePic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
