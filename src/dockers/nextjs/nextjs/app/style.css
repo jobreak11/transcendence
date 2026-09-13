@@ -57,12 +57,18 @@ a {
 	padding-top: 4px;
 }
 
+.usertitle {
+	display: flex;
+	align-items: end;
+	height: 80%;
+	width: 55vw;
+}
+
 .bartab {
 	display: flex;
 	height: 40%;
 	width: 100%;
 	align-items: stretch;
-	/* margin-top: auto; */
 	border-bottom: 4px solid red;
 }
 

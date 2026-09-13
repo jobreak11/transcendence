@@ -1,24 +1,18 @@
-// const tabMain = document.getElementById('showRegister');
-// const tabStat = document.getElementById('showLogin');
-// const tabHist = document.getElementById('loginForm');
-// const tabSett = document.getElementById('registerForm');
+const textFit = document.getElementById('textFit');
 
-// function displayTab(isRegister) {
-// 	loginForm.hidden = isRegister;
-// 	registerForm.hidden = !isRegister;
-// }
+function autoSize(element) {
+	let size = 40;
+	element.style.fontSize = `${size}px`;
 
-// showRegister.addEventListener('click', (event) => {
-// 	event.preventDefault();
-// 	setMode(true);
-// });
+	while (element.scrollWidth > element.clientWidth && size > 1)
+	{
+		size -= 0.5;
+		element.style.fontSize = `${size}px`;
+	}
+}
 
-// showLogin.addEventListener('click', (event) => {
-// 	event.preventDefault();
-// 	setMode(false);
-// });
-
-// setMode(false);
+autoSize(textFit);
+window.addEventListener('resize', () => autoSize(textFit));
 
 const tabs = document.querySelectorAll('.tabcolumn');
 const contents = document.querySelectorAll('.content');
