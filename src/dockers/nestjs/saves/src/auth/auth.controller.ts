@@ -18,7 +18,6 @@ import { FortytwoAuthGuard } from './guards/fortytwo-auth/fortytwo-auth.guard.js
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Public()
   @Post('signup')
   registerUser(@Body() createUserDto: CreateUserDto) {
     return this.authService.registerUser(createUserDto);
@@ -42,7 +41,6 @@ export class AuthController {
     description: 'Invalid email or password',
     type: UnauthorizedErrorDto
   })
-  @Public()
   @HttpCode(HttpStatus.OK)
   @UseGuards(LocalAuthGuard)
   @Post('login')
@@ -94,7 +92,6 @@ export class AuthController {
     this.authService.signOut(req.user.id)
   }
 
-  @Public()
   @UseGuards(GoogleAuthGuard)
   @Get('google/login')
   googleLogin() {
@@ -102,7 +99,6 @@ export class AuthController {
   }
 
 
-  @Public()
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
   async googleCallback(@Req() req:any, @Query('state') state: string) {
@@ -116,7 +112,6 @@ export class AuthController {
     return {...response, callbackUrl: decodeRedirect};
   }
 
-  @Public()
   @UseGuards(FortytwoAuthGuard)
   @Get('42/login')
   fortyTwoLogin() {
@@ -124,7 +119,6 @@ export class AuthController {
   }
 
 
-  @Public()
   @UseGuards(FortytwoAuthGuard)
   @Get('42/callback')
   async fortyTwoCallback(@Req() req:any, @Query('state') state: string) {

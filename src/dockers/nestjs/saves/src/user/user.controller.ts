@@ -16,16 +16,18 @@ import * as path from 'path'
 import * as fs from 'fs/promises'
 import type { AuthJwtFastifyRequest } from '../auth/types/auth-jwtFastifyRequest.js';
 
+@UseGuards(RolesGuard)
 @Roles(Role.USER)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Roles(Role.ADMIN)
-  @Post()
   @ApiOperation({summary: 'Register a new user account'})
   @ApiResponse({status: 201, description: 'User created successfully'})
   @ApiResponse({status: 401, description: 'validation failed.', type: UnauthorizedErrorDto})
+  @Roles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard)
+  @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
@@ -47,6 +49,7 @@ export class UserController {
   })
   //@UseGuards(JwtAuthGuard)
   @Get('profile')
+  @UseGuards(JwtAuthGuard)
   getProfile(@Req() req:any){
     return this.userService.findOne(req.user.id);
   }
@@ -100,6 +103,7 @@ export class UserController {
       },
     },
   })
+  @UseGuards(JwtAuthGuard)
   @Post('profile/uploadProfilePic')
   async uploadProfilePic(@Req() req: AuthJwtFastifyRequest) {
 
@@ -144,6 +148,7 @@ export class UserController {
     summary: 'Not implemented yet.'
   })
   @Patch('update')
+  @UseGuards(JwtAuthGuard)
   update(@Req() req:any, @Body() updateUserDto: UpdateUserDto) {
     //throw new NotImplementedException('still not implement')
     return this.userService.update(req.user.id, updateUserDto);
@@ -170,6 +175,7 @@ export class UserController {
   @Roles(Role.EDITOR, Role.ADMIN)
   //@UseGuards(RolesGuard)
   //@UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.userService.remove(+id);

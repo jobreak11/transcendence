@@ -1,18 +1,10 @@
 'use client'
 
-import { signOut } from "../lib/auth";
+import { signOut } from "../../lib/auth";
 import { useEffect } from 'react';
 
 
 export default function Page() {
-
-  const handleGoogleLogin = () => {
-    window.location.href = 'https://localhost:4333/api/auth/google/login';
-  };
-
-  const handle42Login = () => {
-    window.location.href = 'https://localhost:4333/api/auth/42/login';
-  };
 
   useEffect(() => {
 
