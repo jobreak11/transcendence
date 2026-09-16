@@ -4,6 +4,13 @@ printf "$0\n"
 printf "checking prerequisites requires for This project\n"
 printf "using 'which' command to check only\n"
 
+GREP_CMD="grep"
+SED_CMD="sed"
+if [ "$(uname -s)" = "Darwin" ]; then
+  GREP_CMD="ggrep"
+  SED_CMD="gsed"
+fi
+
 checkWhich() {
   commandName="$1"
 
@@ -25,6 +32,6 @@ checkWhich() {
 
 checkWhich openssl
 checkWhich docker
-checkWhich grep
-checkWhich sed
+checkWhich ${GREP_CMD}
+checkWhich ${SED_CMD}
 checkWhich make

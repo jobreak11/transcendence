@@ -8,11 +8,12 @@ import { RedisModule } from './redis/redis.module.js';
 import { GatewayModule } from './gateway/gateway.module.js';
 // import { DrizzleModule } from './drizzle/drizzle.module.js';
 import { ChatModule } from './chat/chat.module.js';
+import { FriendModule } from './friend/friend.module.js';
 
 @Module({
   controllers: [AppController],
   providers: [AppService],
-  imports: [ConfigModule.forRoot({ isGlobal: true }), UserModule, AuthModule, RedisModule, GatewayModule, ChatModule, 
+  imports: [ConfigModule.forRoot({ isGlobal: true }), UserModule, AuthModule, RedisModule, GatewayModule, ChatModule, FriendModule, 
     // DrizzleModule
   ],
 })

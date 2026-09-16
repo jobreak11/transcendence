@@ -97,7 +97,8 @@ EOF
   uuid \
   dotenv drizzle-orm \
   @nestjs/platform-fastify \
-  @fastify/static @fastify/multipart
+  @fastify/static @fastify/multipart \
+  fastify
   # @nestjs/typeorm typeorm \
 
 

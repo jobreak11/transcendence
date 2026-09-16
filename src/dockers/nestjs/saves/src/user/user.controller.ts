@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotImplementedException, SetMetadata, HttpCode, HttpStatus, ParseIntPipe, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, BadRequestException, PayloadTooLargeException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotImplementedException, SetMetadata, HttpCode, HttpStatus, ParseIntPipe, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, BadRequestException, PayloadTooLargeException, Query } from '@nestjs/common';
 import { UserService } from './user.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth/jwt-auth.guard.js';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiForbiddenResponse, ApiNoContentResponse, ApiOperation, ApiResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConsumes, ApiForbiddenResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { UnauthorizedErrorDto } from '../auth/dto/login.dto.js';
 import { GetUserProfileDto } from './dto/get-user-profile.dto.js';
 import { Role } from '../auth/enums/role.enum.js';
@@ -16,8 +16,6 @@ import * as path from 'path'
 import * as fs from 'fs/promises'
 import type { AuthJwtFastifyRequest } from '../auth/types/auth-jwtFastifyRequest.js';
 
-@UseGuards(RolesGuard)
-@Roles(Role.USER)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -25,8 +23,8 @@ export class UserController {
   @ApiOperation({summary: 'Register a new user account'})
   @ApiResponse({status: 201, description: 'User created successfully'})
   @ApiResponse({status: 401, description: 'validation failed.', type: UnauthorizedErrorDto})
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
@@ -34,25 +32,54 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({
-    summary: 'get the current user profile',
-    description: 'use Authentication: Bearer <JWT token> in this get request \
-    and the backend will retrieve the user profile infomation'
+    summary: 'Get user profile',
+    description:
+      'Retrieves the authenticated user’s profile if no query params are passed. Provide either `id` or `tagId` to view another user’s profile. Providing both will return a 400 error.',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiQuery({
+    name: 'id',
+    required: false,
+    type: String,
+    description: 'Lookup target profile by User ID (mutually exclusive with tagId)',
+    example: 'usr_12345',
+  })
+  @ApiQuery({
+    name: 'tagId',
+    required: false,
+    type: String,
+    description: 'Lookup target profile by Tag/Handle (mutually exclusive with id)',
+    example: 'gamer_tag_99',
+  })
+  @ApiOkResponse({
     type: GetUserProfileDto,
-    description: "your user profile data"
+    description: 'Successfully retrieved user profile data',
+  })
+  @ApiBadRequestResponse({
+    description: 'Both `id` and `tagId` were provided simultaneously',
   })
   @ApiUnauthorizedResponse({
     type: UnauthorizedErrorDto,
-    description: 'missing or invalid JWT token'
+    description: 'Missing or invalid JWT token',
   })
-  //@UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.USER)
   @Get('profile')
-  @UseGuards(JwtAuthGuard)
-  getProfile(@Req() req:any){
-    return this.userService.findOne(req.user.id);
+  getProfile(
+    @Req() req: any,
+    @Query('id') id?: string,
+    @Query('tagId') tagId?: string,
+  ) {
+    if (tagId && id) {
+      throw new BadRequestException('must not contain both query params!');
+    } else if (!tagId && !id) {
+      return this.userService.findOne(req.user.id);
+    } else if (tagId) {
+      return this.userService.findByTagId(tagId);
+    } else {
+      return this.userService.findOne(id ?? '');
+    }
   }
+
 
   //@Post('profile/uploadProfilePic')
   //@
@@ -178,7 +205,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+    return this.userService.remove(id);
   }
 
 }

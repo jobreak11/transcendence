@@ -1,8 +1,8 @@
 'use client'
 
-import { signOut } from "../lib/auth";
 import Link from "next/link";
 import Image from "next/image"; //for image adding
+import { signOut } from "../../lib/auth";
 
 
 export default function Page() {
@@ -48,6 +48,7 @@ export default function Page() {
           </form>
         </div>
       </div>
+      <Link href={'/ws-test'}> Go to websocket test page</Link>
     </main>
   )
 }
