@@ -2,6 +2,7 @@
 import { matchesGlob } from "path";
 import { useEffect, useState } from "react";
 import { io, Socket } from 'socket.io-client'
+import { useMainSocket } from "../_context/useMainSocket";
 
 interface BroadcastMessage {
   senderId?: string;
@@ -12,56 +13,34 @@ interface BroadcastMessage {
   timestamp?: string;
 }
 
-export function WebSocketTestComponent({
-  accessToken
-}: {
-  accessToken: string
-}) {
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [socketId, setSocketId] = useState<string>('');
+export function WebSocketTestComponent() {
+  const {socket, isConnected, accessToken} = useMainSocket();
+
+  //const [socket, setSocket] = useState<Socket | null>(null);
+  //const [isConnected, setIsConnected] = useState(false);
+  //const [socketId, setSocketId] = useState<string>('');
+
   const [messageText, setMessageText] = useState('');
   const [messages, setMessages] = useState<BroadcastMessage[]>([]);
 
   useEffect(() => {
 
-    const socketInstance: Socket = io('https://localhost:4333', {
-      path: '/socket.io/',
-      transports: ['websocket'],
-      secure: true,
-      auth: {
-        accessToken: accessToken
-      },
-    });
+    if (!socket) {
+      return ;
+    }
 
-    socketInstance.on('connect', () => {
-      setIsConnected(true);
-      setSocketId(socketInstance.id || '');
-      console.log('Connected to Nestjs WebSocket:', socketInstance.id);
-    });
-
-    socketInstance.on('disconnect', () => {
-      setIsConnected(false);
-      setSocketId('');
-      console.log('Disconnected from WebSocket');
-    });
-
-    socketInstance.on('connect_error', (err) => {
-      console.error('Socket connection error:', err.message);
-    });
-
-    socketInstance.on('onMessage', (data: BroadcastMessage) => {
+    const handleIncomingMessage = (data: BroadcastMessage) => {
       console.log('New broadcast received', data);
       setMessages((prev) => [...prev, data]);
-    });
+    }
 
-    setSocket(socketInstance);
+    socket.on('onMessage', handleIncomingMessage);
+
 
     return () => {
-      socketInstance.off('onMessage');
-      socketInstance.disconnect();
+      socket.off('onMessage', handleIncomingMessage)
     }
-  }, []);
+  }, [socket]);
 
   const handleSendMessage = () => {
     if (!socket || !isConnected || !messageText.trim()) {
@@ -82,7 +61,7 @@ export function WebSocketTestComponent({
       <p>
         Status:{' '}
         <span style={{color: isConnected ? 'green' : 'red', fontWeight: 'bold'}}>
-          {isConnected ? `Connected (ID: ${socketId})` : 'Disconnected'}
+          {isConnected ? `Connected (ID: ${socket.id})` : 'Disconnected'}
         </span>
       </p>
 

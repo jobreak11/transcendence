@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Inject, Injectable } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 // import { InjectRepository } from '@nestjs/typeorm';
@@ -26,32 +26,37 @@ export class UserService {
       .update(users)
       .set({hashedRefreshToken: hashedRefreshToken})
       .where(eq(users.id, userId))
-      .returning();
+      .returning({ id: users.id });
+
+
+    if (!updateUser) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
 
     return updateUser;
 
-    // return await this.UserRepo.update({id: userId}, {hashedRefreshToken});
   }
 
   async create(createUserDto: CreateUserDto) {
     
 
-    // need to check if same email must not creatable
-    const foundUser = await this.findByEmail(createUserDto.email);
-    if (foundUser)
-      throw new ConflictException(`cannot create new user with email ${createUserDto.email} already exists!`)
-
     const hashedPassword = await argon2.hash(createUserDto.password);
-    const [newUser] = await this.db.insert(users)
-      .values({
-        ...createUserDto,
-        password: hashedPassword
-      })
-      .returning();
 
-    // const user = await this.UserRepo.create(createUserDto)
-    // return await this.UserRepo.save(user);
-    return newUser;
+    try {
+      const [newUser] = await this.db.insert(users)
+        .values({
+          ...createUserDto,
+          password: hashedPassword
+        })
+        .returning();
+
+      return newUser;
+    } catch (error: any) {
+      if (error.code === '23505') {
+        throw new ConflictException(`This user is already exist`);
+      }
+      throw error
+    }
   }
 
   async findByEmail(email: string) {
@@ -61,11 +66,16 @@ export class UserService {
 
     return user;
 
-    // return await this.UserRepo.findOne({
-    //   where: {
-    //     email,
-    //   }
-    // });
+  }
+
+  async findByTagId(tagId: string) {
+    const [user] = await this.db
+      .select()
+      .from(users)
+      .where(eq(users.tagId, tagId))
+      .limit(1);
+
+    return (user);
   }
 
   async findAll() {
@@ -78,20 +88,11 @@ export class UserService {
     const [user] = await this.db.select().from(users).where(eq(users.id, id))
     .limit(1);
 
-    return user;
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
 
-    // return this.UserRepo.findOne({
-    //   where: { id },
-    //   select: {
-    //     id: true,
-    //     email: true,
-    //     createdAt: true,
-    //     avatarUrl: true,
-    //     displayName: true,
-    //     //hashedRefreshToken: true,
-    //     role: true
-    //   }
-    // })
+    return user;
 
   }
 
@@ -101,18 +102,29 @@ export class UserService {
       updateUserDto.password = await argon2.hash(updateUserDto.password);
     }
 
-    const [updatedUser] = await this.db
-      .update(users)
-      .set(updateUserDto)
-      .where(eq(users.id, id))
-      .returning();
+    try {
+      const [updatedUser] = await this.db
+        .update(users)
+        .set(updateUserDto)
+        .where(eq(users.id, id))
+        .returning();
 
-    return updatedUser;
+      if (!updatedUser) {
+        throw new NotFoundException(`User with ID  ${id} not found`);
+      }
 
-    // return this.UserRepo.update({id}, updateUserDto);
+      return updatedUser;
+    } catch (error: any) {
+      if (error.code === '23505') {
+        throw new ConflictException(`This user is already exist`);
+      }
+      throw error
+    }
   }
 
   async uploadProfilePic(id: string, fileBuffer: Buffer) {
+
+    await this.findOne(id);
 
     const uploadDir = path.join(SHARED_STORAGE_PATH, String(id));
     const destinationPath = path.join(uploadDir, 'profile.jpg');
@@ -128,18 +140,25 @@ export class UserService {
       .where(eq(users.id, id))
       .returning();
 
-    return updatedUser
-
-
-    // await this.update(id, {avatarUrl: newAvatarURL});
-    // return {
-    //   success: true,
-    //   avatarUrl: newAvatarURL,
-    // };
+    return updatedUser;
   }
 
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    const [deletedUser] = await this.db
+      .delete(users)
+      .where(eq(users.id, id))
+      .returning({id: users.id});
+
+    if (!deletedUser) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    return (
+      {
+        deleted: true,
+        id: deletedUser.id
+      }
+    )
   }
 }
