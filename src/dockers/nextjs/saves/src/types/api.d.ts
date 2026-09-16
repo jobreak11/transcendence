@@ -49,8 +49,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * get the current user profile
-         * @description use Authentication: Bearer <JWT token> in this get request     and the backend will retrieve the user profile infomation
+         * Get user profile
+         * @description Retrieves the authenticated user’s profile if no query params are passed. Provide either `id` or `tagId` to view another user’s profile. Providing both will return a 400 error.
          */
         get: operations["UserController_getProfile"];
         put?: never;
@@ -255,6 +255,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/friend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["FriendController_getAllFriends"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/friend/request/{targetUserId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["FriendController_makeFriendRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/friend/accept/{targetUserId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["FriendController_acceptFriendRequest"];
+        trace?: never;
+    };
+    "/friend/reject/{targetUserId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["FriendController_rejectFriendRequest"];
+        trace?: never;
+    };
+    "/friend/block/{targetUserId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["FriendController_blockUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -415,14 +495,19 @@ export interface operations {
     };
     UserController_getProfile: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Lookup target profile by User ID (mutually exclusive with tagId) */
+                id?: string;
+                /** @description Lookup target profile by Tag/Handle (mutually exclusive with id) */
+                tagId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description your user profile data */
+            /** @description Successfully retrieved user profile data */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -431,7 +516,14 @@ export interface operations {
                     "application/json": components["schemas"]["GetUserProfileDto"];
                 };
             };
-            /** @description missing or invalid JWT token */
+            /** @description Both `id` and `tagId` were provided simultaneously */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid JWT token */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -697,6 +789,99 @@ export interface operations {
             };
             header?: never;
             path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    FriendController_getAllFriends: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    FriendController_makeFriendRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                targetUserId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    FriendController_acceptFriendRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                targetUserId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    FriendController_rejectFriendRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                targetUserId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    FriendController_blockUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                targetUserId: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
