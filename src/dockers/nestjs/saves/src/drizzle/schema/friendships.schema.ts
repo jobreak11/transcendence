@@ -1,4 +1,4 @@
-import { check, pgEnum, pgTable, primaryKey, timestamp, uuid } from "drizzle-orm/pg-core";
+import { check, index, pgEnum, pgTable, primaryKey, timestamp, uuid } from "drizzle-orm/pg-core";
 import { users } from "./users.schema.js";
 import { sql } from "drizzle-orm";
 
@@ -29,5 +29,7 @@ export const friendships = pgTable(
   (t) => [
     primaryKey({ columns: [t.requesterUserId, t.addresseeUserId]}),
     check("no_self_relationship", sql`${t.requesterUserId} != ${t.addresseeUserId}`),
+    index("friendship_requester_user_idx").on(t.requesterUserId),
+    index("friendship_addressee_user_idx").on(t.addresseeUserId),
   ]
 )

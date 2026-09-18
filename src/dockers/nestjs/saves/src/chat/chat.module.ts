@@ -1,14 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ChatGateway } from './chat.gatewat.js';
-import { MessageBody, SubscribeMessage } from '@nestjs/websockets';
+import { ChatController } from './chat.controller.js';
+import { ChatService } from './chat.service.js';
 
 @Module({
-  providers: [ChatGateway]
+  controllers: [ChatController],
+  providers: [ChatService],
+  exports: [ChatService]
 })
-export class ChatModule {
-
-  @SubscribeMessage('newMessage')
-  handleNewMessage(@MessageBody() message: any) {
-    console.log(message);
-  }
-}
+export class ChatModule {}
