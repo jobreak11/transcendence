@@ -71,6 +71,9 @@ allowBuilds:
 packages:
   - "."
 
+overrides:
+  fastify: "5.12.5"
+
 EOF
 '
 
