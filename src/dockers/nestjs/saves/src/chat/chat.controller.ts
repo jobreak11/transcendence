@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth/jwt-auth.guard.js';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { ChatService } from './chat.service.js';
@@ -14,8 +14,8 @@ export class ChatController {
   @UseGuards(JwtAuthGuard)
   @Get()
   // retrieve all the chat room this user can join
-  getAllUserRoom() {
-    
+  getAllUserRoom(@Req() req:any) {
+    return this.chatService.findAllJoinedChatRoom(req.user.id);
   }
 
 }

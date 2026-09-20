@@ -12,7 +12,7 @@ export async function Signup(
   state: FormState,
   formData: FormData ): Promise<FormState> {
 
-  const delay = await new Promise((resolve) => setTimeout(resolve, 3000));
+  //const delay = await new Promise((resolve) => setTimeout(resolve, 3000));
 
   const fields = {
     displayName: formData.get('displayName')?.toString() ?? '',
@@ -69,7 +69,7 @@ export async function signIn(
   formData: FormData): Promise<FormState> {
 
   // simulate the delay so see the loading component on work during local development
-  const delay = await new Promise((resolve) => setTimeout(resolve, 3000));
+  //const delay = await new Promise((resolve) => setTimeout(resolve, 3000));
 
   const requestPath = `${BACKEND_URL}/auth/login`;
 

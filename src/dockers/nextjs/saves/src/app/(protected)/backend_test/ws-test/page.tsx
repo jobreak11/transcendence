@@ -7,7 +7,7 @@ export default async function Page() {
   return (
     <div>
       <WebSocketTestComponent/>
-      <Link href={"/"}>Go to root page</Link>
+      <Link href={"/backend_test"} className="bg-amber-900 m-5 p-5 rounded-4xl">back to backend root page</Link>
     </div>
   )
 }

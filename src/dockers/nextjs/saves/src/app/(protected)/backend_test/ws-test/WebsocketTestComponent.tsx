@@ -2,7 +2,7 @@
 import { matchesGlob } from "path";
 import { useEffect, useState } from "react";
 import { io, Socket } from 'socket.io-client'
-import { useMainSocket } from "../_context/useMainSocket";
+import { useMainSocket } from "../../_context/useMainSocket";
 
 interface BroadcastMessage {
   senderId?: string;
