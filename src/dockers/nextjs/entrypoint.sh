@@ -105,6 +105,16 @@ const nextConfig = {
       ],
     },
   },
+  turbopack: {},
+  // I added some option so that auto rendersing
+  webpack: (config, context) => {
+    config.watchOptions = {
+      poll: 1000,
+      aggregateTimeout: 300,
+    };
+    return config;
+  },
+  // ended add some option
 };
 
 module.exports = nextConfig;
