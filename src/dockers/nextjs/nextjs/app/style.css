@@ -1,5 +1,16 @@
 body {
+	min-height: 100vh;
 	background-color: #262626;
+	background-image:
+		linear-gradient(
+			to bottom,
+			rgba(0, 0, 0, 0) 0%,
+			rgba(0, 0, 0, 0.25) 60%,
+			#000 120%
+		),
+		url("meshbg1.svg");
+	background-repeat: no-repeat, repeat;
+	background-size: 100% 100%, 30px 30px;
 	color: white;
 	font-size: clamp(14px, calc(6px + 2vw), 28px);
 }
@@ -93,7 +104,41 @@ a {
 }
 
 .content.active {
-	display: block;
+	display: flex;
+	flex-direction: column;
+}
+
+.blogbox {
+	display: flex;
+	align-self: center;
+	background-color: rgba(42, 42, 42, 0.75);
+	margin-top: 3vh;
+	width: 90vw;
+	height: fit-content;
+	padding: 1%;
+}
+
+.aboutme {
+	min-width: 70vw;
+	max-width: 100%;
+	align-self: center;
+	overflow-wrap: anywhere;
+}
+
+.iconspan {
+	display: flex;
+}
+
+.iconspan.box {
+	width: 5vw;
+	height: 5vw;
+	overflow: hidden;
+}
+
+.iconspan img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
 }
 
 /* .startheader {
