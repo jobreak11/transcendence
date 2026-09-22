@@ -28,3 +28,39 @@ tabs.forEach(tab => {
 		document.getElementById(target).classList.add('active');
 	});
 });
+
+const graph = document.getElementById("playerStats");
+
+new Chart(graph, {
+	type: "radar",
+	data: {
+		labels: ["Daring", "Bluffing", "Push", "Fold", "Bold"],
+		datasets: [{
+			data: [3.2, 1.5, 2.6, 1, 4.5],
+			backgroundColor: ["#FEDC6E"]
+		}]
+	},
+	options: {
+		responsive: true,
+		maintainAspectRatio: false,
+		plugins: {
+			legend: {
+				display: false
+			}
+		},
+		scales: {
+			r: {
+				ticks: {
+					display: false
+				},
+				pointLabels: {
+					color: "white",
+					font: {
+						size: 20,
+						weight: "bold"
+					}
+				}
+			}
+		}
+	}
+});

@@ -90,9 +90,71 @@
 			</div>
 		</div>
 	</div>
-	<div class="content" id="Stat">Player Statistics</div>
-	<div class="content" id="Hist">Match History</div>
-	<div class="content" id="Sett">Account Settings</div>
+	<div class="content" id="Stat">
+		<div class="blogbox">
+			<div style="padding: 1%; display: flex; flex-direction: column; width: 100%;">
+				<div>
+				<table style="padding: 2%; overflow-wrap: anywhere; width: 90%; position: relative; margin: 0 auto;">
+					<tr><td>Join: 03/08/2005</td><td>Level: NaN</td><td>Likes: NaN</td></tr>
+					<tr><td>Matches Played: NaN</td><td>Rounds Won: NaN</td><td>Win Rate: NaN</td></tr>
+					<tr><td>Highest Gain: NaN</td><td>Highest Loss: NaN</td><td>Highest Bank: NaN</td></tr>
+				</table><hr>
+				<div style="text-align: center; position: relative; margin: 0 auto; width: 30vw; height: 30vw; padding-bottom: 2%;">Playstyle<br>
+					<canvas id="playerStats"></canvas>
+				</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="content" id="Hist">
+		<div class="blogbox">
+			<div style="padding: 1%; display: flex; flex-direction: column; width: 100%;">
+				<div style="display: flex;">
+					<div style="width: 7vw; height: 7vw; overflow: hidden;"><img src="profile_sample.png" alt="Profile picture" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+					<div style="padding: 1%; position: relative; margin: 0 auto;"><table class="history">
+						<tr><td>Time: TBD</td><td>Mode: Casual</td><td>Enemy: TBD</td></tr>
+						<tr><td>Results: Loss</td><td>Rounds: 2/7</td><td></td></tr>
+					</table></div>
+					<div style="width: 7vw; height: 7vw; overflow: hidden;"><img src="profile_sample.png" alt="Profile picture" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+				</div><div><hr></div>
+				<div style="display: flex;">
+					<div style="width: 7vw; height: 7vw; overflow: hidden;"><img src="profile_sample.png" alt="Profile picture" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+					<div style="padding: 1%; position: relative; margin: 0 auto;"><table class="history">
+						<tr><td>Time: TBD</td><td>Mode: Ranked</td><td>Enemy: TBD</td></tr>
+						<tr><td>Results: Win</td><td>Rounds: 5/6</td><td>Points: +1</td></tr>
+					</table></div>
+					<div style="width: 7vw; height: 7vw; overflow: hidden;"><img src="profile_sample.png" alt="Profile picture" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+				</div><div><hr></div>
+			</div>
+		</div>
+	</div>
+	<div class="content" id="Sett">
+		<div class="blogbox">
+			<div style="min-width: 15vw; min-height: 15vw; max-width: 15vw; max-height: 15vw; overflow: hidden;"><img src="profile_sample.png" alt="Profile picture" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+			<div style="padding: 1%; display: flex; flex-direction: column;">
+				<div style="width: 100%;">
+				<table class="aboutme">
+					<tr><td>ID: REDACTED</td><td>Display Name: <input type="username" id="username"></td></tr>
+					<tr>
+						<td>Pronoun: <select name="pronoun" id="pronoun">
+							<option value="he">He/Him</option>
+							<option value="she">She/Her</option>
+							<option value="they">They/Them</option>
+						</select></td>
+						<td>Title: <select name="title" id="title">
+							<option value="default">Poker Rookie</option>
+							<option value="dev">DaveChips 888</option>
+							<option value="admin">Dont@Me</option>
+						</select></td>
+					</tr>
+				</table><br><hr>
+				<div>Signature: <input type="signature" id="signature" style="min-width: 80%;"></div>
+				<div style="display: flex; flex-direction: column; align-items: flex-end; margin-top: 2vh;"><button id="saveChanges" type="saveChanges" style="font-size: clamp(16px, calc(6px + 2vw), 24px);">Save</button></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 	<script src="script.js" defer></script>
 </body>
 </html>

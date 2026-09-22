@@ -141,6 +141,20 @@ a {
 	object-fit: contain;
 }
 
+.history {
+	padding: 1%;
+	overflow-wrap: anywhere;
+	min-width: 70vw;
+	max-width: 70%;
+	table-layout: fixed;
+	border-collapse: collapse;
+}
+
+.history td {
+	width: 33.33%;
+	vertical-align: middle;
+}
+
 /* .startheader {
 	text-align: center;
 	font-family: 'Times New Roman', Times, serif;
