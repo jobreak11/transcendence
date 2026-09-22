@@ -26,6 +26,13 @@ trap clean_up EXIT INT TERM HUP
 # because all the environments and secrets will be used
 # by docker compose 
 
+GREP_CMD="grep"
+SED_CMD="sed"
+if [ "$(uname -s)" = "Darwin" ]; then
+  GREP_CMD="ggrep"
+  SED_CMD="gsed"
+fi
+
 
 # we will use cd to have the same path as the 
 # docker compose file first
@@ -108,7 +115,7 @@ find_key() {
   local the_env_path="$1"
   local key_to_find="$2"
 
-  local count_key=$(grep -c "^${key_to_find}=" "${the_env_path}" 2>/dev/null || true)
+  local count_key=$(${GREP_CMD} -c "^${key_to_find}=" "${the_env_path}" 2>/dev/null || true)
 
   if [ "${count_key}" = 0 ]; then
     printf "find_key() ${key_to_find} in ${the_env_path}: not Found\n" >&2
@@ -136,7 +143,7 @@ check_env() {
   local will_replace=0
 
   if find_key "${ENV_FILE}" "${in_key}"; then
-    local env_line_read=$(grep -P "^${in_key}=.*$" "${ENV_FILE}")
+    local env_line_read=$(${GREP_CMD} -P "^${in_key}=.*$" "${ENV_FILE}")
 
     local env_line_value="${env_line_read#*=}"
     if ! ${check_value_function} "${env_line_value}"; then
@@ -184,7 +191,7 @@ enter empty string for default value\n"
         if [ "${will_replace}" = 0 ]; then
           echo "${in_key}=${user_input}" >> "${ENV_FILE}"
         else
-          sed -i -E "s|^(${in_key}=.*$)|\1${user_input}|" "${ENV_FILE}"
+          ${SED_CMD} -i -E "s|^(${in_key}=.*$)|\1${user_input}|" "${ENV_FILE}"
         fi
        USER_INPUT_OUT="${user_input}"
        break
@@ -263,7 +270,7 @@ while IFS= read -r line <&3 || [ -n "$line" ]; do
   line_count=$((line_count + 1))
 
   # only check if line is not an empty line
-  if printf "%s\n" "${line}" | grep -Pq "^[[:space:]]*$"; then
+  if printf "%s\n" "${line}" | ${GREP_CMD} -Pq "^[[:space:]]*$"; then
     continue
   fi
 
@@ -271,10 +278,10 @@ while IFS= read -r line <&3 || [ -n "$line" ]; do
   value=""
 
 
-  if printf "${line}" | grep -Pq "^[[:space:]]*#"; then
+  if printf "${line}" | ${GREP_CMD} -Pq "^[[:space:]]*#"; then
     printf "${line}\n"
   else
-    if printf "${line}" | grep -Pq "^[[:space:]]+.*$"; then
+    if printf "${line}" | ${GREP_CMD} -Pq "^[[:space:]]+.*$"; then
       printf "line ${line_count}:: wrong format, key=value must container no trailing space\n" 1>&2
       exit 1
     fi
@@ -288,10 +295,10 @@ while IFS= read -r line <&3 || [ -n "$line" ]; do
     fi
 
     # various checks based on each key
-    if printf "${key}" | grep -qP "PORT"; then
+    if printf "${key}" | ${GREP_CMD} -qP "PORT"; then
       check_env "${key}" "${value}" "check_port_function"
 
-    elif printf "${key}" | grep -qP "^DOCKER_SOCKET_PATH"; then
+    elif printf "${key}" | ${GREP_CMD} -qP "^DOCKER_SOCKET_PATH"; then
     # for DOCKER_SOCKET_PATH require specific treatment
 
       # need to check first if .env already has this key or not
@@ -300,19 +307,24 @@ while IFS= read -r line <&3 || [ -n "$line" ]; do
         will_replace=1
       fi
 
-      current_docker_socket_path="$(docker context inspect --format '{{.Endpoints.docker.Host}}' | cut -c 8-)"
+      if [ "$(uname -s)" = "Darwin" ]; then
+        current_docker_socket_path="/var/run/docker.sock"
+      else
+        current_docker_socket_path="$(docker context inspect --format '{{.Endpoints.docker.Host}}' | cut -c 8-)"
+      fi
+
       if [ "${will_replace}" = 0 ]; then
         echo "${key}=${current_docker_socket_path}" >> "${ENV_FILE}"
       else
-        sed -i -E "s|(^${key}=).*$|\1${current_docker_socket_path}|" "${ENV_FILE}"
+        ${SED_CMD} -i -E "s|(^${key}=).*$|\1${current_docker_socket_path}|" "${ENV_FILE}"
       fi
     
-    elif printf "${key}" | grep -qP "^.*RANDOM_SECRET_FILENAME"; then
+    elif printf "${key}" | ${GREP_CMD} -qP "^.*RANDOM_SECRET_FILENAME"; then
       check_env "${key}" "${value}" "check_normal_value_function"
       combined_secret_path="${SECRETS_DIR_PATH}/${USER_INPUT_OUT}"
       check_secret "${combined_secret_path}" "80"
   
-    elif printf "${key}" | grep -qP "^.*SECRET_FILENAME"; then
+    elif printf "${key}" | ${GREP_CMD} -qP "^.*SECRET_FILENAME"; then
     # this will promt user to type the password or auto generate the password
     # using openssl
       check_env "${key}" "${value}" "check_normal_value_function"
