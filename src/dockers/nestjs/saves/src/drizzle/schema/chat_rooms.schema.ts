@@ -5,6 +5,7 @@ import { v7 as uuidv7 } from 'uuid'
 export enum ChatRoomType {
   PUBLIC = 'PUBLIC',
   PRIVATE = 'PRIVATE',
+  DIRECT_MESSAGE = 'DIRECT_MESSAGE',
 }
 
 export const chatRoomTypeEnum = pgEnum("chat_room_type", ChatRoomType);

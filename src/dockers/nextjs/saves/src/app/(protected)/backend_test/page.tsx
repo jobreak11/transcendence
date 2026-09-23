@@ -29,6 +29,11 @@ const TestPages: {
     pageLink: "/backend_test/friend_test",
     description: "test the friend system"
   },
+  {
+    pageName: "Chat System Test",
+    pageLink: "/backend_test/chat_test",
+    description: "to test the chat system, notification and websocket connection"
+  }
 ];
 
 export default function Page() {

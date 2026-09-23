@@ -101,7 +101,8 @@ EOF
   dotenv drizzle-orm \
   @nestjs/platform-fastify \
   @fastify/static @fastify/multipart \
-  fastify
+  fastify \
+  zod
   # @nestjs/typeorm typeorm \
 
 

@@ -12,13 +12,47 @@ export class FriendService {
   ) {}
 
   async findAllFriendships(userId: string) {
-    const allFriends = await this.db
+    const records = await this.db
       .select()
       .from(friendships)
       .where(or(eq(friendships.requesterUserId, userId),
         eq(friendships.addresseeUserId, userId)))
 
-    return allFriends;
+    const sentRequests: {userId: string; status: FriendshipStatus; createdAt: Date }[] = [];
+    const receivedRequests: typeof sentRequests = [];
+    const acceptedFriends: typeof sentRequests = []
+
+    for (const record of records) {
+      if (record.status === FriendshipStatus.ACCEPTED) {
+        acceptedFriends.push({
+          userId: record.requesterUserId === userId ? record.addresseeUserId : record.requesterUserId,
+          status: record.status,
+          createdAt: record.createdAt
+        })
+      }
+      else if (record.status === FriendshipStatus.PENDING) {
+        if (record.requesterUserId === userId) {
+          sentRequests.push({
+            userId: record.addresseeUserId,
+            status: record.status,
+            createdAt: record.createdAt
+          })
+        }
+        else {
+          receivedRequests.push({
+            userId: record.requesterUserId,
+            status: record.status,
+            createdAt: record.createdAt
+          })
+        }
+      }
+    }
+
+    return {
+      sentRequests,
+      receivedRequests,
+      acceptedFriends
+    }
   }
 
   async setFriendshipStatus(
@@ -182,7 +216,11 @@ export class FriendService {
           )
           .returning();
 
-        return updated;
+        return {
+          sentFriendRequestToUserId: requesterUserId === updated.requesterUserId ? friendships.addresseeUserId : requesterUserId,
+          status: updated.status,
+          createdAt: updated.createdAt
+        };
       }
     }
 
@@ -195,7 +233,10 @@ export class FriendService {
       })
       .returning();
 
-    return newFriendRequest;
-
+    return {
+      sentFriendRequestToUserId: addresseeUserId,
+      status: newFriendRequest.status,
+      createdAt: newFriendRequest.createdAt
+    };
   }
 }

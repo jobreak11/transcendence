@@ -13,7 +13,7 @@ import { ChatModule } from './chat/chat.module.js';
 @Module({
   controllers: [AppController],
   providers: [AppService],
-  imports: [ConfigModule.forRoot({ isGlobal: true }), UserModule, AuthModule, RedisModule, MainGatewayModule, FriendModule, 
+  imports: [ConfigModule.forRoot({ isGlobal: true }), UserModule, AuthModule, RedisModule, MainGatewayModule, ChatModule, FriendModule,  
     // DrizzleModule
   ],
 })

@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-export function GetRequestTestComponent(
+export function NoBodyRequestTestComponent(
   {
     name,
     apiPath,
+
   } :
   {
     name: string,

@@ -255,6 +255,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ChatController_getAllUserRoom"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/dm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ChatController_dmUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/friend": {
         parameters: {
             query?: never;
@@ -271,7 +303,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/friend/request/{targetUserId}": {
+    "/friend/request": {
         parameters: {
             query?: never;
             header?: never;
@@ -287,7 +319,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/friend/accept/{targetUserId}": {
+    "/friend/accept": {
         parameters: {
             query?: never;
             header?: never;
@@ -303,7 +335,7 @@ export interface paths {
         patch: operations["FriendController_acceptFriendRequest"];
         trace?: never;
     };
-    "/friend/reject/{targetUserId}": {
+    "/friend/reject": {
         parameters: {
             query?: never;
             header?: never;
@@ -319,7 +351,7 @@ export interface paths {
         patch: operations["FriendController_rejectFriendRequest"];
         trace?: never;
     };
-    "/friend/block/{targetUserId}": {
+    "/friend/block": {
         parameters: {
             query?: never;
             header?: never;
@@ -801,6 +833,44 @@ export interface operations {
             };
         };
     };
+    ChatController_getAllUserRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ChatController_dmUser: {
+        parameters: {
+            query: {
+                targetUserId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
     FriendController_getAllFriends: {
         parameters: {
             query?: never;
@@ -820,11 +890,11 @@ export interface operations {
     };
     FriendController_makeFriendRequest: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query: {
                 targetUserId: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -839,11 +909,11 @@ export interface operations {
     };
     FriendController_acceptFriendRequest: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query: {
                 targetUserId: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -858,11 +928,11 @@ export interface operations {
     };
     FriendController_rejectFriendRequest: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query: {
                 targetUserId: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -877,11 +947,11 @@ export interface operations {
     };
     FriendController_blockUser: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query: {
                 targetUserId: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
