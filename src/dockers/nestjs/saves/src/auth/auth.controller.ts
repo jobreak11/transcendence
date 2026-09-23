@@ -18,6 +18,14 @@ import { FortytwoAuthGuard } from './guards/fortytwo-auth/fortytwo-auth.guard.js
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+
+  @HttpCode(HttpStatus.OK)
+  @Get('check')
+  @UseGuards(JwtAuthGuard)
+  authCheck() {
+
+  }
+
   @Post('signup')
   registerUser(@Body() createUserDto: CreateUserDto) {
     return this.authService.registerUser(createUserDto);
