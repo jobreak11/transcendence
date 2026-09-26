@@ -1,3 +1,8 @@
+#app {
+	min-width: 800px;
+	min-height: 600px;
+}
+
 body {
 	min-height: 100vh;
 	background-color: #262626;
@@ -8,9 +13,11 @@ body {
 			rgba(0, 0, 0, 0.25) 60%,
 			#000 120%
 		),
+		/* url("meshbg.svg"); */
 		url("meshbg1.svg");
 	background-repeat: no-repeat, repeat;
-	background-size: 100% 100%, 30px 30px;
+	/* background-size: 100% 100%, 30px 30px; */
+	background-size: 100% 100%, 45px 45px;
 	color: white;
 	font-size: clamp(14px, calc(6px + 2vw), 28px);
 }
