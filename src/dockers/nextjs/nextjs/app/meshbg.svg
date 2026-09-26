@@ -1,1 +1,81 @@
-<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><style>.cls-1{fill:#2b2b2b;}.cls-2{fill:#101010;}</style></defs><title>Artboard 1</title><rect class="cls-1" x="0.5" y="0.5" width="199" height="199"/><path class="cls-1" d="M199,1V199H1V1H199m1-1H0V200H200V0Z"/><ellipse class="cls-2" cx="23.76" cy="0.83" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="49.75" cy="50.44" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="74.26" cy="0.83" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="99.36" cy="50.44" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="124.46" cy="0.83" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="-0.45" cy="50.44" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="24.23" cy="100.04" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="74.26" cy="100.04" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="124.46" cy="100.04" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="49.75" cy="150.12" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="99.36" cy="150.12" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="-0.45" cy="150.12" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="199.51" cy="50.44" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="149.31" cy="50.44" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="199.51" cy="150.12" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="149.31" cy="150.12" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="174.64" cy="100.28" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="174.64" cy="0.6" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="24.23" cy="200.4" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="74.26" cy="200.4" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="124.46" cy="200.4" rx="12.55" ry="22.11"/><ellipse class="cls-2" cx="174.64" cy="200.64" rx="12.55" ry="22.11"/></svg>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 22.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 200 200" style="enable-background:new 0 0 200 200;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#2B2B2B;}
+	.st1{fill:#101010;}
+	.st2{display:none;}
+	.st3{display:inline;fill:#101010;}
+</style>
+<g id="Layer_1">
+	<g>
+		<rect x="0.5" y="0.5" class="st0" width="199" height="199"/>
+		<path class="st0" d="M199,1v198H1V1H199 M200,0H0v200h200V0L200,0z"/>
+	</g>
+</g>
+<g id="long_oval">
+	<ellipse class="st1" cx="23.8" cy="0.7" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="49.7" cy="50.4" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="74.3" cy="0.7" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="99.4" cy="50.4" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="124.5" cy="0.7" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="-0.5" cy="50.4" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="24.2" cy="100.1" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="74.3" cy="100.1" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="124.5" cy="100.1" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="49.7" cy="150.3" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="99.4" cy="150.3" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="-0.5" cy="150.3" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="199.5" cy="50.4" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="249.1" cy="50.7" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="149.3" cy="50.4" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="199.5" cy="150.3" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="249.1" cy="150.6" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="149.3" cy="150.3" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="224.8" cy="100.6" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="274.5" cy="100.6" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="174.6" cy="100.3" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="224.8" cy="0.7" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="274.5" cy="0.7" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="174.6" cy="0.4" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="24.2" cy="200.7" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="74.3" cy="200.7" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="124.5" cy="200.7" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="224.8" cy="201.3" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="274.5" cy="201.3" rx="12.5" ry="23.9"/>
+	<ellipse class="st1" cx="174.6" cy="201" rx="12.5" ry="23.9"/>
+</g>
+<g id="small_oval" class="st2">
+	<ellipse class="st3" cx="23.8" cy="0.8" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="49.7" cy="50.4" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="74.3" cy="0.8" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="99.4" cy="50.4" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="124.5" cy="0.8" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="-0.5" cy="50.4" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="24.2" cy="100" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="74.3" cy="100" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="124.5" cy="100" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="49.7" cy="150.1" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="99.4" cy="150.1" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="-0.5" cy="150.1" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="199.5" cy="50.4" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="249.1" cy="50.7" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="149.3" cy="50.4" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="199.5" cy="150.1" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="249.1" cy="150.4" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="149.3" cy="150.1" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="224.8" cy="100.5" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="274.5" cy="100.5" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="174.6" cy="100.3" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="224.8" cy="0.9" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="274.5" cy="0.9" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="174.6" cy="0.6" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="24.2" cy="200.4" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="74.3" cy="200.4" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="124.5" cy="200.4" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="224.8" cy="200.9" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="274.5" cy="200.9" rx="12.5" ry="22.1"/>
+	<ellipse class="st3" cx="174.6" cy="200.6" rx="12.5" ry="22.1"/>
+</g>
+</svg>
