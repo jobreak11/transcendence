@@ -11,10 +11,12 @@ import { Roles } from '../auth/decorators/roles.decorators.js';
 import { Multer } from 'multer'
 import { RolesGuard } from '../auth/guards/roles/roles.guard.js';
 import { FileInterceptor } from '@nestjs/platform-express'
-import { SHARED_STORAGE_PATH, STORAGE_URL_PATH } from '../constant.js';
+import { SHARED_STORAGE_PATH, STORAGE_URL_PATH, THROTTLER_USER_PROFILE_LIMIT, THROTTLER_USER_PROFILE_TTL, THROTTLER_USER_PROFILE_UPDATE_LIMIT, THROTTLER_USER_PROFILE_UPDATE_TTL, THROTTLER_USER_PROFILE_UPLOADPROFILEPIC_LIMIT, THROTTLER_USER_PROFILE_UPLOADPROFILEPIC_TTL } from '../constant.js';
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import type { AuthJwtFastifyRequest } from '../auth/types/auth-jwtFastifyRequest.js';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { UserThrottlerGuard } from '../auth/guards/user-throttler/user-throttler.guard.js';
 
 @Controller('user')
 export class UserController {
@@ -61,22 +63,38 @@ export class UserController {
     type: UnauthorizedErrorDto,
     description: 'Missing or invalid JWT token',
   })
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
+  @Throttle({
+    default: {
+      limit: THROTTLER_USER_PROFILE_LIMIT,
+      ttl: THROTTLER_USER_PROFILE_TTL
+    }
+  })
   @Roles(Role.USER)
   @Get('profile')
-  getProfile(
+  async getProfile(
     @Req() req: any,
     @Query('id') id?: string,
     @Query('tagId') tagId?: string,
-  ) {
+  ): Promise<GetUserProfileDto> {
+
+    let result;
     if (tagId && id) {
       throw new BadRequestException('must not contain both query params!');
     } else if (!tagId && !id) {
-      return this.userService.findOne(req.user.id);
+      result = await this.userService.findOne(req.user.id);
     } else if (tagId) {
-      return this.userService.findByTagId(tagId);
+      result = await this.userService.findByTagId(tagId);
     } else {
-      return this.userService.findOne(id ?? '');
+      result = await this.userService.findOne(id ?? '');
+    }
+
+    return {
+      email: result.email,
+      avatarUrl: result.avatarUrl,
+      displayName: result.displayName,
+      tagId: result.tagId,
+      createdAt: result.createdAt
     }
   }
 
@@ -130,7 +148,13 @@ export class UserController {
       },
     },
   })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, UserThrottlerGuard)
+  @Throttle({
+    default: {
+      limit: THROTTLER_USER_PROFILE_UPLOADPROFILEPIC_LIMIT,
+      ttl: THROTTLER_USER_PROFILE_UPLOADPROFILEPIC_TTL
+    }
+  })
   @Post('profile/uploadProfilePic')
   async uploadProfilePic(@Req() req: AuthJwtFastifyRequest) {
 
@@ -175,10 +199,28 @@ export class UserController {
     summary: 'Not implemented yet.'
   })
   @Patch('update')
-  @UseGuards(JwtAuthGuard)
-  update(@Req() req:any, @Body() updateUserDto: UpdateUserDto) {
+  @UseGuards(JwtAuthGuard, UserThrottlerGuard)
+  @Throttle({
+    default: {
+      limit: THROTTLER_USER_PROFILE_UPDATE_LIMIT,
+      ttl: THROTTLER_USER_PROFILE_UPDATE_TTL
+    }
+  })
+  async update(@Req() req:any, @Body() updateUserDto: UpdateUserDto)
+  : Promise<GetUserProfileDto>
+  {
     //throw new NotImplementedException('still not implement')
-    return this.userService.update(req.user.id, updateUserDto);
+
+    const res = await this.userService.update(req.user.id, updateUserDto);
+
+    return {
+      email: res.email,
+      avatarUrl: res.avatarUrl,
+      displayName: res.displayName,
+      tagId: res.tagId,
+      createdAt: res.createdAt
+    }
+
   }
 
   @ApiOperation({

@@ -115,6 +115,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AuthController_authCheck"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/signup": {
         parameters: {
             query?: never;
@@ -255,6 +271,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ChatController_getAllUserRoom"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/dm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ChatController_dmUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ChatController_getMessagesRoom"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/room/create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ChatController_createChatRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/room/invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ChatController_inviteToChatRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/room/leave": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ChatController_leaveTheChatRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/room/kick": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ChatController_kickUserChatRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/friend": {
         parameters: {
             query?: never;
@@ -271,7 +399,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/friend/request/{targetUserId}": {
+    "/friend/request": {
         parameters: {
             query?: never;
             header?: never;
@@ -287,7 +415,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/friend/accept/{targetUserId}": {
+    "/friend/accept": {
         parameters: {
             query?: never;
             header?: never;
@@ -303,7 +431,7 @@ export interface paths {
         patch: operations["FriendController_acceptFriendRequest"];
         trace?: never;
     };
-    "/friend/reject/{targetUserId}": {
+    "/friend/reject": {
         parameters: {
             query?: never;
             header?: never;
@@ -319,7 +447,7 @@ export interface paths {
         patch: operations["FriendController_rejectFriendRequest"];
         trace?: never;
     };
-    "/friend/block/{targetUserId}": {
+    "/friend/block": {
         parameters: {
             query?: never;
             header?: never;
@@ -432,7 +560,12 @@ export interface components {
              * @description Signed JWT access token
              * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
              */
-            token: string;
+            accessToken: string;
+            /**
+             * @description Signed REFRESH access token
+             * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
+             */
+            refreshToken: string;
         };
     };
     responses: never;
@@ -611,6 +744,23 @@ export interface operations {
             };
             /** @description invalid role? */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AuthController_authCheck: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -801,6 +951,133 @@ export interface operations {
             };
         };
     };
+    ChatController_getAllUserRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ChatController_dmUser: {
+        parameters: {
+            query: {
+                targetUserId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    ChatController_getMessagesRoom: {
+        parameters: {
+            query: {
+                chatRoomId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ChatController_createChatRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ChatController_inviteToChatRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ChatController_leaveTheChatRoom: {
+        parameters: {
+            query: {
+                chatRoomId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ChatController_kickUserChatRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     FriendController_getAllFriends: {
         parameters: {
             query?: never;
@@ -820,11 +1097,11 @@ export interface operations {
     };
     FriendController_makeFriendRequest: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query: {
                 targetUserId: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -839,11 +1116,11 @@ export interface operations {
     };
     FriendController_acceptFriendRequest: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query: {
                 targetUserId: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -858,11 +1135,11 @@ export interface operations {
     };
     FriendController_rejectFriendRequest: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query: {
                 targetUserId: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -877,11 +1154,11 @@ export interface operations {
     };
     FriendController_blockUser: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query: {
                 targetUserId: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;

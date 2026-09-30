@@ -5,6 +5,8 @@ import { parse } from 'path';
  
 export type RedisClient = Redis;
 
+export const REDIS_CLIENT = Symbol("redis-connection");
+
 export const redisProvider: Provider = {
   useFactory: (): RedisClient => {
     return new Redis<'legacy'>(
@@ -16,7 +18,7 @@ export const redisProvider: Provider = {
     //  port: process.env.REDIS_EXPORT_PORT
     //});
   },
-  provide: 'REDIS_CLIENT',
+  provide: REDIS_CLIENT,
 };
 
 

@@ -3,21 +3,30 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Param,
   ParseUUIDPipe,
   Patch,
   Post,
+  Query, // 1. Import Query instead of / in addition to Param
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth/jwt-auth.guard.js';
 import { FriendshipStatus } from '../drizzle/schema/friendships.schema.js';
 import { FriendService } from './friend.service.js';
+import { UserThrottlerGuard } from '../auth/guards/user-throttler/user-throttler.guard.js';
+import { Throttle } from '@nestjs/throttler';
+import { THROTTLER_FRIEND_CONTROLLER_LIMIT, THROTTLER_FRIEND_CONTROLLER_TTL } from '../constant.js';
 
 @ApiTags('friendships')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard) // Applies authentication to all routes in this controller
+@UseGuards(JwtAuthGuard, UserThrottlerGuard)
+@Throttle({
+  default: {
+    limit: THROTTLER_FRIEND_CONTROLLER_LIMIT,
+    ttl: THROTTLER_FRIEND_CONTROLLER_TTL
+  }
+})
 @Controller('friend')
 export class FriendController {
   constructor(private readonly friendService: FriendService) {}
@@ -27,18 +36,22 @@ export class FriendController {
     return this.friendService.findAllFriendships(req.user.id);
   }
 
-  @Post('request/:targetUserId')
+  // Route becomes: POST /friend/request?targetUserId=<uuid>
+  @Post('request')
+  @ApiQuery({ name: 'targetUserId', type: 'string', format: 'uuid' })
   makeFriendRequest(
     @Req() req: any,
-    @Param('targetUserId', ParseUUIDPipe) targetUserId: string,
+    @Query('targetUserId', ParseUUIDPipe) targetUserId: string,
   ) {
     return this.friendService.makeFriendRequest(req.user.id, targetUserId);
   }
 
-  @Patch('accept/:targetUserId')
+  // Route becomes: PATCH /friend/accept?targetUserId=<uuid>
+  @Patch('accept')
+  @ApiQuery({ name: 'targetUserId', type: 'string', format: 'uuid' })
   acceptFriendRequest(
     @Req() req: any,
-    @Param('targetUserId', ParseUUIDPipe) targetUserId: string,
+    @Query('targetUserId', ParseUUIDPipe) targetUserId: string,
   ) {
     return this.friendService.setFriendshipStatus(
       req.user.id,
@@ -47,10 +60,12 @@ export class FriendController {
     );
   }
 
-  @Patch('reject/:targetUserId')
+  // Route becomes: PATCH /friend/reject?targetUserId=<uuid>
+  @Patch('reject')
+  @ApiQuery({ name: 'targetUserId', type: 'string', format: 'uuid' })
   rejectFriendRequest(
     @Req() req: any,
-    @Param('targetUserId', ParseUUIDPipe) targetUserId: string,
+    @Query('targetUserId', ParseUUIDPipe) targetUserId: string,
   ) {
     return this.friendService.setFriendshipStatus(
       req.user.id,
@@ -59,11 +74,13 @@ export class FriendController {
     );
   }
 
-  @Post('block/:targetUserId')
+  // Route becomes: POST /friend/block?targetUserId=<uuid>
+  @Post('block')
   @HttpCode(HttpStatus.OK)
+  @ApiQuery({ name: 'targetUserId', type: 'string', format: 'uuid' })
   blockUser(
     @Req() req: any,
-    @Param('targetUserId', ParseUUIDPipe) targetUserId: string,
+    @Query('targetUserId', ParseUUIDPipe) targetUserId: string,
   ) {
     return this.friendService.setFriendshipStatus(
       req.user.id,

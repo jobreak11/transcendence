@@ -3,22 +3,61 @@ import { DRIZZLE } from '../drizzle/drizzle.module.js';
 import type { DrizzleDB } from '../drizzle/types/drizzle.js';
 import { friendships, FriendshipStatus } from '../drizzle/schema/friendships.schema.js';
 import { and, eq, or } from 'drizzle-orm';
+import { FindAllFriendshipsDto } from './dto/find-all-friendships.dto.js';
+import { FriendshipsDto } from './dto/friend.dto.js';
+import { REDIS_CLIENT } from '../redis/redis.provider.js';
+import type { RedisClient } from '../redis/redis.provider.js';
 
 @Injectable()
 export class FriendService {
 
   constructor(
-    @Inject(DRIZZLE) private db: DrizzleDB
+    @Inject(DRIZZLE) private db: DrizzleDB,
+    @Inject(REDIS_CLIENT) private readonly redis:RedisClient
   ) {}
 
-  async findAllFriendships(userId: string) {
-    const allFriends = await this.db
+  async findAllFriendships(userId: string): Promise<FindAllFriendshipsDto> {
+    const records = await this.db
       .select()
       .from(friendships)
       .where(or(eq(friendships.requesterUserId, userId),
         eq(friendships.addresseeUserId, userId)))
 
-    return allFriends;
+    const sentRequests: {userId: string; status: FriendshipStatus; createdAt: Date }[] = [];
+    const receivedRequests: typeof sentRequests = [];
+    const acceptedFriends: typeof sentRequests = []
+
+    for (const record of records) {
+      if (record.status === FriendshipStatus.ACCEPTED) {
+        acceptedFriends.push({
+          userId: record.requesterUserId === userId ? record.addresseeUserId : record.requesterUserId,
+          status: record.status,
+          createdAt: record.createdAt
+        })
+      }
+      else if (record.status === FriendshipStatus.PENDING) {
+        if (record.requesterUserId === userId) {
+          sentRequests.push({
+            userId: record.addresseeUserId,
+            status: record.status,
+            createdAt: record.createdAt
+          })
+        }
+        else {
+          receivedRequests.push({
+            userId: record.requesterUserId,
+            status: record.status,
+            createdAt: record.createdAt
+          })
+        }
+      }
+    }
+
+    return {
+      sentRequests,
+      receivedRequests,
+      acceptedFriends
+    }
   }
 
   async setFriendshipStatus(
@@ -182,7 +221,11 @@ export class FriendService {
           )
           .returning();
 
-        return updated;
+        return {
+          sentFriendRequestToUserId: requesterUserId === updated.requesterUserId ? friendships.addresseeUserId : requesterUserId,
+          status: updated.status,
+          createdAt: updated.createdAt
+        };
       }
     }
 
@@ -195,7 +238,10 @@ export class FriendService {
       })
       .returning();
 
-    return newFriendRequest;
-
+    return {
+      sentFriendRequestToUserId: addresseeUserId,
+      status: newFriendRequest.status,
+      createdAt: newFriendRequest.createdAt
+    };
   }
 }

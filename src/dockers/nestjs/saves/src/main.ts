@@ -34,7 +34,6 @@ async function bootstrap() {
     .addBearerAuth()
     .build()
 
-
   console.log({
     googleClientId: process.env.OAUTH_GOOGLE_CLIENT_ID,
     googleSecret: process.env.OAUTH_GOOGLE_CLIENT_SECRET,
