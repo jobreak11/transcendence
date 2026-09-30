@@ -18,5 +18,19 @@ export class GetUserProfileDto {
     example: '/asdf/sdf/asdf.asdf',
     description: 'your url to retrieve image of your avatar'
   })
-  avatarUrl: string;
+  avatarUrl: string | null;
+
+  @ApiProperty({
+    example: 'YYMMDD_XXXX',
+    description: 'tagID of the user'
+  })
+  tagId: string;
+
+  @ApiProperty({
+    example: 'YYMMDD_XXXX',
+    description: 'tag id of the user'
+  })
+  displayName: string | null;
+
+
 };

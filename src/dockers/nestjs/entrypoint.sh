@@ -71,6 +71,9 @@ allowBuilds:
 packages:
   - "."
 
+overrides:
+  fastify: "5.12.5"
+
 EOF
 '
 
@@ -98,7 +101,9 @@ EOF
   dotenv drizzle-orm \
   @nestjs/platform-fastify \
   @fastify/static @fastify/multipart \
-  fastify
+  fastify \
+  zod \
+  @nestjs/throttler \
   # @nestjs/typeorm typeorm \
 
 

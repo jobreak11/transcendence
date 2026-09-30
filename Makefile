@@ -118,12 +118,13 @@ down: stop
 	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" down  || true
 	rm -f ${DOCKER_COMPOSE_BUILD_STAMPFILE} || true
 
-purge: down
+purge: down 
 	docker volume rm $$(docker volume ls -q) || true
 	docker system prune --volumes --force
 	rm -rf ${NEXTJS_DATA_DIR} ${NESTJS_DATA_DIR} ${POSTGRES_DATA_DIR} ${REDIS_DATA_DIR}
 	rm -rf ${DIR_EXIST_STAMP_FILE}
 	rm -rf ${CHECK_ENV_SECRETS_STAMPFILE}
+	rm -rf ${SECRETS_DIR}
 
 re: down all
 
@@ -132,7 +133,6 @@ nuke: purge
 	docker volume rm $$(docker volume ls -q) || true
 	docker system prune --volumes --force
 	rm -rf ${ENV_FILE}
-	rm -rf ${SECRETS_DIR}
 	rm -rf ${TEMP_DIR}
 
 save-nextjs: | ${NEXTJS_SAVES_DIR} ${NEXTJS_DATA_DIR}/src ${NEXTJS_DATA_DIR}/public
