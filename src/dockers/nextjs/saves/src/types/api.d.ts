@@ -508,7 +508,17 @@ export interface components {
              * @description your url to retrieve image of your avatar
              * @example /asdf/sdf/asdf.asdf
              */
-            avatarUrl: string;
+            avatarUrl: string | null;
+            /**
+             * @description tagID of the user
+             * @example YYMMDD_XXXX
+             */
+            tagId: string;
+            /**
+             * @description tag id of the user
+             * @example YYMMDD_XXXX
+             */
+            displayName: string | null;
         };
         UpdateUserDto: {
             /** @example SecurePassword123 */
@@ -566,6 +576,29 @@ export interface components {
              * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
              */
             refreshToken: string;
+        };
+        FindAllFriendshipsDto: {
+            sentRequests: {
+                userId: string;
+                /** @enum {string} */
+                status: "PENDING" | "ACCEPTED" | "DECLINED" | "BLOCKED";
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            receivedRequests: {
+                userId: string;
+                /** @enum {string} */
+                status: "PENDING" | "ACCEPTED" | "DECLINED" | "BLOCKED";
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            acceptedFriends: {
+                userId: string;
+                /** @enum {string} */
+                status: "PENDING" | "ACCEPTED" | "DECLINED" | "BLOCKED";
+                /** Format: date-time */
+                createdAt: string;
+            }[];
         };
     };
     responses: never;
@@ -711,7 +744,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["GetUserProfileDto"];
+                };
             };
         };
     };
@@ -1091,7 +1126,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["FindAllFriendshipsDto"];
+                };
             };
         };
     };
