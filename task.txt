@@ -1,5 +1,6 @@
 
-TASKS TO COMPLETE
+TASKS TO COMPLETE (R+ srussame BACKEND)
+Due (2026-10-7)
 
 1. Update databases
 
@@ -29,12 +30,27 @@ TASKS TO COMPLETE
       - DisplayProfilePic
         - limit sizeof 5MB max
 
+      // theme card that the user will use during the game
+      // user must own theme cards to be able to use
+      // some theme cards might be achivable through winning some tournaments or quests
+      - cardTheme <"STANDARD" | "FANTASY">
+
     - GetUserProfileDto now temporary requires id column on output
       the reason is when make friend request or direct message
       need the userId which would need those endpoint to except
       tagId instead of userId
       ( because of that i need to implement the new endpoints on
        )
+
+  1.2 user card theme table
+
+    columns: 
+      id: uuid7
+      userId: user.id
+      cardTheme: Enum <...>
+
+
+https://server/storage/cards/theme/${theme}/${hands}.svg
 
 2. Redis Database
 
@@ -63,6 +79,10 @@ TASKS TO COMPLETE
 
       }
 
+    - User could be able to change card Theme during in the lobby.
+
+    - Ready button, start button (host only able to start after every player in the room is ready)
+
 
   2.2 Temporary history chat for public chat room,
     lobby chat room, game chat room (using *redis stream* concepts [XADD, XREAD])
@@ -70,4 +90,6 @@ TASKS TO COMPLETE
   2.3
   
 
+3. Update api-docs to recent
     
+4. and also the api route-handler in nextjs 
