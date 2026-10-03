@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" name="viewport" content="width=device-width,initial-scale=1" />
+<title>Lobby - Transcend 888</title>
+	<style id="style-normalize" type="text/css">
+		html {
+			font-family: sans-serif;
+			-ms-text-size-adjust: 100%;
+			-webkit-text-size-adjust: 100%;
+		}
+		body {
+			margin: 0;
+		}
+		details,
+		canvas,
+		header,
+		footer,
+		main,
+		menu,
+		nav,
+		section,
+		summary {
+			display: block;
+		}
+		audio,
+		/* audio:not([controls]) {
+			display: none;
+			height: 0;
+		} */
+		video {
+			display: inline-block;
+			vertical-align: baseline;
+		}
+		a {
+			background-color: transparent;
+		}
+		a:active,
+		a:hover {
+			outline: 0;
+		}
+		b,
+		strong {
+			font-weight: bold;
+		}
+		dfn {
+			font-style: italic;
+		}
+	</style>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+	<div class="headerbar">
+		<div class="deheader">
+			<div style="display: flex; height: 80%; width: fit-content; padding-left: 8%;">
+				<div class="goldfont" style="width: fit-content; max-width: 25vw; font-size: clamp(28px, calc(16px + 2vw), 40px); white-space: normal;" id="textFit">Play Room</div>
+			</div>
+			<div style="display: flex; margin-left: auto; width: fit-content; padding-right: 4%;">
+				<div class="goldfont" style="width: fit-content; max-width: 25vw; margin-left: auto; font-size: clamp(14px, calc(6px + 2vw), 30px); white-space: normal;">USERNAME</div>
+			</div>
+			<div style="padding-right: 3%; font-size: clamp(14px, 0.2vw + 1rem, 80%)"><a href="#" id="logout">Logout</a></div>
+		</div>
+		<div class="bartab">
+			<div class="tabcolumn active" data-tab="Casual">Casual</div>
+			<div class="tabcolumn" data-tab="Ranked">Ranked</div>
+			<div class="tabcolumn" data-tab="Tournament">Tournament</div>
+			<div class="tabcolumn" data-tab="Custom">Custom</div>
+		</div>
+	</div>
+	<div class="content active" id="Casual">
+		<div style="display: flex; align-items: stretch; align-self: center; margin-top: 3vh; width: calc(90vw + 2%); border-radius: 6px 6px 0 0; overflow: hidden;">
+			<div style="flex: 1; display: flex; align-items: center; padding: 1%; background-color: rgba(42, 42, 42, 0.75);">Rooms</div>
+			<div style="flex: 5; display: flex; align-items: center; padding: 1%; background-color: rgba(29, 29, 29, 0.85); padding-left: 5%;">Search by ID: <input type="roomid" id="playroom" style="margin-left: 1%;">
+				<div><button style="font-size: clamp(14px, calc(6px + 2vw), 20px); margin-left: 20%;">Join</button></div>
+			</div>
+		</div>
+		<div class="blogbox" style="margin-top: 0;">
+			<div style="padding: 1%; display: flex; flex-direction: column; width: 100%;">
+				<div style="display: flex;">
+					<div style="width: 7vw; height: 7vw; overflow: hidden;"><img src="defaultProfilePic.svg" alt="Profile picture" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+					<div style="padding: 1%; position: relative; margin: 0 auto;"><table class="roomhost">
+						<tr><td>Host: Test-1</td><td class="extended">Catchphrase: เร่เข้ามา</td></tr>
+						<tr><td>Private: No</td>
+							<td><div style="display: flex; align-items: center;">
+								<div style="padding-right: 3%;">Players: 1/8</div>
+								<div><button style="font-size: clamp(14px, calc(6px + 2vw), 20px);">Join</button></div>
+							</div></td>
+							<td><div style="display: flex; align-items: center;">
+								<div style="padding-right: 3%;">Spectators: 0/10</div>
+								<div><button style="font-size: clamp(14px, calc(6px + 2vw), 20px);">Join</button></div>
+							</div></td>
+						</tr>
+					</table></div>
+				</div><div><hr></div>
+				<div style="display: flex;">
+					<div style="width: 7vw; height: 7vw; overflow: hidden;"><img src="defaultProfilePic.svg" alt="Profile picture" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+					<div style="padding: 1%; position: relative; margin: 0 auto;"><table class="roomhost">
+						<tr><td>Host: Test-2</td><td class="extended">Catchphrase: เร่เข้ามา</td></tr>
+						<tr><td>Private: Yes</td>
+							<td><div style="display: flex; align-items: center;">
+								<div style="padding-right: 3%;">Players: 1/8</div>
+								<div><button style="font-size: clamp(14px, calc(6px + 2vw), 20px);" id="openPopup">Join</button></div>
+							</div></td>
+							<td><div style="display: flex; align-items: center;">
+								<div style="padding-right: 3%;">Spectators: 0/10</div>
+								<div><button style="font-size: clamp(14px, calc(6px + 2vw), 20px);" id="openPopup">Join</button></div>
+							</div></td>
+							<dialog id="popup">
+								<div style="display: flex; flex-direction: column;">
+									<div><b>This Room Requires A Password To Enter</b></div>
+									<div style="display: flex; margin: 2% auto 0;">Password: <input type="password" id="password" style="margin-left: 3%;">
+										<button style="font-size: clamp(14px, calc(6px + 2vw), 20px); margin-left: 3%;" id="closePopup">Enter</button></div>
+								</div>
+							</dialog>
+						</tr>
+					</table></div>
+				</div><div><hr></div>
+			</div>
+		</div>
+	</div>
+	<div class="content" id="Ranked">
+		<div class="blogbox">
+			<div style="padding: 1%; display: flex; flex-direction: column; width: 100%;">
+				<div class="goldfont" style="text-align: center; font-size: clamp(14px, calc(6px + 2vw), 28px);">Ranked Mode</div>
+				<div>
+					<div><table style="padding: 2%; overflow-wrap: anywhere; min-width: 45%; max-width: 50%; position: relative; margin: 0 auto;">
+						<tr><td style="padding-right: 3%;">Points: 1000</td><td style="text-align: end;">Position: 80%</td></tr>
+						<tr><td style="padding-right: 3%;">Winstreaks: 0</td><td style="text-align: end;">Highest Streak: 0</td></tr>
+					</table></div>
+					<div style="text-align: center;"><button style="font-size: clamp(18px, calc(16px + 2vw), 24px);">Find Match</button></div><hr>
+				<div class="goldfont" style="text-align: center; font-size: clamp(14px, calc(6px + 2vw), 28px);">Top Rankings</div>
+				<div style="display: flex; flex-direction: column; overflow-wrap: anywhere; position: relative; margin: 0 auto; padding-top: 1%;">
+					<div style="text-align: center;">
+						<div>#1: Test-9</div>
+						<div>#2: Test-2</div>
+						<div>#3: Test-5</div>
+						<div>#4: Test-4</div>
+						<div>#5: Test-8</div>
+						<div>#6: Test-3</div>
+						<div>#7: Test-7</div>
+						<div>#8: USERNAME</div>
+						<div>#9: Test-6</div>
+						<div>#10: Test-1</div>
+					</div>
+				</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="content" id="Tournament">
+		<div class="blogbox">
+			<div style="padding: 1%; display: flex; flex-direction: column; width: 100%;">
+				<div class="goldfont" style="text-align: center; font-size: clamp(14px, calc(6px + 2vw), 28px);">42 Tournament 2026</div>
+				<div style="padding-top: 1%; position: relative; margin: 0 auto;">
+					<div class="tourndata">
+						<div>Status: Open</div>
+						<div>Registry Date: 19/9/2026 - 30/9/2026</div>
+						<div>Compete Date: 2/10/2026 - 8/10/2026</div>
+					</div>
+					<div style="display: flex; font-size: clamp(11px, calc(6px + 2vw), 20px); align-items: center; white-space: nowrap; padding-top: 2%;">
+						<div>Host: 42Bangkok</div>
+						<div style="padding-left: 3%;">Registered: 0/16</div>
+						<div style="padding-left: 3%;"><button style="font-size: clamp(14px, calc(6px + 2vw), 20px);">Register</button></div>
+					</div>
+				</div>
+				<details class="tourndetail">
+					<summary style="text-align: end; font-size: clamp(11px, calc(6px + 2vw), 18px);">Details</summary>
+					<div class="subbox"><div style="width: 80%; margin: 0 auto; text-align: justify;">
+						<b>Requirements:</b>
+						<ul>
+							<li>Participants must be level 30 or above</li>
+							<li>Participants must be within 1000 - 3000 rank points</li>
+							<li>Participants must have their account bound with 42 intra</li>
+						</ul>
+						<b>Prize Pools:</b>
+						<ul>
+							<li>1st, 2nd, and 3rd Place will be awarded with Gold, Silver, and Bronze Medal Trophy, respctively, in addition to an exclusive title</li>
+							<li>The top 8 players will be awarded with 42 Tournament Trophy, in addition to the finalists' exclusive title</li>
+							<li>Every player who participated will receive a participation title</li>
+							<li>The Tournament Host reserves the right to not award players who are disqualified from the tournament in any case</li>
+						</ul>
+					</div></div>
+				</details>
+				<div><hr></div>
+				<div class="goldfont" style="text-align: center; font-size: clamp(14px, calc(6px + 2vw), 28px);">Transcend Open: Autumn 2026</div>
+				<div style="padding-top: 1%; position: relative; margin: 0 auto;">
+					<div class="tourndata">
+						<div>Status: Announced</div>
+						<div>Registry Date: 18/10/2026 - 25/10/2026</div>
+						<div>Compete Date: 27/10/2026 - 30/10/2026</div>
+					</div>
+					<div style="display: flex; font-size: clamp(11px, calc(6px + 2vw), 20px); align-items: center; white-space: nowrap; padding-top: 2%;">
+						<div>Host: Transcend 888</div>
+						<div style="padding-left: 3%;">Registered: 0/64</div>
+						<!-- <div style="padding-left: 3%;"><button style="font-size: clamp(14px, calc(6px + 2vw), 20px);">Register</button></div> -->
+					</div>
+				</div>
+				<details class="tourndetail">
+					<summary style="text-align: end; font-size: clamp(11px, calc(6px + 2vw), 18px);">Details</summary>
+					<div class="subbox"><div style="width: 80%; margin: 0 auto; text-align: justify;">
+						<b>Requirements:</b>
+						<ul>
+							<li>Participants must be level 10 or above</li>
+							<li>No rank requirements</li>
+						</ul>
+						<b>Prize Pools:</b>
+						<ul>
+							<li>1st Place will be awarded with Gold Medal Trophy and Gold card sleeve, in addition to an exclusive Profile Picture</li>
+							<li>2nd Place will be awarded with Silver Medal Trophy and Silver card sleeve</li>
+							<li>3nd Place will be awarded with Bronze Medal Trophy and Bronze card sleeve</li>
+							<li>The top 16 players will be awarded with Transcend Open card sleeve</li>
+							<li>Every player who participated will receive a participation trophy</li>
+							<li>The Tournament Host reserves the right to not award players who are disqualified from the tournament in any case</li>
+						</ul>
+					</div></div>
+				</details>
+				<div><hr></div>
+			</div>
+		</div>
+	</div>
+	<div class="content" id="Custom">
+		<div class="blogbox" style="flex-direction: column;">
+			<div style="display: flex; border-bottom: 2px solid white; width: 100%; align-items: stretch;">
+				<div class="blogtab active" data-tab="casualSettings">Casual</div>
+				<div class="blogtab" style="margin-left: 2%;" data-tab="tournamentSettings">Tournament</div>
+			</div>
+			<div class="blogcont active" id="casualSettings" style="padding: 1% 5%;">
+				<div style="width: 100%;">Catchphrase: <input type="catchphrase" id="catchphrase" style="margin-left: 1%; min-width: 70%;"></div>
+				<div style="display: flex; align-items: center; width: 100%; white-space: nowrap; padding-top: 1%;">
+					<div><label><input type="checkbox" id="toggleEnable" style="margin-right: 1vw;"></label>Private</div>
+					<div style="margin-left: 3vw;">Password: <input type="roompass" id="roompass" style="margin-left: 1%;" disabled></div>
+				</div>
+				<div style="display: flex; align-items: center; width: 100%; white-space: nowrap;">
+					Max Player: <input type="range" id="maxplayer" min="2" max="8" step="1" value="5" style="width: 25%; margin-left: 2%;">
+					<output id="playerValue" style="margin: 1%;">5</output>
+				</div>
+				<div style="display: flex; align-items: center; width: 100%; white-space: nowrap;">
+					Max Spectator: <input type="range" id="maxspectator" min="0" max="10" step="1" value="5" style="width: 25%; margin-left: 2%;">
+					<output id="spectateValue" style="margin: 1%;">5</output>
+				</div>
+				<div style="display: flex; flex-direction: column; align-items: flex-end; margin-top: 2vh;"><button id="createroom" type="createroom" style="font-size: clamp(16px, calc(6px + 2vw), 24px);">Create</button></div>
+			</div>
+			<div class="blogcont" id="tournamentSettings" style="padding: 1% 5%;">
+				<div style="width: 100%;">Host/Organization: <input type="catchphrase" id="catchphrase" style="margin-left: 1%; min-width: 40%;"></div>
+				<div style="align-items: center; width: 100%; padding-top: 1%;">Required Players:
+						<label><input type="radio" name="players" value="16" checked>16</label>
+						<label><input type="radio" name="players" value="32">32</label>
+						<label><input type="radio" name="players" value="64">64</label>
+				</div>
+				<div style="display: flex; align-items: center; width: 100%; white-space: nowrap; padding-top: 1%;">
+					Registry Date: <label for="regdate">
+						<input type="date" id="initregdate" name="initregdate" min="2026-01-01" value="2026-11-01" style="margin: 0 2%;">-
+						<input type="date" id="endregdate" name="endregdate" min="2026-01-01" value="2026-11-01" style="margin-left: 2%;">
+					</label>
+				</div>
+				<div style="display: flex; align-items: center; width: 100%; white-space: nowrap; padding-top: 1%;">
+					Compete Date: <label for="regdate">
+						<input type="date" id="initcomdate" name="initcomdate" min="2026-01-01" value="2026-11-01" style="margin: 0 2%;">-
+						<input type="date" id="endcomdate" name="endcomdate" min="2026-01-01" value="2026-11-01" style="margin-left: 2%;">
+					</label>
+				</div>
+				<div style="padding-top: 1%;">Requirements: <input type="text" id="requirements" style="min-width: 80%;"></div>
+				<div style="display: flex; flex-direction: column; align-items: flex-end; margin-top: 2vh;"><button id="requestTourn" type="requestTourn" style="font-size: clamp(16px, calc(6px + 2vw), 24px);">Create</button></div>
+			</div>
+		</div>
+	</div>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="script.js" defer></script>
+</div>
+</body>
+</html>

@@ -30,6 +30,35 @@ input {
 	padding: 4px 10px;
 }
 
+/* input[type="checkbox"] {
+	appearance: none;
+	width: clamp(8px, 2vw, 14px);
+	aspect-ratio: 1;
+	border-color: black;
+	background-color: rgba(29, 29, 29);
+	cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
+	accent-color: black;
+}
+
+input[type="checkbox"]:checked::after {
+	content: "✓";
+	color: gold;
+	text-align: center;
+	font-weight: bold;
+} */
+
+input[type="range"] {
+	accent-color: red;
+}
+
+input:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
 button {
 	background-color: red;
 	color: white;
@@ -41,6 +70,17 @@ button {
 
 a {
 	color: white;
+}
+
+dialog {
+	background-color: rgba(29, 29, 29);
+	border: transparent;
+	border-radius: 12px;
+	color: white;
+}
+
+dialog::backdrop {
+	background-color: rgba(0, 0, 0, 0.8);
 }
 
 .goldfont {
@@ -97,12 +137,14 @@ a {
 	border-bottom: none;
 	border-radius: 6px 6px 0 0;
 	padding: 8px 10px;
+	cursor: pointer;
 	font-size: clamp(14px, calc(6px + 2vw), 80%);
 	font-weight: bold;
 	background-color: black;
 }
 
 .tabcolumn.active {
+	cursor: default;
 	background-color: red;
 }
 
@@ -122,6 +164,31 @@ a {
 	margin-top: 3vh;
 	width: 90vw;
 	height: fit-content;
+	padding: 1%;
+}
+
+.blogtab {
+	border: transparent;
+	border-bottom: none;
+	border-radius: 6px 6px 0 0;
+	padding: 8px 10px;
+	cursor: pointer;
+	background-color: rgba(29, 29, 29, 0.75);
+}
+
+.blogtab.active {
+	cursor: default;
+	background-color: transparent;
+	font-weight: bold;
+}
+
+.blogcont {
+	display: none;
+}
+
+.blogcont.active {
+	display: flex;
+	flex-direction: column;
 	padding: 1%;
 }
 
@@ -160,6 +227,76 @@ a {
 .history td {
 	width: 33.33%;
 	vertical-align: middle;
+}
+
+.roomhost {
+	padding: 1%;
+	overflow-wrap: anywhere;
+	min-width: 75vw;
+	max-width: 100%;
+	table-layout: fixed;
+	border-collapse: collapse;
+}
+
+.roomhost td {
+	width: 25%;
+}
+
+.roomhost td.extended {
+	width: fit-content;
+}
+
+.tourndata {
+	display: flex;
+	flex-direction: column;
+	flex-wrap: wrap;
+	width: min(100%, 70vw);
+	position: relative;
+	margin: 0 auto;
+	font-size: clamp(11px, calc(6px + 2vw), 20px);
+	text-align: center;
+}
+
+.tourndetail {
+	width: 100%;
+}
+
+.tourndetail summary {
+	padding: 1%;
+	text-align: center;
+	font-size: clamp(14px, calc(6px + 2vw), 28px);
+	cursor: pointer;
+	list-style: none;
+}
+
+.tourndetail summary::-webkit-details-marker {
+	display: none;
+}
+
+.tourndetail summary::after {
+	content: "";
+	display: inline-block;
+	width: 0.45em;
+	height: 0.45em;
+	margin-left: 0.5em;
+	border-right: 2px solid currentColor;
+	border-bottom: 2px solid currentColor;
+	transform: rotate(45deg);
+	transition: transform 180ms ease;
+}
+
+.tourndetail[open] summary::after {
+	transform: rotate(225deg);
+}
+
+.subbox {
+	padding: 1%;
+	background-color: rgba(29, 29, 29, 0.75);
+	width: 80vw;
+	height: fit-content;
+	font-size: clamp(11px, calc(6px + 2vw), 18px);
+	position: relative;
+	margin: 0 auto;
 }
 
 /* .startheader {
