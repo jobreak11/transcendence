@@ -279,7 +279,7 @@ export class ChatService {
     //if (!chatRoomFound)
     //  throw new NotFoundException("Target Room is Not Found");
 
-    const room = await this.isUserInRoom(toJoinUserId, chatRoomId);
+    //const room = await this.isUserInRoom(toJoinUserId, chatRoomId);
 
     //if (room) {
     //  // user found
