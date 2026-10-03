@@ -1,0 +1,73 @@
+
+TASKS TO COMPLETE
+
+1. Update databases
+
+  ()
+  1.1 User table Database
+    - user database requires more columns
+      - id: string
+      - displayName: string
+        - user can change name later through PATCH
+
+      - pronouns  // Pronoun of the user : < "he/him" | "she/her" | "they/them" | "prefer not to say" >
+        - could be dropdown menu for user to choose
+        - must be PATCH-able
+
+      - title ("ฉายา") [PATCH-able]
+        - user can get the "title" by completing some
+        achivements. The achivements is something that the server side
+        stores all the titles in the database which user can be able
+        to load from database which title they've got and can pick
+        from one of them : <""...{any} | > 
+
+      - signature [PATCH-able]
+        : string ( should limit to allow only short passsage
+          e.g.: 1-100 characters )
+        - for client to say something on their profile
+
+      - DisplayProfilePic
+        - limit sizeof 5MB max
+
+    - GetUserProfileDto now temporary requires id column on output
+      the reason is when make friend request or direct message
+      need the userId which would need those endpoint to except
+      tagId instead of userId
+      ( because of that i need to implement the new endpoints on
+       )
+
+2. Redis Database
+
+  the data that exists for only a short period
+  of time preferably store in redis
+
+  2.1 Lobby Database
+    - implement lobby data structure inside redis
+
+    Column: (PATCH-able for all columns, only for host // EXCEPT UUID primary)
+
+      id: uuid for each room
+
+      roomPinId: 6-8 digit numbers for player to quick join (would still need password if private room)
+      catchPhrase: displays when in the play rooms
+        when selecting which room to play
+        : string (limit: 1-100 characters)
+      roomType: <'PUBLIC' | 'PRIVATE'>
+      password [required if roomtype is PRIVATE] : string
+      gameSettings: {
+        maxPlayer: (number: 2-8)
+        maxSpectator:  (number: 0 - 10)
+        // เดิมพัน สองพัน สามพัน
+        // to change BB SB Ante(need to even give to pool even not BB or SB) timelimit
+        format: <"BEGINNER", "PRO", "TURBO">
+
+      }
+
+
+  2.2 Temporary history chat for public chat room,
+    lobby chat room, game chat room (using *redis stream* concepts [XADD, XREAD])
+
+  2.3
+  
+
+    

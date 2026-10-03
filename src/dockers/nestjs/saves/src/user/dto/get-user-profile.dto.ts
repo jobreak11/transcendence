@@ -2,6 +2,10 @@ import { ApiProperty } from "@nestjs/swagger";
 
 export class GetUserProfileDto {
 
+  @ApiProperty({
+    example: "awea-asdfawf-asdfa",
+    description: 'your uuid user'
+  })
   id: string;
 
   @ApiProperty({
