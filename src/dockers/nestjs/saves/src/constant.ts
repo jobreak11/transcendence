@@ -79,3 +79,6 @@ export const THROTTLER_CHAT_ROOM_LEAVE_TTL = 1000 * 10;
 export const CACHING_USER_SERVICE_EXPIRE_TIME = 600;
 
 export const CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME = 600;
+
+// ########################################
+// REDIS PREFIX NAME SPACE

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ChatService } from "../chat/chat.service.js";
 import { CreateMainGatewayPrivateGetAllChatRoomResponseDto } from "./dto/createMainGatewayPrivateResponse.dto.js";
 import { MainGatewayPrivateRequestCommand } from "./dto/createMainGatewayPrivateRequestZod.dto.js";
@@ -7,6 +7,8 @@ import { mainGatewayChatRoom } from "./mainGatewayRoom.js";
 import { NewChatMessageZodDto, onChatMessageResponse } from "./dto/chatMessageZod.dto.js";
 import { WsException } from "@nestjs/websockets";
 import { onJoinChatRoomResponse } from "./dto/joinChatRoom.dto.js";
+import { REDIS_CLIENT } from "../redis/redis.provider.js";
+import type { RedisClient } from "../redis/redis.provider.js";
 
 @Injectable()
 export class MainGatewayService {
@@ -14,9 +16,29 @@ export class MainGatewayService {
   private readonly logger = new Logger(MainGatewayService.name);
 
   constructor(
-    private readonly chatService: ChatService
+    private readonly chatService: ChatService,
+    @Inject(REDIS_CLIENT) private readonly redis: RedisClient
   ) {
 
+  }
+
+  async setUserIsOnline(userId: string, isOnline: boolean) {
+    if (isOnline === true)  {
+      await this.redis.set(`user:id:${userId}:is_online`, "true")
+    }
+    else {
+      await this.redis.del(`user:id:${userId}:is_online`);
+    }
+  }
+
+  async isUserOnline(userId: string): Promise<boolean> {
+
+    const res = await this.redis.get(`user:id:${userId}:is_online`);
+
+    if (res) {
+      return true;
+    }
+    return false;
   }
 
   async newChatMessage(senderUserId: string, body: NewChatMessageZodDto): Promise<onChatMessageResponse> {

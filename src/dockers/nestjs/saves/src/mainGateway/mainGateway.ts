@@ -60,6 +60,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       // payload sub is the actual user id extracted from the jwtService
       await client.join(mainGatewayPrivateUserRoom(payload.sub));
+      await this.mainGatewayService.setUserIsOnline(payload.sub, true);
       this.logger.debug(`client User ID: ${payload.sub} joined the main user private room`);
     } catch (error) {
       this.logger.warn(`Connection rejected (Invalid token): ${client.id}`, error);
@@ -68,8 +69,9 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   }
 
-  handleDisconnect(client: Socket) {
+  async handleDisconnect(client: Socket) {
 
+    await this.mainGatewayService.setUserIsOnline(client.data.user, false);
     this.logger.log(`Client disconnected: ${client.id}`);
   }
 
@@ -93,8 +95,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   // Redis 
   // store message by ttl and the max amount of messages allowed
-  @UseGuards(WsThrottlerGuard)
-  @Throttle({ default: { limit: 3, ttl: 10000 } })
+  //@UseGuards(WsThrottlerGuard)
+  //@Throttle({ default: { limit: 3, ttl: 10000 } })
   @UsePipes(new WsZodValidationPipe(newJoinChatRoomSchema))
   @SubscribeMessage('newJoinChatRoom')
   newJoinChatRoom(@ConnectedSocket() client: Socket,
@@ -104,8 +106,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
 
-  @UseGuards(WsThrottlerGuard)
-  @Throttle({ default: { limit: 3, ttl: 10000  } })
+  //@UseGuards(WsThrottlerGuard)
+  //@Throttle({ default: { limit: 3, ttl: 10000  } })
   @UsePipes(new WsZodValidationPipe(newPublicChatMessageSchema))
   @SubscribeMessage('newPublicChatMessage')
   newPublicChatMessage(@ConnectedSocket() client: Socket,

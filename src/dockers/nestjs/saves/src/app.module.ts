@@ -11,6 +11,7 @@ import { MainGatewayModule } from './mainGateway/mainGateway.module.js';
 import { ChatModule } from './chat/chat.module.js';
 import { ThrottlerModule } from '@nestjs/throttler'
 import type { Redis } from 'ioredis';
+import { GameModule } from './game/game.module.js';
 
 @Module({
   controllers: [AppController],
@@ -31,7 +32,8 @@ import type { Redis } from 'ioredis';
     RedisModule,
     MainGatewayModule,
     ChatModule,
-    FriendModule,  
+    FriendModule,
+    GameModule,  
     // DrizzleModule
   ],
 })

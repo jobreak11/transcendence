@@ -90,6 +90,7 @@ export class UserController {
     }
 
     return {
+      id: result.id,
       email: result.email,
       avatarUrl: result.avatarUrl,
       displayName: result.displayName,
@@ -214,6 +215,7 @@ export class UserController {
     const res = await this.userService.update(req.user.id, updateUserDto);
 
     return {
+      id: res.id,
       email: res.email,
       avatarUrl: res.avatarUrl,
       displayName: res.displayName,
