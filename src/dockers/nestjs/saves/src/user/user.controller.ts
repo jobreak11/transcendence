@@ -90,12 +90,14 @@ export class UserController {
     }
 
     return {
-      id: result.id,
       email: result.email,
       avatarUrl: result.avatarUrl,
       displayName: result.displayName,
       tagId: result.tagId,
-      createdAt: result.createdAt
+      createdAt: result.createdAt,
+      pronoun: result.pronoun,
+      role: result.role,
+      signature: result.signature,
     }
   }
 
@@ -215,12 +217,14 @@ export class UserController {
     const res = await this.userService.update(req.user.id, updateUserDto);
 
     return {
-      id: res.id,
       email: res.email,
       avatarUrl: res.avatarUrl,
       displayName: res.displayName,
       tagId: res.tagId,
-      createdAt: res.createdAt
+      createdAt: res.createdAt,
+      pronoun: res.pronoun,
+      role: res.role,
+      signature: res.signature,
     }
 
   }

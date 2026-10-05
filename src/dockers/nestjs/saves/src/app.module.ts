@@ -33,7 +33,7 @@ import { GameModule } from './game/game.module.js';
     MainGatewayModule,
     ChatModule,
     FriendModule,
-    GameModule,  
+    GameModule,
     // DrizzleModule
   ],
 })

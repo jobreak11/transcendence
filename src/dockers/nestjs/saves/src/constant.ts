@@ -80,5 +80,7 @@ export const CACHING_USER_SERVICE_EXPIRE_TIME = 600;
 
 export const CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME = 600;
 
+export const CACHING_TITLE_SERVICE1_EXPIRE_TIME = 600;
+
 // ########################################
 // REDIS PREFIX NAME SPACE

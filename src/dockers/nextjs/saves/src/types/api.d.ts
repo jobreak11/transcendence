@@ -574,32 +574,44 @@ export interface components {
         };
         GetUserProfileDto: {
             /**
-             * @description your email
+             * @description tag id of user
+             * @example YYMMDD_0000
+             */
+            tagId: string;
+            /**
+             * @description the email of the user
              * @example user@example.com
              */
             email: string;
             /**
+             * @description The role of the user
+             * @example USER
+             * @enum {string}
+             */
+            role: "ADMIN" | "EDITOR" | "USER";
+            /**
+             * @description the display name of the user
+             * @example InwZa007
+             */
+            displayName: string | null;
+            /** @description The url to the profile image of the user */
+            avatarUrl: string | null;
+            /**
              * Format: date-time
-             * @description date that your account was created
-             * @example Date something dunno
+             * @description The time and date that this user was created
              */
             createdAt: string;
             /**
-             * @description your url to retrieve image of your avatar
-             * @example /asdf/sdf/asdf.asdf
+             * @description The pronoun of the user
+             * @example they/them
+             * @enum {string|null}
              */
-            avatarUrl: string | null;
+            pronoun: "he/him" | "she/her" | "they/them" | "prefer not to say" | null;
             /**
-             * @description tagID of the user
-             * @example YYMMDD_XXXX
+             * @description signature is like something the user want to say in a form of small message in their profile
+             * @example I'm popeye popsiam USA.
              */
-            tagId: string;
-            /**
-             * @description tag id of the user
-             * @example YYMMDD_XXXX
-             */
-            displayName: string | null;
-            id: string;
+            signature: string | null;
         };
         UpdateUserDto: {
             /** @example SecurePassword123 */

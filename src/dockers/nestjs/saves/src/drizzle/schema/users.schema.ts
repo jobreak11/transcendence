@@ -4,9 +4,19 @@ import { sql } from 'drizzle-orm'
 import { v7 as uuidv7 } from 'uuid'
 import { Role } from "../../auth/enums/role.enum.js";
 import { randomInt } from "node:crypto";
+import { titles } from "./titles.schema.js";
 
 
 export const roleEnum = pgEnum("role", Role);
+
+export enum PronounType {
+  HE_HIM = "he/him",
+  SHE_HER = "she/her",
+  THEY_THEM = "they/them",
+  PREFER_NOT_TO_SAY = "prefer not to say"
+}
+
+export const pronounTypeEnum = pgEnum("user_pronoun", PronounType);
 
 const generateTagId = (): string => {
   const now = new Date();
@@ -36,5 +46,12 @@ export const users = pgTable("users", {
 
 	avatarUrl: varchar("avatar_url", {length: 200}),
 
-	createdAt: timestamp("created_at", {withTimezone: true}).defaultNow().notNull()
+	createdAt: timestamp("created_at", {withTimezone: true}).defaultNow().notNull(),
+
+  pronoun: pronounTypeEnum("pronoun"),
+
+  signature: varchar("signature", {length: 100}),
+
+  activeTitleId: uuid("active_title_id").references(() => titles.id, 
+  {onDelete: "set null"}),
 })

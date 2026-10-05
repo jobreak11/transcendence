@@ -11,7 +11,7 @@ Due (2026-10-7)
       - displayName: string
         - user can change name later through PATCH
 
-      - pronouns  // Pronoun of the user : < "he/him" | "she/her" | "they/them" | "prefer not to say" >
+      - pronouns  // Pronoun of the user : < "he/him" | "she/her" | "they/them" | "prefer not to say" | null >
         - could be dropdown menu for user to choose
         - must be PATCH-able
 
@@ -93,3 +93,17 @@ https://server/storage/cards/theme/${theme}/${hands}.svg
 3. Update api-docs to recent
     
 4. and also the api route-handler in nextjs 
+
+
+
+################################
+REPORTS 
+
+- finished on updating the users table schema
+  - for the title field
+    - need to create two more tables dedicated to table
+    'titles' table that store all the titles available
+    'user_titles' that store relation of how many titles
+    user got 
+
+NEXT >>> fixing new user controller
