@@ -1,10 +1,7 @@
 import { PartialType, PickType, OmitType} from '@nestjs/swagger';
 import { CreateUserDto } from './create-user.dto.js';
+import { UserDto } from './user.dto.js';
 
-
-const _BaseUpdateUserDto = PartialType(
-  OmitType(CreateUserDto, ['email'] as const),
-);
 
 // FIXED: must not be able to update email of the user
 /*
@@ -12,4 +9,8 @@ const _BaseUpdateUserDto = PartialType(
     we would need re-verify the new email that user needs
     to validate first
  */
-export class UpdateUserDto extends _BaseUpdateUserDto {}
+export class UpdateUserDto extends PartialType(OmitType(UserDto,
+  ['id', 'hashedRefreshToken', 'email', 'tagId', 'role', 'createdAt'] as const
+)) {
+
+}

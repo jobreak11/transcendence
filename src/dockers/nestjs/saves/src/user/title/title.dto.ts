@@ -1,4 +1,4 @@
-import { ApiProperty, IntersectionType, PickType } from "@nestjs/swagger";
+import { ApiProperty, IntersectionType, PartialType, PickType } from "@nestjs/swagger";
 import { titles } from "../../drizzle/schema/titles.schema.js";
 import { z } from "zod";
 import { user_titles } from "../../drizzle/schema/user_titles.schema.js";
@@ -48,11 +48,9 @@ export class UserTitleDto implements UserTitleSelect {
   unlockedAt: Date;
 }
 
-export type GetAllTitlesDto = TitleDto[];
-
 export const CreateNewTitleSchema = z.object({
   name: z.string().max(100),
-  description: z.string().max(5000).optional(),
+  description: z.string().max(5000).optional().nullable(),
   createdAt: z.date().optional()
 })
 
@@ -70,7 +68,7 @@ export class CreateNewTitleZodDto implements _CreateNewTitleZodDtoBase {
     description: "The description of the new title",
     required: false
   })
-  description?: string;
+  description?: string | null;
 
   @ApiProperty({
     description: "the Created time of the title. no need this is optional",
@@ -79,10 +77,37 @@ export class CreateNewTitleZodDto implements _CreateNewTitleZodDtoBase {
   createdAt?: Date;
 }
 
-class _GetUserTitleDtoBase extends IntersectionType(
-  PickType(TitleDto, ['name', 'description']),
-  PickType(UserTitleDto, ['unlockedAt', 'titleId'])
+export class GetUserTitleDto extends IntersectionType(
+  PickType(TitleDto, ['name', 'description'] as const),
+  PickType(UserTitleDto, ['unlockedAt', 'titleId'] as const)
 ) {
 }
 
-export type GetUserTitleDto = _GetUserTitleDtoBase[];
+export const UpdateTitleSchema = z.object({
+  name: z.string().max(100).optional(),
+  description: z.string().max(5000).optional().nullable(),
+  createdAt: z.date().optional()
+})
+
+type _UpdateTitleZodDtoBase = z.infer<typeof UpdateTitleSchema>;
+
+export class UpdateTitleZodDto implements _UpdateTitleZodDtoBase {
+
+  @ApiProperty({
+    description: "the name of the title",
+    required: true
+  })
+  name?: string;
+
+  @ApiProperty({
+    description: "The description of the title",
+    required: false
+  })
+  description?: string | null;
+
+  @ApiProperty({
+    description: "the Created time of the title. no need this is optional",
+    required: false
+  })
+  createdAt?: Date;
+}

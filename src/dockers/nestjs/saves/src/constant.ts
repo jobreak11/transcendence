@@ -9,6 +9,7 @@ export const GLOBAL_LIMIT_FASTIFY_MULTIPART_FILE_FIELD_MAX = 30;
 // WEBSOCKET CONSTANT
 export const WEBSOCKET_MAINGATEWAY_PRIVATE_USER_SOCKET_ROOM_PREFIX = "main_gateway_user_";
 
+export const UPLOAD_PROFILE_PIC_MAX_SIZE = 1024 * 1024 * 5; //5MB
 
 //########################################
 // throttle Rate limit constants

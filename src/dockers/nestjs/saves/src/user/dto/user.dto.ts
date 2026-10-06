@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Role } from "../../auth/enums/role.enum.js";
-import { PronounType, users } from "../../drizzle/schema/users.schema.js";
+import { PokerCardTheme, PronounType, users } from "../../drizzle/schema/users.schema.js";
 
 type User = typeof users.$inferSelect;
 
@@ -77,4 +77,9 @@ export class UserDto implements User {
   })
   activeTitleId: string | null;
 
+  @ApiProperty({
+    description: "The card theme user will use",
+    example: "STANDARD"
+  })
+  cardTheme: PokerCardTheme;
 }

@@ -18,6 +18,13 @@ export enum PronounType {
 
 export const pronounTypeEnum = pgEnum("user_pronoun", PronounType);
 
+export enum PokerCardTheme {
+  STANDARD = "STANDARD",
+  FANTASY = "FANTASY"
+}
+
+export const pokerCardThemeEnum = pgEnum('user_poker_card_theme', PokerCardTheme);
+
 const generateTagId = (): string => {
   const now = new Date();
   const yy = String(now.getFullYear()).slice(-2);
@@ -54,4 +61,6 @@ export const users = pgTable("users", {
 
   activeTitleId: uuid("active_title_id").references(() => titles.id, 
   {onDelete: "set null"}),
+
+  cardTheme: pokerCardThemeEnum("card_theme").notNull().default(PokerCardTheme.STANDARD),
 })

@@ -5,8 +5,8 @@ import type { DrizzleDB } from '../../drizzle/types/drizzle.js';
 import type { RedisClient } from '../../redis/redis.provider.js';
 import { titles } from '../../drizzle/schema/titles.schema.js';
 import { user_titles } from '../../drizzle/schema/user_titles.schema.js';
-import { asc, desc, eq } from 'drizzle-orm';
-import { CreateNewTitleZodDto, GetAllTitlesDto, GetUserTitleDto, TitleDto, UserTitleDto } from './title.dto.js';
+import { and, asc, desc, eq } from 'drizzle-orm';
+import { CreateNewTitleZodDto, GetUserTitleDto, TitleDto, UpdateTitleZodDto, UserTitleDto } from './title.dto.js';
 import { CACHING_TITLE_SERVICE1_EXPIRE_TIME } from '../../constant.js';
 import { title } from 'process';
 
@@ -22,18 +22,17 @@ export class TitleService {
 
   
   // Get all available titles from title tables
-  async getAllTitles(limit: number = 50): Promise<GetAllTitlesDto> {
+  async getAllTitles(): Promise<TitleDto[]> {
 
     try {
 
       const allTitles = await this.db
         .select()
         .from(titles)
-        .limit(limit)
         .orderBy(
-
-        )
-        ;
+          asc(titles.name),
+          desc(titles.createdAt)
+        );
 
       return allTitles;
     } catch (error: any) {
@@ -131,8 +130,45 @@ export class TitleService {
     }
   }
 
+  async updateTitle(titleId: string, updateTitle: UpdateTitleZodDto) {
+
+    try {
+
+      const [res] = await this.db
+        .update(titles)
+        .set({
+          name: updateTitle.name,
+          description: updateTitle.description,
+          createdAt: updateTitle.createdAt
+        })
+        .where(eq(titles.id, titleId))
+        .returning();
+
+      if (!res) {
+        throw new NotFoundException("the title not found");
+      }
+
+      return res;
+    } catch (error: any) {
+
+      if (error?.code) {
+        // Postgresql error code
+
+         if (error.code === '23505')
+          throw new ConflictException("name must be unique");
+      }
+
+      this.logger.error({
+        message: "error from updateTitle()",
+        error: error
+      })
+
+      throw new InternalServerErrorException("unknown error");
+    }
+  }
+
   // get all the this user achieve
-  async getAllUserTitles(userId: string): Promise<GetUserTitleDto> {
+  async getAllUserTitles(userId: string): Promise<GetUserTitleDto[]> {
 
     try {
 
@@ -194,7 +230,7 @@ export class TitleService {
     }
   }
 
-  async findByName(titleName: string) {
+  async findByName(titleName: string): Promise<TitleDto> {
     try {
       const [res] = await this.db
         .select()
@@ -216,6 +252,44 @@ export class TitleService {
       });
       throw new InternalServerErrorException("unknow error");
     }
+  }
+
+  // also check whether user have access to that titlte
+  async findByUserTitle(userId: string, titleId: string): Promise<GetUserTitleDto> {
+
+    try {
+
+      const [res] = await this.db
+        .select({
+          titleId: titles.id,
+          name: titles.name,
+          description: titles.description,
+          unlockedAt: user_titles.unlockedAt
+        })
+        .from(user_titles)
+        .innerJoin(titles, eq(titles.id, user_titles.titleId))
+        .where(
+          and(
+            eq(user_titles.userId, userId),
+            eq(user_titles.titleId, titleId)
+          )
+        )
+        .limit(1);
+
+      if (!res) {
+        throw new NotFoundException("user id or title name not found / or user don't beong to that title");
+      }
+
+      return res
+    } catch (error: any) {
+      this.logger.error({
+        message: "error from findByUserTitle",
+        error: error
+      })
+
+      throw new InternalServerErrorException("unknown error");
+    }
+
   }
 
   // give a title to user
@@ -260,4 +334,39 @@ export class TitleService {
     }
   }
 
+  async revokeTitleFromUser(userId: string, titleId: string) {
+    // remove title of that target user
+    try {
+      const [res] = await this.db
+        .delete(user_titles)
+        .where(
+          and(
+            eq(user_titles.userId, userId),
+            eq(user_titles.titleId, titleId),
+          ),
+        )
+        .returning();
+
+      if (!res) {
+        throw new NotFoundException("user don't have that target title id/ or userid is not found")
+      }
+
+      return res
+    } catch (error: any) {
+
+      // simple delete wont throw any error in normal circumstance
+
+      //if (error?.code) {
+      //  // check if it is postgres error code
+
+      //}
+
+      this.logger.error({
+        message: "error from revokeTitleFromUser",
+        error: error
+      })
+
+      throw new InternalServerErrorException("unknown error");
+    }
+  }
 }

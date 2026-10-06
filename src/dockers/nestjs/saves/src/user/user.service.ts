@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 // import { InjectRepository } from '@nestjs/typeorm';
@@ -14,13 +14,17 @@ import { eq } from 'drizzle-orm';
 import { REDIS_CLIENT } from '../redis/redis.provider.js';
 import type { RedisClient } from '../redis/redis.provider.js';
 import { UserDto } from './dto/user.dto.js';
+import { TitleService } from './title/title.service.js';
 
 @Injectable()
 export class UserService {
 
+  private readonly logger = new Logger(UserService.name);
+
   constructor(
     @Inject(DRIZZLE) private db: DrizzleDB,
-    @Inject(REDIS_CLIENT) private readonly redis: RedisClient
+    @Inject(REDIS_CLIENT) private readonly redis: RedisClient,
+    private readonly titleService: TitleService,
   )
   {}
 
@@ -180,10 +184,28 @@ export class UserService {
       await this.cachingUser(updatedUser);
       return updatedUser;
     } catch (error: any) {
-      if (error.code === '23505') {
-        throw new ConflictException(`This user is already exist`);
+      if (error?.code) {
+        // Postgresql error
+
+        // unique primary key violation
+        if (error.code === '23505') {
+          throw new ConflictException(`This user is already exist`);
+        }
+
+        // foriegn key violation
+        if (error.code === '23503') {
+          throw new ForbiddenException("the title id is invalid")
+        }
+
       }
-      throw error
+
+      // something else shuld throw internal error and log 
+      this.logger.error({
+        message: "error from update()",
+        error: error
+      })
+       
+      throw new InternalServerErrorException("unknown error");
     }
   }
 

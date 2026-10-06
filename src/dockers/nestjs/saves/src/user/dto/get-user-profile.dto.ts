@@ -2,9 +2,19 @@ import { ApiProperty, IntersectionType, OmitType, PartialType } from "@nestjs/sw
 import { PronounType } from "../../drizzle/schema/users.schema.js";
 import { UserDto } from "./user.dto.js";
 
-export class GetUserProfileDto extends IntersectionType(
-    OmitType(UserDto, ['id', 'password', 'hashedRefreshToken', 'activeTitleId'] as const)
+class _GetUserProfileDtoBase extends IntersectionType(
+    OmitType(UserDto, ['id', 'password', 'hashedRefreshToken'] as const)
 ) {
+
+}
+
+export class GetUserProfileDto extends _GetUserProfileDtoBase {
+  @ApiProperty({
+    example: "Sheriff",
+    description: "The active title name that user use"
+  })
+  titleName: string | null;
+
 }
 
 //export class GetUserProfileDto {
