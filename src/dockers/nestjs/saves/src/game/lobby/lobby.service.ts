@@ -5,7 +5,7 @@ import type { RedisClient } from '../../redis/redis.provider.js';
 @Injectable()
 export class LobbyService {
   constructor(
-    @Inject(REDIS_CLIENT) redis: RedisClient
+    @Inject(REDIS_CLIENT) private redis: RedisClient
   ) {
   }
 
@@ -15,7 +15,8 @@ export class LobbyService {
     NOTE:
      - Assuming you must already check
   */
-    
 
+    this.redis.pipeline()
+ 
   }
 }
