@@ -25,11 +25,6 @@ export class MainGatewayService {
   // use when the websocket boot up
   async redisInitialize() {
     
-    await this.redis.hset("lobby:global_details", {
-      lobby_count: 0
-    })
-
-
   }
 
   async setUserIsOnline(userId: string, isOnline: boolean) {

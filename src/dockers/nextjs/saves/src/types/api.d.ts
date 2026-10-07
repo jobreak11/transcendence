@@ -91,7 +91,10 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Not implemented yet. */
+        /**
+         * update the user profile
+         * @description update the user profile
+         */
         patch: operations["UserController_update"];
         trace?: never;
     };
@@ -113,6 +116,146 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/title/all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * get all the titles available
+         * @description receive an array of all titles       available in the database
+         */
+        get: operations["TitleController_getAllTitles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/title": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * get all the titles available for this current user / specific titles
+         * @description receive an array of this user titles       available
+         */
+        get: operations["TitleController_getUserTitles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/title/find": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * find the title details
+         * @description provide the query to get the detail of the       specific title by id or by name
+         */
+        get: operations["TitleController_findTitle"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/title/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * create new title to database
+         * @description added new title to the website       NOTE: Only for ADMIN Role
+         */
+        post: operations["TitleController_createNewTitle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/title/give": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * giver user a title
+         * @description ADMIN only
+         */
+        post: operations["TitleController_giveUserTitle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/title/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * revoke title from the user
+         * @description ADMIN Only
+         */
+        delete: operations["TitleController_revokeUserTitle"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/title/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * update the title
+         * @description update the target title id details
+         */
+        patch: operations["TitleController_updateTitle"];
         trace?: never;
     };
     "/auth/check": {
@@ -549,19 +692,22 @@ export interface components {
     schemas: {
         CreateUserDto: {
             /**
-             * Format: email
-             * @example alex@example.com
+             * @description the email of the user
+             * @example user@example.com
              */
             email: string;
-            /** @example SecurePassword123 */
-            password: string;
-            /** @example InwZa007 */
-            displayName?: string;
             /**
-             * Format: uri
-             * @description the url to the profile image of the user
+             * @description the hashed password of the user
+             * @example SecurePassword123
              */
-            avatarUrl?: string;
+            password: string;
+            /**
+             * @description the display name of the user
+             * @example InwZa007
+             */
+            displayName?: string | null;
+            /** @description The url to the profile image of the user */
+            avatarUrl?: string | null;
         };
         UnauthorizedErrorDto: {
             /**
@@ -612,17 +758,132 @@ export interface components {
              * @example I'm popeye popsiam USA.
              */
             signature: string | null;
+            /**
+             * @description title user wants to show on their profile
+             * @example God-Like win streaks
+             */
+            activeTitleId: string | null;
+            /**
+             * @description The card theme user will use
+             * @example STANDARD
+             * @enum {string}
+             */
+            cardTheme: "STANDARD" | "FANTASY";
+            /**
+             * @description The active title name that user use
+             * @example Sheriff
+             */
+            titleName: string | null;
         };
         UpdateUserDto: {
-            /** @example SecurePassword123 */
-            password?: string;
-            /** @example InwZa007 */
-            displayName?: string;
             /**
-             * Format: uri
-             * @description the url to the profile image of the user
+             * @description the hashed password of the user
+             * @example SecurePassword123
              */
-            avatarUrl?: string;
+            password?: string;
+            /**
+             * @description the display name of the user
+             * @example InwZa007
+             */
+            displayName?: string | null;
+            /** @description The url to the profile image of the user */
+            avatarUrl?: string | null;
+            /**
+             * @description The pronoun of the user
+             * @example they/them
+             * @enum {string|null}
+             */
+            pronoun?: "he/him" | "she/her" | "they/them" | "prefer not to say" | null;
+            /**
+             * @description signature is like something the user want to say in a form of small message in their profile
+             * @example I'm popeye popsiam USA.
+             */
+            signature?: string | null;
+            /**
+             * @description title user wants to show on their profile
+             * @example God-Like win streaks
+             */
+            activeTitleId?: string | null;
+            /**
+             * @description The card theme user will use
+             * @example STANDARD
+             * @enum {string}
+             */
+            cardTheme?: "STANDARD" | "FANTASY";
+        };
+        TitleDto: {
+            /**
+             * @description The id of the title
+             * @example xxxx_xxxx_xxxx
+             */
+            id: string;
+            /**
+             * @description the name of the title
+             * @example all in one
+             */
+            name: string;
+            /**
+             * @description the description of the title
+             * @example the person really likes to all in.
+             */
+            description: string | null;
+            /**
+             * Format: date-time
+             * @description The time and date of when this title was added
+             */
+            createdAt: string;
+        };
+        GetUserTitleDto: {
+            /**
+             * @description the name of the title
+             * @example all in one
+             */
+            name: string;
+            /**
+             * @description the description of the title
+             * @example the person really likes to all in.
+             */
+            description: string | null;
+            /** @description the title id */
+            titleId: string;
+            /**
+             * Format: date-time
+             * @description the date this user got the title
+             */
+            unlockedAt: string;
+        };
+        CreateNewTitleZodDto: {
+            /** @description the name of the title to create */
+            name: string;
+            /** @description The description of the new title */
+            description?: string | null;
+            /**
+             * Format: date-time
+             * @description the Created time of the title. no need this is optional
+             */
+            createdAt?: string;
+        };
+        UserTitleDto: {
+            /** @description the id of the user that own this title */
+            userId: string;
+            /** @description the title id */
+            titleId: string;
+            /**
+             * Format: date-time
+             * @description the date this user got the title
+             */
+            unlockedAt: string;
+        };
+        UpdateTitleZodDto: {
+            /** @description the name of the title */
+            name: string;
+            /** @description The description of the title */
+            description?: string | null;
+            /**
+             * Format: date-time
+             * @description the Created time of the title. no need this is optional
+             */
+            createdAt?: string;
         };
         LoginDto: {
             /**
@@ -872,6 +1133,168 @@ export interface operations {
             };
             /** @description invalid role? */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TitleController_getAllTitles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TitleDto"][];
+                };
+            };
+        };
+    };
+    TitleController_getUserTitles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetUserTitleDto"][];
+                };
+            };
+        };
+    };
+    TitleController_findTitle: {
+        parameters: {
+            query?: {
+                /** @description the id of the title */
+                titleId?: string;
+                /** @description the name of the title */
+                titleName?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TitleDto"];
+                };
+            };
+            /** @description the titleId and titleName query cannot go together */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TitleController_createNewTitle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateNewTitleZodDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TitleDto"];
+                };
+            };
+        };
+    };
+    TitleController_giveUserTitle: {
+        parameters: {
+            query: {
+                /** @description the target User to give the title */
+                userId: string;
+                /** @description the title you want to giv to the target user */
+                titleId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserTitleDto"];
+                };
+            };
+        };
+    };
+    TitleController_revokeUserTitle: {
+        parameters: {
+            query: {
+                /** @description the target User to revoke the title */
+                userId: string;
+                /** @description the title you want to revoke from the target user */
+                titleId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TitleController_updateTitle: {
+        parameters: {
+            query: {
+                /** @description the title id of the title you want to change */
+                titleId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTitleZodDto"];
+            };
+        };
+        responses: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
