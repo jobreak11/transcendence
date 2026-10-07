@@ -1,0 +1,14 @@
+.profile-area {
+  background-color: #262626;
+  background-image:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.25) 60%, #000 120%),
+    url("/meshbg1.svg");
+  background-repeat: no-repeat, repeat;
+  background-size: 100% 100%, 45px 45px;
+}
+
+@media (max-width: 640px) {
+  .profile-area {
+    background-size: 100% 100%, 34px 34px;
+  }
+}

@@ -78,6 +78,12 @@ export default function Page() {
             className="w-full bg-red-600 border-black hover:bg-red-700 text-white font-bold rounded-md px-4 py-1.5 cursor-pointer disabled:opacity-50"
           >Sign Out</button>
           </form>
+          <Link
+            href="/setting"
+            className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 rounded-md text-center text-base shadow-md transition-colors cursor-pointer"
+          >
+            Setting
+          </Link>
         </div>
       </div>
       <a href="#about" 
