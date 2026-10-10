@@ -258,6 +258,26 @@ export interface paths {
         patch: operations["TitleController_updateTitle"];
         trace?: never;
     };
+    "/title/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * delete a title
+         * @description delele a sepecific title by title id. ADMIN ONLY
+         */
+        delete: operations["TitleController_deleteTitle"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/check": {
         parameters: {
             query?: never;
@@ -954,6 +974,91 @@ export interface components {
                 createdAt: string;
             }[];
         };
+        GameSettingsDto: {
+            /**
+             * @description the max number of player to game in the game
+             * @example 4
+             */
+            maxPlayer: number;
+            /**
+             * @description the max number of spectator to watch this game
+             * @example 2
+             */
+            maxSpectator: number;
+            /**
+             * @description the format to play in this lobby
+             * @example BEGINNER
+             * @enum {string}
+             */
+            format: "BEGINNER" | "PRO" | "TURBO";
+        };
+        CreateLobbyDto: {
+            /**
+             * @description the catchphrase that would display when on the lobby list
+             * @example warm up match welcom new player
+             */
+            catchPhrase?: Record<string, never>;
+            /**
+             * @description type of the game room
+             * @example PUBLIC
+             * @enum {string}
+             */
+            roomType: "PUBLIC" | "PRIVATE";
+            /**
+             * @description the password of the room if the roomType is set     to PUBLIC
+             * @example 12345687
+             */
+            password?: Record<string, never>;
+            gameSettings: components["schemas"]["GameSettingsDto"];
+        };
+        LobbyDto: {
+            /**
+             * @description the catchphrase that would display when on the lobby list
+             * @example warm up match welcom new player
+             */
+            catchPhrase?: Record<string, never>;
+            /**
+             * @description type of the game room
+             * @example PUBLIC
+             * @enum {string}
+             */
+            roomType: "PUBLIC" | "PRIVATE";
+            /**
+             * @description the password of the room if the roomType is set     to PUBLIC
+             * @example 12345687
+             */
+            password?: Record<string, never>;
+            gameSettings: components["schemas"]["GameSettingsDto"];
+            /**
+             * @description the room identifier as       6 digits base-10 number randomly generated as string. User can use       this digit to quick join room
+             * @example 020321
+             */
+            roomPinId: string;
+            /**
+             * Format: date-time
+             * @description the time this lobby was created
+             */
+            createdAt: string;
+            /** @description the user that created this lobby room */
+            createdByUserId: string;
+            /** @description the host user of the lobby room */
+            hostUserId: string;
+            /**
+             * @description the current status of the lobby room
+             * @example PLAYING
+             * @enum {string}
+             */
+            roomStatus: "UNAVAILABLE" | "WAITING" | "PLAYING";
+            /** @description the number of current player in the lobby room */
+            currentPlayerCount: number;
+            /** @description the number of current spectator in the lobby */
+            currentSpectatorCount?: number;
+        };
+        JoinLobbyDto: {
+            lobbyPinId: string;
+            isSpectator: boolean;
+            password?: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -1293,6 +1398,26 @@ export interface operations {
                 "application/json": components["schemas"]["UpdateTitleZodDto"];
             };
         };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TitleController_deleteTitle: {
+        parameters: {
+            query: {
+                /** @description the title id you want to delete */
+                titleId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             204: {
                 headers: {
@@ -1731,13 +1856,19 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateLobbyDto"];
+            };
+        };
         responses: {
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["LobbyDto"];
+                };
             };
         };
     };
@@ -1748,9 +1879,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JoinLobbyDto"];
+            };
+        };
         responses: {
-            201: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1767,7 +1902,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            201: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };

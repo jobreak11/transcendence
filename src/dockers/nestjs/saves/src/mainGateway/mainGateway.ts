@@ -2,7 +2,7 @@ import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect,
 import { Server, Socket } from 'socket.io'
 import { JwtService } from "@nestjs/jwt";
 import { Logger, UseGuards, UsePipes } from "@nestjs/common";
-import { mainGatewayChatRoom, mainGatewayPrivateUserRoom } from "./mainGatewayRoom.js";
+import { mainGatewayChatRoom, mainGatewayLobbyChatRoom, mainGatewayPrivateUserRoom } from "./mainGatewayRoom.js";
 import { WsZodValidationPipe } from "./pipes/wsZodValidationPipe.js";
 import { newChatMessageSchema } from "./dto/chatMessageZod.dto.js";
 import type { NewChatMessageZodDto } from "./dto/chatMessageZod.dto.js";
@@ -13,6 +13,8 @@ import { newPublicChatMessageSchema } from "./dto/publicChatMessageZod.dto.js";
 import type { NewPublicChatMessageZodDto, onPublicChatMessageResponse } from "./dto/publicChatMessageZod.dto.js";
 import { WsThrottlerGuard } from "./guards/ws-throttler.guard.js";
 import { Throttle } from "@nestjs/throttler";
+import { newLobbyChatMessageSchema } from "./dto/lobbyChatMessageZod.dto.js";
+import type { NewLobbyChatMessageZodDto } from "./dto/lobbyChatMessageZod.dto.js";
 
 @WebSocketGateway({
   transports: ['websocket'],
@@ -30,6 +32,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   ) {}
 
   afterInit(server: Server) {
+    this.mainGatewayService.setServer(server);
     this.logger.log('Websocket MainGateway Initialized');
   }
 
@@ -121,6 +124,20 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     this.server
       .emit('onPublicChatMessage', res);
+  }
+
+  @UsePipes(new WsZodValidationPipe(newLobbyChatMessageSchema))
+  @SubscribeMessage('newLobbyChatMessage')
+  async newLobbyChatMessage(
+    @ConnectedSocket() client:Socket,
+    @MessageBody() body: NewLobbyChatMessageZodDto
+  ) {
+
+    const res = await this.mainGatewayService.newLobbyChatMessage(client, body);
+
+    this.server.to(mainGatewayLobbyChatRoom(res.lobbyPinId))
+      .emit('onLobbyChatMessage', res)
+
   }
   
 }

@@ -199,4 +199,26 @@ export class TitleController {
     return this.titleService.updateTitle(titleId, body);
   }
 
+  @ApiOperation({
+    summary: "delete a title",
+    description: "delele a sepecific title by title id. ADMIN ONLY"
+  })
+  @ApiQuery({
+    name: "titleId",
+    required: true,
+    type: 'string',
+    description: "the title id you want to delete"
+  })
+  @Delete('delete')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteTitle(
+    @Req() req: any,
+    @Query('titleId', ParseUUIDPipe) titleId: string
+  ) {
+
+    await this.titleService.removeTitle(titleId);
+  }
+
 }

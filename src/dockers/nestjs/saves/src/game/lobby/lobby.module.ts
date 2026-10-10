@@ -9,6 +9,6 @@ import { MainGatewayModule } from '../../mainGateway/mainGateway.module.js';
   controllers: [LobbyController],
   providers: [
     LobbyService
-  ]
+  ],
 })
 export class LobbyModule {}

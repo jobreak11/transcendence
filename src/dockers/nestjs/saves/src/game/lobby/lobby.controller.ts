@@ -1,10 +1,11 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { LobbyService } from './lobby.service.js';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth/jwt-auth.guard.js';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { LobbyGuard } from './lobby.guard.js';
-import { CreateLobbyDto, CreateLobbySchema } from './dto/lobby.dto.js';
 import { ZodValidationPipe } from '../../pipes/ZodValidationPipe.js';
+import { CreateLobbyDto, CreateLobbySchema } from './dto/create-lobby.dto.js';
+import { JoinLobbyDto, JoinLobbySchema } from './dto/join-lobby.dto.js';
 
 @UseGuards(JwtAuthGuard, LobbyGuard, ThrottlerGuard)
 @Controller('game/lobby')
@@ -25,13 +26,20 @@ export class LobbyController {
   }
 
   @Post('join')
-  joinLobbyRoom(@Req() req:any) {
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async joinLobbyRoom(
+    @Req() req:any,
+    @Body(new ZodValidationPipe(JoinLobbySchema)) body: JoinLobbyDto
+  ) {
 
+    await this.lobbyService.joinLobby(body.lobbyPinId, req.user.id, body.isSpectator, body.password);
   }
 
   @Post('leave')
-  leaveLobbyRoom(@Req() req:any) {
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async leaveLobbyRoom(@Req() req:any) {
 
+    await this.lobbyService.leaveLobbyUser(req.user.id);
   }
 
   // get all available lobby room

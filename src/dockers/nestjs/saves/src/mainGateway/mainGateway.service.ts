@@ -1,19 +1,27 @@
-import { Inject, Injectable, Logger } from "@nestjs/common";
+import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { ChatService } from "../chat/chat.service.js";
 import { CreateMainGatewayPrivateGetAllChatRoomResponseDto } from "./dto/createMainGatewayPrivateResponse.dto.js";
 import { MainGatewayPrivateRequestCommand } from "./dto/createMainGatewayPrivateRequestZod.dto.js";
 import { Server, Socket } from "socket.io";
-import { mainGatewayChatRoom } from "./mainGatewayRoom.js";
+import { mainGatewayChatRoom, mainGatewayLobbyChatRoom, mainGatewayPrivateUserRoom } from "./mainGatewayRoom.js";
 import { NewChatMessageZodDto, onChatMessageResponse } from "./dto/chatMessageZod.dto.js";
 import { WsException } from "@nestjs/websockets";
 import { onJoinChatRoomResponse } from "./dto/joinChatRoom.dto.js";
 import { REDIS_CLIENT } from "../redis/redis.provider.js";
 import type { RedisClient } from "../redis/redis.provider.js";
+import { NewLobbyChatMessageZodDto, onLobbyChatMessageResponse } from "./dto/lobbyChatMessageZod.dto.js";
+import { LOBBY_REDIS_GLOBAL_DETAILS_LOBBY_LISTS, user_game_lobby } from "../game/lobby/lobby.constants.js";
+import { send } from "process";
 
 @Injectable()
 export class MainGatewayService {
 
   private readonly logger = new Logger(MainGatewayService.name);
+  private server: Server | null = null;
+
+  setServer(server: Server) {
+    this.server = server;
+  }
 
   constructor(
     private readonly chatService: ChatService,
@@ -21,6 +29,7 @@ export class MainGatewayService {
   ) {
 
   }
+
 
   // use when the websocket boot up
   async redisInitialize() {
@@ -84,6 +93,7 @@ export class MainGatewayService {
         const res = await this.chatService.isUserInRoom(client.data.user, chatRoomId);
 
         if (res) {
+          //this.server?.in(mainGatewayPrivateUserRoom(client.data.user)).socketsJoin(mainGatewayChatRoom(chatRoomId))
           await client.join(mainGatewayChatRoom(chatRoomId))
           const formatRes: onJoinChatRoomResponse = {
             status: true,
@@ -101,6 +111,8 @@ export class MainGatewayService {
         client.emit("onJoinChatRoom", formatRes);
         return ;
       } catch (err) {
+        if (err instanceof NotFoundException) {
+        }
         const formatRes: onJoinChatRoomResponse = {
           status: false,
           message: "Error Occurred"
@@ -153,4 +165,68 @@ export class MainGatewayService {
         return (errorResponse);
       }
   }
+
+  async newLobbyChatMessage(client: Socket, body: NewLobbyChatMessageZodDto)
+  : Promise<onLobbyChatMessageResponse>
+  { 
+    // send message to the current lobby
+
+    const currentLobbyPinId = await this.redis.get(user_game_lobby(client.data.user));
+
+    if (!currentLobbyPinId)
+      throw new WsException("must be in a lobby first to send lobby message");
+
+    if (client.rooms.has(mainGatewayLobbyChatRoom(currentLobbyPinId)) === false)
+      this.server
+        ?.in(mainGatewayPrivateUserRoom(client.data.user))
+        .socketsJoin(mainGatewayLobbyChatRoom(currentLobbyPinId));
+
+    return {
+      lobbyPinId: currentLobbyPinId,
+      message: body.message,
+      senderUserId: client.data.user,
+      type: "USER",
+    };
+  }
+
+  async joinLobbyChat(toJoinUserId: string, lobbyPinId: string): Promise<boolean> {
+
+    const isExist = await this.redis.sismember(
+      LOBBY_REDIS_GLOBAL_DETAILS_LOBBY_LISTS,
+      lobbyPinId
+    )
+
+    if (isExist !== 1) {
+      return false;
+    }
+
+    this.server
+      ?.in(mainGatewayPrivateUserRoom(toJoinUserId))
+      .socketsJoin(
+        mainGatewayLobbyChatRoom(lobbyPinId)
+      );
+
+    return (true);
+  }
+
+  async leaveLobbyChat(toLeaveUserId: string, lobbyPinId: string): Promise<boolean> {
+
+    const isExist = await this.redis.sismember(
+      LOBBY_REDIS_GLOBAL_DETAILS_LOBBY_LISTS,
+      lobbyPinId
+    )
+
+    if (isExist !== 1) {
+      return false;
+    }
+
+    this.server
+      ?.in(mainGatewayPrivateUserRoom(toLeaveUserId))
+      .socketsLeave(
+        mainGatewayLobbyChatRoom(lobbyPinId)
+      );
+
+    return (true);
+  }
+  
 }
