@@ -1,7 +1,7 @@
 const textFit = document.getElementById('textFit');
 
 function autoSize(element) {
-	let size = 40;
+	let size = parseFloat(getComputedStyle(element).fontSize);
 	element.style.fontSize = `${size}px`;
 
 	while (element.scrollWidth > element.clientWidth && size > 1)
@@ -83,68 +83,102 @@ if (graph && typeof Chart !== "undefined") new Chart(graph, {
 	}
 });
 
-const popup = document.getElementById("popup");
+document.querySelectorAll(".openPopup").forEach(trigger => {
+	const popup = document.getElementById(trigger.dataset.popup);
 
-if (popup) {
-	// document.getElementById("openPopup").addEventListener("click", () => {
-	// popup.showModal();
-	// });
-	document.querySelectorAll("#openPopup").forEach(button => {
-		button.addEventListener("click", () => {
+	if (popup) {
+		// document.getElementById("openPopup").addEventListener("click", () => {
+		// popup.showModal();
+		// });
+		trigger.addEventListener("click", () => {
 			popup.showModal();
 		});
-	});
-	document.getElementById("closePopup")?.addEventListener("click", () => {
-		popup.close();
-	});
 
-	popup.addEventListener("click", event => {
-		const bounds = popup.getBoundingClientRect();
-		const clickedOutside = event.clientX < bounds.left ||
-			event.clientX > bounds.right ||
-			event.clientY < bounds.top ||
-			event.clientY > bounds.bottom;
-
-		if (clickedOutside) {
+		document.getElementById("closePopup")?.addEventListener("click", () => {
 			popup.close();
-		}
-	});
-	// popup.addEventListener("click", event => {
-	// 	const bounds = popup.getBoundingClientRect();
-	// 	const radius = parseFloat(getComputedStyle(popup).borderTopLeftRadius) || 0;
-	// 	const x = event.clientX;
-	// 	const y = event.clientY;
-	// 	const insideBounds = x >= bounds.left && x <= bounds.right &&
-	// 		y >= bounds.top && y <= bounds.bottom;
-	// 	const insideTopLeft = x < bounds.left + radius && y < bounds.top + radius &&
-	// 		(x - bounds.left - radius) ** 2 + (y - bounds.top - radius) ** 2 <= radius ** 2;
-	// 	const insideTopRight = x > bounds.right - radius && y < bounds.top + radius &&
-	// 		(x - bounds.right + radius) ** 2 + (y - bounds.top - radius) ** 2 <= radius ** 2;
-	// 	const insideBottomLeft = x < bounds.left + radius && y > bounds.bottom - radius &&
-	// 		(x - bounds.left - radius) ** 2 + (y - bounds.bottom + radius) ** 2 <= radius ** 2;
-	// 	const insideBottomRight = x > bounds.right - radius && y > bounds.bottom - radius &&
-	// 		(x - bounds.right + radius) ** 2 + (y - bounds.bottom + radius) ** 2 <= radius ** 2;
-	// 	const insideRoundedCorner = insideTopLeft || insideTopRight || insideBottomLeft || insideBottomRight;
-	// 	const clickedOutside = !insideBounds || (!insideRoundedCorner &&
-	// 		(x < bounds.left + radius || x > bounds.right - radius) &&
-	// 		(y < bounds.top + radius || y > bounds.bottom - radius));
-
-	// 	if (clickedOutside) {
-	// 		popup.close();
-	// 	}
-	// });
-}
-
-
-document.querySelectorAll("#toggleEnable").forEach((checkbox, index) => {
-	const input = document.querySelectorAll("#roompass")[index];
-
-	if (input) {
-		checkbox.addEventListener("change", () => {
-			input.disabled = !checkbox.checked;
 		});
+	
+		popup.addEventListener("click", event => {
+			const bounds = popup.getBoundingClientRect();
+			const clickedOutside = event.clientX < bounds.left ||
+				event.clientX > bounds.right ||
+				event.clientY < bounds.top ||
+				event.clientY > bounds.bottom;
+	
+			if (clickedOutside) {
+				popup.close();
+			}
+		});
+		// popup.addEventListener("click", event => {
+		// 	const bounds = popup.getBoundingClientRect();
+		// 	const radius = parseFloat(getComputedStyle(popup).borderTopLeftRadius) || 0;
+		// 	const x = event.clientX;
+		// 	const y = event.clientY;
+		// 	const insideBounds = x >= bounds.left && x <= bounds.right &&
+		// 		y >= bounds.top && y <= bounds.bottom;
+		// 	const insideTopLeft = x < bounds.left + radius && y < bounds.top + radius &&
+		// 		(x - bounds.left - radius) ** 2 + (y - bounds.top - radius) ** 2 <= radius ** 2;
+		// 	const insideTopRight = x > bounds.right - radius && y < bounds.top + radius &&
+		// 		(x - bounds.right + radius) ** 2 + (y - bounds.top - radius) ** 2 <= radius ** 2;
+		// 	const insideBottomLeft = x < bounds.left + radius && y > bounds.bottom - radius &&
+		// 		(x - bounds.left - radius) ** 2 + (y - bounds.bottom + radius) ** 2 <= radius ** 2;
+		// 	const insideBottomRight = x > bounds.right - radius && y > bounds.bottom - radius &&
+		// 		(x - bounds.right + radius) ** 2 + (y - bounds.bottom + radius) ** 2 <= radius ** 2;
+		// 	const insideRoundedCorner = insideTopLeft || insideTopRight || insideBottomLeft || insideBottomRight;
+		// 	const clickedOutside = !insideBounds || (!insideRoundedCorner &&
+		// 		(x < bounds.left + radius || x > bounds.right - radius) &&
+		// 		(y < bounds.top + radius || y > bounds.bottom - radius));
+	
+		// 	if (clickedOutside) {
+		// 		popup.close();
+		// 	}
+		// });
 	}
 });
+
+
+
+document.querySelectorAll(".toggleEnable").forEach(toggle => {
+	const target = document.getElementById(toggle.dataset.target);
+
+	if (target) {
+		switch (toggle.type) {
+			case "radio": {
+				const radioGroup = document.querySelectorAll(
+					`input[type="radio"][name="${toggle.name}"]`
+				);
+				const updateRadioTarget = () => {
+					target.disabled = !toggle.checked;
+				};
+
+				radioGroup.forEach(radio => {
+					radio.addEventListener("change", updateRadioTarget);
+				});
+				updateRadioTarget();
+				break;
+			}
+
+			default:
+				toggle.addEventListener("change", function () {
+					target.disabled = !this.checked;
+				});
+		}
+	}
+});
+
+function toggleEnable(toggleId, targetId) {
+	const toggle = document.getElementById(toggleId);
+	const target = document.getElementById(targetId);
+
+	if (!toggle || !target) return;
+
+	function updateTarget() {
+		target.disabled = !toggle.checked;
+	}
+
+	toggle.addEventListener("change", updateTarget);
+	updateTarget();
+}
 
 function sliderDisplay(inputId, outputId) {
 	const inputs = document.querySelectorAll(`#${inputId}`);
@@ -163,3 +197,5 @@ function sliderDisplay(inputId, outputId) {
 
 sliderDisplay("maxplayer", "playerValue");
 sliderDisplay("maxspectator", "spectateValue");
+sliderDisplay("startChips", "chipsValue");
+sliderDisplay("maxCycles", "cycles");
