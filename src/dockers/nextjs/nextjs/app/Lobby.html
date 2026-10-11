@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" name="viewport" content="width=device-width,initial-scale=1" />
+<title>Lobby - Transcend 888</title>
+	<style id="style-normalize" type="text/css">
+		html {
+			font-family: sans-serif;
+			-ms-text-size-adjust: 100%;
+			-webkit-text-size-adjust: 100%;
+		}
+		body {
+			margin: 0;
+		}
+		details,
+		canvas,
+		header,
+		footer,
+		main,
+		menu,
+		nav,
+		section,
+		summary {
+			display: block;
+		}
+		audio,
+		/* audio:not([controls]) {
+			display: none;
+			height: 0;
+		} */
+		video {
+			display: inline-block;
+			vertical-align: baseline;
+		}
+		a {
+			background-color: transparent;
+		}
+		a:active,
+		a:hover {
+			outline: 0;
+		}
+		b,
+		strong {
+			font-weight: bold;
+		}
+		dfn {
+			font-style: italic;
+		}
+	</style>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+	<div class="headerbar">
+		<div class="deheader">
+			<div class="usertitle">
+				<div class="goldfont" style="width: fit-content; max-width: 25vw; padding-left: 8%; font-size: clamp(28px, calc(16px + 2vw), 40px); white-space: normal;">Lobby</div>
+				<div class="goldfont" style="width: fit-content; max-width: 30vw; padding-left: 5%; font-size: clamp(14px, calc(6px + 2vw), 30px); white-space: normal; overflow-wrap: anywhere;">ROOMNAME</div>
+			</div>
+			<div style="display: flex; margin-left: auto; width: fit-content; padding-right: 4%;">
+				<div class="goldfont" style="width: fit-content; max-width: 25vw; margin-left: auto; font-size: clamp(14px, calc(6px + 2vw), 30px); white-space: normal;">USERNAME</div>
+			</div>
+			<div style="padding-right: 3%; font-size: clamp(14px, 0.2vw + 1rem, 80%)"><a href="#" id="logout">Logout</a></div>
+		</div>
+		<div class="bartab"></div>
+	</div>
+	<div style="display: flex; flex-direction: column;">
+		<div class="blogbox">
+			<div style="padding: 0 1%; display: flex; flex-direction: column; width: 100%;">
+				<div style="display: flex;">
+					<div style="display: flex; flex-direction: column; width: 48.75%; padding-right: 1%;">
+						<div class="bartab" style="border-bottom: transparent;">
+							<div class="tabcolumn" style="background-color: rgba(29, 29, 29); cursor: default;">Players (8/8)</div>
+						</div>
+						<div style="width: 100%; background-color: rgba(29, 29, 29, 0.75); border: 4px solid rgba(29, 29, 29); margin-top: 0;">
+							<table style="padding: 2%; position: relative; margin: 0 auto; width: 90%; table-layout: fixed; font-size: clamp(14px, calc(6px + 2vw), 24px);">
+								<tr style="height: calc(1lh + 0.1em);"><td>Test-1</td><td>Test-2</td></tr>
+								<tr style="height: calc(1lh + 0.1em);"><td>Test-3</td><td>Test-4</td></tr>
+								<tr style="height: calc(1lh + 0.1em);"><td>Test-5</td><td>Test-6</td></tr>
+								<tr style="height: calc(1lh + 0.1em);"><td></td><td></td></tr>
+								<tr style="height: calc(1lh + 0.1em);"><td></td><td></td></tr>
+							</table>
+						</div>
+					</div>
+					<div style="display: flex; flex-direction: column; width: 48.75%; padding-left: 1%;">
+						<div class="bartab" style="border-bottom: transparent;">
+							<div class="tabcolumn" style="background-color: rgba(29, 29, 29); cursor: default;">Spectators (10/10)</div>
+						</div>
+						<div style="width: 100%; background-color: rgba(29, 29, 29, 0.75); border: 4px solid rgba(29, 29, 29); margin-top: 0;">
+							<table style="padding: 2%; position: relative; margin: 0 auto; width: 90%; table-layout: fixed; font-size: clamp(14px, calc(6px + 2vw), 24px);">
+								<tr style="height: calc(1lh + 0.1em);"><td>Test-10</td><td>Test-11</td></tr>
+								<tr style="height: calc(1lh + 0.1em);"><td>Test-12</td><td>Test-13</td></tr>
+								<tr style="height: calc(1lh + 0.1em);"><td>Test-14</td><td>Test-15</td></tr>
+								<tr style="height: calc(1lh + 0.1em);"><td>Test-16</td><td>Test-17</td></tr>
+								<tr style="height: calc(1lh + 0.1em);"><td>Test-18</td><td>Test-19</td></tr>
+							</table>
+						</div>
+					</div>
+				</div>
+				<div style="display: flex; margin-top: 2%;">
+					<div style="display: flex; flex-direction: column; width: 48.75%; padding-right: 1%;">
+						<div class="bartab" style="border-bottom: transparent;">
+							<div class="tabcolumn" style="background-color: rgba(29, 29, 29); cursor: default;">Lobby Chat</div>
+						</div>
+						<div style="width: 100%; background-color: rgba(29, 29, 29, 0.75); border: 4px solid rgba(29, 29, 29); margin-top: 0;">
+							<table style="padding: 2%; position: relative; margin: 0 auto; width: 90%; table-layout: fixed; font-size: clamp(14px, calc(6px + 2vw), 24px);">
+								<tr style="height: calc(1lh + 0.1em);"><td></td><td></td></tr>
+								<tr style="height: calc(1lh + 0.1em);"><td></td><td></td></tr>
+								<tr style="height: calc(1lh + 0.1em);"><td></td><td></td></tr>
+								<tr style="height: calc(1lh + 0.1em);"><td></td><td></td></tr>
+								<tr style="height: calc(1lh + 0.1em);"><td></td><td></td></tr>
+							</table>
+						</div>
+					</div>
+					<div style="display: flex; flex-direction: column; width: 48.75%; padding-left: 1%;">
+						<div style="width: 100%; margin-top: 0;">
+							<table style="padding: 2%; position: relative; margin: 0 auto; width: 90%; table-layout: fixed; font-size: clamp(14px, calc(6px + 2vw), 20px);">
+								Game Rules:
+								<tr style="height: calc(1lh + 0.1em);"><td>Difficulty: Turbo</td><td>Starting Chips: 2000</td></tr>
+								<tr style="height: calc(1lh + 0.1em);"><td>Max Rounds: 7</td><td>Win Condition: Best Of 7</td></tr>
+								<tr style="height: calc(1lh + 0.1em);"></tr>
+								<tr style="height: calc(1lh + 0.1em); text-align: end;"><td></td>
+									<td>
+										<!-- <button style="font-size: clamp(14px, calc(6px + 2vw), 20px);">Start</button> -->
+										<button style="font-size: clamp(14px, calc(6px + 2vw), 20px);">Ready</button>
+									</td>
+								</tr>
+								<tr style="height: calc(1lh + 0.1em); text-align: end;"><td></td>
+									<td>
+										<!-- <button style="font-size: clamp(14px, calc(6px + 2vw), 20px);">Disband</button> -->
+										<button style="font-size: clamp(14px, calc(6px + 2vw), 20px);">Leave</button>
+									</td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="script.js" defer></script>
+</div>
+</body>
+</html>

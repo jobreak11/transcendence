@@ -1,3 +1,9 @@
+html,
+body {
+	min-width: 800px;
+	min-height: 600px;
+}
+
 #app {
 	min-width: 800px;
 	min-height: 600px;
@@ -102,7 +108,7 @@ dialog::backdrop {
 	top: 0;
 	z-index: 1000;
 	height: 120px;
-	width: 100vw;
+	width: 100%;
 	background-color: black;
 }
 
@@ -267,6 +273,9 @@ dialog::backdrop {
 	font-size: clamp(14px, calc(6px + 2vw), 28px);
 	cursor: pointer;
 	list-style: none;
+	display: block;
+	width: fit-content;
+	margin-left: auto;
 }
 
 .tourndetail summary::-webkit-details-marker {

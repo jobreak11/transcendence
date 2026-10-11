@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8" name="viewport" content="width=device-width,initial-scale=1" />
-<title>Lobby - Transcend 888</title>
+<title>Play Room - Transcend 888</title>
 	<style id="style-normalize" type="text/css">
 		html {
 			font-family: sans-serif;
@@ -100,13 +100,13 @@
 						<tr><td>Private: Yes</td>
 							<td><div style="display: flex; align-items: center;">
 								<div style="padding-right: 3%;">Players: 1/8</div>
-								<div><button style="font-size: clamp(14px, calc(6px + 2vw), 20px);" id="openPopup">Join</button></div>
+								<div><button style="font-size: clamp(14px, calc(6px + 2vw), 20px); cursor: pointer;" class="openPopup" data-popup="joinPassword">Join</button></div>
 							</div></td>
 							<td><div style="display: flex; align-items: center;">
 								<div style="padding-right: 3%;">Spectators: 0/10</div>
-								<div><button style="font-size: clamp(14px, calc(6px + 2vw), 20px);" id="openPopup">Join</button></div>
+								<div><button style="font-size: clamp(14px, calc(6px + 2vw), 20px); cursor: pointer;" class="openPopup" data-popup="joinPassword">Join</button></div>
 							</div></td>
-							<dialog id="popup">
+							<dialog id="joinPassword">
 								<div style="display: flex; flex-direction: column;">
 									<div><b>This Room Requires A Password To Enter</b></div>
 									<div style="display: flex; margin: 2% auto 0;">Password: <input type="password" id="password" style="margin-left: 3%;">
@@ -160,7 +160,18 @@
 					</div>
 					<div style="display: flex; font-size: clamp(11px, calc(6px + 2vw), 20px); align-items: center; white-space: nowrap; padding-top: 2%;">
 						<div>Host: 42Bangkok</div>
-						<div style="padding-left: 3%;">Registered: 0/16</div>
+						<div style="padding-left: 3%; cursor: pointer;" class="openPopup" data-popup="regPlayers" role="button" tabindex="0">Registered: 4/16</div>
+						<dialog id="regPlayers">
+							<div style="display: flex; flex-direction: column;">
+								<div><b>Approved Registered Players:</b></div>
+								<div style="display: flex; flex-direction: column; margin: 5% auto 0;">
+									<div>Test-2</div>
+									<div>Test-8</div>
+									<div>Test-1</div>
+									<div>Test-5</div>
+								</div>
+							</div>
+						</dialog>
 						<div style="padding-left: 3%;"><button style="font-size: clamp(14px, calc(6px + 2vw), 20px);">Register</button></div>
 					</div>
 				</div>
@@ -193,6 +204,7 @@
 					<div style="display: flex; font-size: clamp(11px, calc(6px + 2vw), 20px); align-items: center; white-space: nowrap; padding-top: 2%;">
 						<div>Host: Transcend 888</div>
 						<div style="padding-left: 3%;">Registered: 0/64</div>
+						<!-- <div style="padding-left: 3%;" role="button" tabindex="0">Registered: 0/64</div> -->
 						<!-- <div style="padding-left: 3%;"><button style="font-size: clamp(14px, calc(6px + 2vw), 20px);">Register</button></div> -->
 					</div>
 				</div>
@@ -228,7 +240,7 @@
 			<div class="blogcont active" id="casualSettings" style="padding: 1% 5%;">
 				<div style="width: 100%;">Catchphrase: <input type="catchphrase" id="catchphrase" style="margin-left: 1%; min-width: 70%;"></div>
 				<div style="display: flex; align-items: center; width: 100%; white-space: nowrap; padding-top: 1%;">
-					<div><label><input type="checkbox" id="toggleEnable" style="margin-right: 1vw;"></label>Private</div>
+					<div><label><input type="checkbox" class="toggleEnable" data-target="roompass" style="margin-right: 1vw;"></label>Private</div>
 					<div style="margin-left: 3vw;">Password: <input type="roompass" id="roompass" style="margin-left: 1%;" disabled></div>
 				</div>
 				<div style="display: flex; align-items: center; width: 100%; white-space: nowrap;">
@@ -238,6 +250,23 @@
 				<div style="display: flex; align-items: center; width: 100%; white-space: nowrap;">
 					Max Spectator: <input type="range" id="maxspectator" min="0" max="10" step="1" value="5" style="width: 25%; margin-left: 2%;">
 					<output id="spectateValue" style="margin: 1%;">5</output>
+				</div>
+				<div style="align-items: center; width: 100%;">Difficulty:
+						<label><input type="radio" name="diffmodeCasual" value="Intermediate" checked>Intermediate</label>
+						<label><input type="radio" name="diffmodeCasual" value="Standard">Standard</label>
+						<label><input type="radio" name="diffmodeCasual" value="Turbo">Turbo</label>
+				</div>
+				<div style="display: flex; align-items: center; width: 100%; white-space: nowrap;">
+					Starting Chips:
+					<label><input type="radio" name="chipsMode" value="Ante" checked>Ante</label>
+					<label><input type="radio" name="chipsMode" value="Big Buy">Big Buy</label>
+					<label><input type="radio" name="chipsMode" value="Custom" class="toggleEnable" data-target="startChips">Custom</label>
+					<input type="range" id="startChips" min="500" max="5000" step="100" value="1000" style="width: 25%; margin-left: 2%;" disabled>
+					<output id="chipsValue" style="margin: 1%;">1000</output>
+				</div>
+				<div style="display: flex; align-items: center; width: 100%; white-space: nowrap;">
+					Max Cycles: <input type="range" id="maxCycles" min="1" max="20" step="1" value="10" style="width: 25%; margin-left: 2%;">
+					<output id="cycles" style="margin: 1%;">10</output>
 				</div>
 				<div style="display: flex; flex-direction: column; align-items: flex-end; margin-top: 2vh;"><button id="createroom" type="createroom" style="font-size: clamp(16px, calc(6px + 2vw), 24px);">Create</button></div>
 			</div>
@@ -260,8 +289,22 @@
 						<input type="date" id="endcomdate" name="endcomdate" min="2026-01-01" value="2026-11-01" style="margin-left: 2%;">
 					</label>
 				</div>
+				<div style="align-items: center; width: 100%; padding-top: 1%;">Difficulty:
+						<label><input type="radio" name="diffmodeTourn" value="Intermediate" checked>Intermediate</label>
+						<label><input type="radio" name="diffmodeTourn" value="Standard">Standard</label>
+						<label><input type="radio" name="diffmodeTourn" value="Turbo">Turbo</label>
+				</div>
+				<div style="display: flex; align-items: center; width: 100%; white-space: nowrap; padding-top: 1%;">
+					Starting Chips:
+					<label><input type="radio" name="chipsmodeTourn" value="Ante" checked>Ante</label>
+					<label><input type="radio" name="chipsmodeTourn" value="Big Buy">Big Buy</label>
+				</div>
+				<div style="display: flex; align-items: center; width: 100%; white-space: nowrap;">
+					Max Cycles: <input type="range" id="maxCycles" min="1" max="20" step="1" value="10" style="width: 25%; margin-left: 2%;">
+					<output id="cycles" style="margin: 1%;">10</output>
+				</div>
 				<div style="padding-top: 1%;">Requirements: <input type="text" id="requirements" style="min-width: 80%;"></div>
-				<div style="display: flex; flex-direction: column; align-items: flex-end; margin-top: 2vh;"><button id="requestTourn" type="requestTourn" style="font-size: clamp(16px, calc(6px + 2vw), 24px);">Create</button></div>
+				<div style="display: flex; flex-direction: column; align-items: flex-end; margin-top: 2vh;"><button id="requestTourn" type="requestTourn" style="font-size: clamp(16px, calc(6px + 2vw), 24px);">Request</button></div>
 			</div>
 		</div>
 	</div>
