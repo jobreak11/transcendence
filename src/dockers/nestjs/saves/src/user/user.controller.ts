@@ -17,10 +17,14 @@ import * as fs from 'fs/promises'
 import type { AuthJwtFastifyRequest } from '../auth/types/auth-jwtFastifyRequest.js';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { UserThrottlerGuard } from '../auth/guards/user-throttler/user-throttler.guard.js';
+import { TitleService } from './title/title.service.js';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly titleService: TitleService
+  ) {}
 
   @ApiOperation({summary: 'Register a new user account'})
   @ApiResponse({status: 201, description: 'User created successfully'})
@@ -89,12 +93,27 @@ export class UserController {
       result = await this.userService.findOne(id ?? '');
     }
 
+    let resName: string | null = null;
+    if (result.activeTitleId) {
+      // get the name immediately
+      const {name} = await this.titleService.findOne(result.activeTitleId);
+
+      if (name)
+        resName = name;
+    }
+
     return {
       email: result.email,
       avatarUrl: result.avatarUrl,
       displayName: result.displayName,
       tagId: result.tagId,
-      createdAt: result.createdAt
+      createdAt: result.createdAt,
+      pronoun: result.pronoun,
+      role: result.role,
+      signature: result.signature,
+      activeTitleId: result.activeTitleId,
+      titleName: resName,
+      cardTheme: result.cardTheme,
     }
   }
 
@@ -196,7 +215,8 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Not implemented yet.'
+    summary: 'update the user profile',
+    description: 'update the user profile'
   })
   @Patch('update')
   @UseGuards(JwtAuthGuard, UserThrottlerGuard)
@@ -213,12 +233,24 @@ export class UserController {
 
     const res = await this.userService.update(req.user.id, updateUserDto);
 
+    let resName: string | null = null;
+    if (res.activeTitleId) {
+      const {name} = await this.titleService.findOne(res.activeTitleId);
+      resName = name;
+    }
+
     return {
       email: res.email,
       avatarUrl: res.avatarUrl,
       displayName: res.displayName,
       tagId: res.tagId,
-      createdAt: res.createdAt
+      createdAt: res.createdAt,
+      pronoun: res.pronoun,
+      role: res.role,
+      signature: res.signature,
+      activeTitleId: res.activeTitleId,
+      titleName: resName,
+      cardTheme: res.cardTheme,
     }
 
   }

@@ -5,15 +5,15 @@ export class FindAllFriendshipsDto {
     userId: string,
     status: FriendshipStatus,
     createdAt: Date,
-  }[] = [];
+  }[];
   receivedRequests: {
     userId: string,
     status: FriendshipStatus,
     createdAt: Date,
-  }[] = [];
+  }[];
   acceptedFriends: {
     userId: string,
     status: FriendshipStatus,
     createdAt: Date,
-  }[] = [];
+  }[];
 }

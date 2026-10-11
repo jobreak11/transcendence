@@ -11,6 +11,8 @@ import { throwIfEmpty } from 'rxjs';
 import { join } from 'path';
 import { id } from 'zod/v4/locales';
 import { UserService } from '../user/user.service.js';
+import { REDIS_CLIENT } from '../redis/redis.provider.js';
+import type { RedisClient } from '../redis/redis.provider.js';
 
 @Injectable()
 export class ChatService {
@@ -19,7 +21,8 @@ export class ChatService {
 
   constructor(
     @Inject(DRIZZLE) private db: DrizzleDB,
-    private userService: UserService
+    private userService: UserService,
+    @Inject(REDIS_CLIENT) private readonly redis: RedisClient
   ) {}
 
   

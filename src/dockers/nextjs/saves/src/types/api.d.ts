@@ -91,7 +91,10 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Not implemented yet. */
+        /**
+         * update the user profile
+         * @description update the user profile
+         */
         patch: operations["UserController_update"];
         trace?: never;
     };
@@ -110,6 +113,166 @@ export interface paths {
          * @description takes access_token from Authorization: Bearer header     and allow only role ADMIN and EDITOR to delete user
          */
         delete: operations["UserController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/title/all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * get all the titles available
+         * @description receive an array of all titles       available in the database
+         */
+        get: operations["TitleController_getAllTitles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/title": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * get all the titles available for this current user / specific titles
+         * @description receive an array of this user titles       available
+         */
+        get: operations["TitleController_getUserTitles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/title/find": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * find the title details
+         * @description provide the query to get the detail of the       specific title by id or by name
+         */
+        get: operations["TitleController_findTitle"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/title/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * create new title to database
+         * @description added new title to the website       NOTE: Only for ADMIN Role
+         */
+        post: operations["TitleController_createNewTitle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/title/give": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * giver user a title
+         * @description ADMIN only
+         */
+        post: operations["TitleController_giveUserTitle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/title/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * revoke title from the user
+         * @description ADMIN Only
+         */
+        delete: operations["TitleController_revokeUserTitle"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/title/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * update the title
+         * @description update the target title id details
+         */
+        patch: operations["TitleController_updateTitle"];
+        trace?: never;
+    };
+    "/title/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * delete a title
+         * @description delele a sepecific title by title id. ADMIN ONLY
+         */
+        delete: operations["TitleController_deleteTitle"];
         options?: never;
         head?: never;
         patch?: never;
@@ -463,25 +626,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/game/lobby/create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["LobbyController_createLobbyRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/game/lobby/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["LobbyController_joinLobbyRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/game/lobby/leave": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["LobbyController_leaveLobbyRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/game/lobby/allRooms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["LobbyController_getAllLobbyRoom"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/game/lobby/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["LobbyController_updateGameSettings"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         CreateUserDto: {
             /**
-             * Format: email
-             * @example alex@example.com
+             * @description the email of the user
+             * @example user@example.com
              */
             email: string;
-            /** @example SecurePassword123 */
-            password: string;
-            /** @example InwZa007 */
-            displayName?: string;
             /**
-             * Format: uri
-             * @description the url to the profile image of the user
+             * @description the hashed password of the user
+             * @example SecurePassword123
              */
-            avatarUrl?: string;
+            password: string;
+            /**
+             * @description the display name of the user
+             * @example InwZa007
+             */
+            displayName?: string | null;
+            /** @description The url to the profile image of the user */
+            avatarUrl?: string | null;
         };
         UnauthorizedErrorDto: {
             /**
@@ -494,32 +740,170 @@ export interface components {
         };
         GetUserProfileDto: {
             /**
-             * @description your email
+             * @description tag id of user
+             * @example YYMMDD_0000
+             */
+            tagId: string;
+            /**
+             * @description the email of the user
              * @example user@example.com
              */
             email: string;
             /**
+             * @description The role of the user
+             * @example USER
+             * @enum {string}
+             */
+            role: "ADMIN" | "EDITOR" | "USER";
+            /**
+             * @description the display name of the user
+             * @example InwZa007
+             */
+            displayName: string | null;
+            /** @description The url to the profile image of the user */
+            avatarUrl: string | null;
+            /**
              * Format: date-time
-             * @description date that your account was created
-             * @example Date something dunno
+             * @description The time and date that this user was created
              */
             createdAt: string;
             /**
-             * @description your url to retrieve image of your avatar
-             * @example /asdf/sdf/asdf.asdf
+             * @description The pronoun of the user
+             * @example they/them
+             * @enum {string|null}
              */
-            avatarUrl: string;
+            pronoun: "he/him" | "she/her" | "they/them" | "prefer not to say" | null;
+            /**
+             * @description signature is like something the user want to say in a form of small message in their profile
+             * @example I'm popeye popsiam USA.
+             */
+            signature: string | null;
+            /**
+             * @description title user wants to show on their profile
+             * @example God-Like win streaks
+             */
+            activeTitleId: string | null;
+            /**
+             * @description The card theme user will use
+             * @example STANDARD
+             * @enum {string}
+             */
+            cardTheme: "STANDARD" | "FANTASY";
+            /**
+             * @description The active title name that user use
+             * @example Sheriff
+             */
+            titleName: string | null;
         };
         UpdateUserDto: {
-            /** @example SecurePassword123 */
-            password?: string;
-            /** @example InwZa007 */
-            displayName?: string;
             /**
-             * Format: uri
-             * @description the url to the profile image of the user
+             * @description the hashed password of the user
+             * @example SecurePassword123
              */
-            avatarUrl?: string;
+            password?: string;
+            /**
+             * @description the display name of the user
+             * @example InwZa007
+             */
+            displayName?: string | null;
+            /** @description The url to the profile image of the user */
+            avatarUrl?: string | null;
+            /**
+             * @description The pronoun of the user
+             * @example they/them
+             * @enum {string|null}
+             */
+            pronoun?: "he/him" | "she/her" | "they/them" | "prefer not to say" | null;
+            /**
+             * @description signature is like something the user want to say in a form of small message in their profile
+             * @example I'm popeye popsiam USA.
+             */
+            signature?: string | null;
+            /**
+             * @description title user wants to show on their profile
+             * @example God-Like win streaks
+             */
+            activeTitleId?: string | null;
+            /**
+             * @description The card theme user will use
+             * @example STANDARD
+             * @enum {string}
+             */
+            cardTheme?: "STANDARD" | "FANTASY";
+        };
+        TitleDto: {
+            /**
+             * @description The id of the title
+             * @example xxxx_xxxx_xxxx
+             */
+            id: string;
+            /**
+             * @description the name of the title
+             * @example all in one
+             */
+            name: string;
+            /**
+             * @description the description of the title
+             * @example the person really likes to all in.
+             */
+            description: string | null;
+            /**
+             * Format: date-time
+             * @description The time and date of when this title was added
+             */
+            createdAt: string;
+        };
+        GetUserTitleDto: {
+            /**
+             * @description the name of the title
+             * @example all in one
+             */
+            name: string;
+            /**
+             * @description the description of the title
+             * @example the person really likes to all in.
+             */
+            description: string | null;
+            /** @description the title id */
+            titleId: string;
+            /**
+             * Format: date-time
+             * @description the date this user got the title
+             */
+            unlockedAt: string;
+        };
+        CreateNewTitleZodDto: {
+            /** @description the name of the title to create */
+            name: string;
+            /** @description The description of the new title */
+            description?: string | null;
+            /**
+             * Format: date-time
+             * @description the Created time of the title. no need this is optional
+             */
+            createdAt?: string;
+        };
+        UserTitleDto: {
+            /** @description the id of the user that own this title */
+            userId: string;
+            /** @description the title id */
+            titleId: string;
+            /**
+             * Format: date-time
+             * @description the date this user got the title
+             */
+            unlockedAt: string;
+        };
+        UpdateTitleZodDto: {
+            /** @description the name of the title */
+            name: string;
+            /** @description The description of the title */
+            description?: string | null;
+            /**
+             * Format: date-time
+             * @description the Created time of the title. no need this is optional
+             */
+            createdAt?: string;
         };
         LoginDto: {
             /**
@@ -566,6 +950,114 @@ export interface components {
              * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
              */
             refreshToken: string;
+        };
+        FindAllFriendshipsDto: {
+            sentRequests: {
+                userId: string;
+                /** @enum {string} */
+                status: "PENDING" | "ACCEPTED" | "DECLINED" | "BLOCKED";
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            receivedRequests: {
+                userId: string;
+                /** @enum {string} */
+                status: "PENDING" | "ACCEPTED" | "DECLINED" | "BLOCKED";
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            acceptedFriends: {
+                userId: string;
+                /** @enum {string} */
+                status: "PENDING" | "ACCEPTED" | "DECLINED" | "BLOCKED";
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
+        GameSettingsDto: {
+            /**
+             * @description the max number of player to game in the game
+             * @example 4
+             */
+            maxPlayer: number;
+            /**
+             * @description the max number of spectator to watch this game
+             * @example 2
+             */
+            maxSpectator: number;
+            /**
+             * @description the format to play in this lobby
+             * @example BEGINNER
+             * @enum {string}
+             */
+            format: "BEGINNER" | "PRO" | "TURBO";
+        };
+        CreateLobbyDto: {
+            /**
+             * @description the catchphrase that would display when on the lobby list
+             * @example warm up match welcom new player
+             */
+            catchPhrase?: Record<string, never>;
+            /**
+             * @description type of the game room
+             * @example PUBLIC
+             * @enum {string}
+             */
+            roomType: "PUBLIC" | "PRIVATE";
+            /**
+             * @description the password of the room if the roomType is set     to PUBLIC
+             * @example 12345687
+             */
+            password?: Record<string, never>;
+            gameSettings: components["schemas"]["GameSettingsDto"];
+        };
+        LobbyDto: {
+            /**
+             * @description the catchphrase that would display when on the lobby list
+             * @example warm up match welcom new player
+             */
+            catchPhrase?: Record<string, never>;
+            /**
+             * @description type of the game room
+             * @example PUBLIC
+             * @enum {string}
+             */
+            roomType: "PUBLIC" | "PRIVATE";
+            /**
+             * @description the password of the room if the roomType is set     to PUBLIC
+             * @example 12345687
+             */
+            password?: Record<string, never>;
+            gameSettings: components["schemas"]["GameSettingsDto"];
+            /**
+             * @description the room identifier as       6 digits base-10 number randomly generated as string. User can use       this digit to quick join room
+             * @example 020321
+             */
+            roomPinId: string;
+            /**
+             * Format: date-time
+             * @description the time this lobby was created
+             */
+            createdAt: string;
+            /** @description the user that created this lobby room */
+            createdByUserId: string;
+            /** @description the host user of the lobby room */
+            hostUserId: string;
+            /**
+             * @description the current status of the lobby room
+             * @example PLAYING
+             * @enum {string}
+             */
+            roomStatus: "UNAVAILABLE" | "WAITING" | "PLAYING";
+            /** @description the number of current player in the lobby room */
+            currentPlayerCount: number;
+            /** @description the number of current spectator in the lobby */
+            currentSpectatorCount?: number;
+        };
+        JoinLobbyDto: {
+            lobbyPinId: string;
+            isSpectator: boolean;
+            password?: string;
         };
     };
     responses: never;
@@ -711,7 +1203,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["GetUserProfileDto"];
+                };
             };
         };
     };
@@ -744,6 +1238,188 @@ export interface operations {
             };
             /** @description invalid role? */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TitleController_getAllTitles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TitleDto"][];
+                };
+            };
+        };
+    };
+    TitleController_getUserTitles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetUserTitleDto"][];
+                };
+            };
+        };
+    };
+    TitleController_findTitle: {
+        parameters: {
+            query?: {
+                /** @description the id of the title */
+                titleId?: string;
+                /** @description the name of the title */
+                titleName?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TitleDto"];
+                };
+            };
+            /** @description the titleId and titleName query cannot go together */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TitleController_createNewTitle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateNewTitleZodDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TitleDto"];
+                };
+            };
+        };
+    };
+    TitleController_giveUserTitle: {
+        parameters: {
+            query: {
+                /** @description the target User to give the title */
+                userId: string;
+                /** @description the title you want to giv to the target user */
+                titleId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserTitleDto"];
+                };
+            };
+        };
+    };
+    TitleController_revokeUserTitle: {
+        parameters: {
+            query: {
+                /** @description the target User to revoke the title */
+                userId: string;
+                /** @description the title you want to revoke from the target user */
+                titleId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TitleController_updateTitle: {
+        parameters: {
+            query: {
+                /** @description the title id of the title you want to change */
+                titleId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTitleZodDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TitleController_deleteTitle: {
+        parameters: {
+            query: {
+                /** @description the title id you want to delete */
+                titleId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1091,7 +1767,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["FindAllFriendshipsDto"];
+                };
             };
         };
     };
@@ -1157,6 +1835,101 @@ export interface operations {
             query: {
                 targetUserId: string;
             };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    LobbyController_createLobbyRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateLobbyDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LobbyDto"];
+                };
+            };
+        };
+    };
+    LobbyController_joinLobbyRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JoinLobbyDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    LobbyController_leaveLobbyRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    LobbyController_getAllLobbyRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    LobbyController_updateGameSettings: {
+        parameters: {
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;

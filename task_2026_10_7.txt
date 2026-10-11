@@ -1,0 +1,10 @@
+TASKS
+
+Due Date: 2026-10-10
+
+Done - title/delete endpoint that i forgot
+
+- lobby endpoint
+
+Problem: Lobby chat room and public chat room with temporary chat history
+//    is still a mystery though i would list here as how it would be implemented

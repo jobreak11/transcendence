@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { DRIZZLE } from '../drizzle/drizzle.module.js';
 import type { DrizzleDB } from '../drizzle/types/drizzle.js';
 import { friendships, FriendshipStatus } from '../drizzle/schema/friendships.schema.js';
@@ -7,6 +7,7 @@ import { FindAllFriendshipsDto } from './dto/find-all-friendships.dto.js';
 import { FriendshipsDto } from './dto/friend.dto.js';
 import { REDIS_CLIENT } from '../redis/redis.provider.js';
 import type { RedisClient } from '../redis/redis.provider.js';
+import { CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME } from '../constant.js';
 
 @Injectable()
 export class FriendService {
@@ -17,19 +18,28 @@ export class FriendService {
   ) {}
 
   async findAllFriendships(userId: string): Promise<FindAllFriendshipsDto> {
+
+    // find from redis first
+    const foundFromCache = await this.getCacheFriendships(userId);
+    if (foundFromCache) {
+      return foundFromCache;
+    }
+
     const records = await this.db
       .select()
       .from(friendships)
       .where(or(eq(friendships.requesterUserId, userId),
         eq(friendships.addresseeUserId, userId)))
 
-    const sentRequests: {userId: string; status: FriendshipStatus; createdAt: Date }[] = [];
-    const receivedRequests: typeof sentRequests = [];
-    const acceptedFriends: typeof sentRequests = []
+    let allFriendships: FindAllFriendshipsDto = {
+      acceptedFriends: [],
+      sentRequests: [],
+      receivedRequests: []
+    };
 
     for (const record of records) {
       if (record.status === FriendshipStatus.ACCEPTED) {
-        acceptedFriends.push({
+        allFriendships.acceptedFriends.push({
           userId: record.requesterUserId === userId ? record.addresseeUserId : record.requesterUserId,
           status: record.status,
           createdAt: record.createdAt
@@ -37,14 +47,14 @@ export class FriendService {
       }
       else if (record.status === FriendshipStatus.PENDING) {
         if (record.requesterUserId === userId) {
-          sentRequests.push({
+          allFriendships.acceptedFriends.push({
             userId: record.addresseeUserId,
             status: record.status,
             createdAt: record.createdAt
           })
         }
         else {
-          receivedRequests.push({
+          allFriendships.receivedRequests.push({
             userId: record.requesterUserId,
             status: record.status,
             createdAt: record.createdAt
@@ -53,11 +63,31 @@ export class FriendService {
       }
     }
 
-    return {
-      sentRequests,
-      receivedRequests,
-      acceptedFriends
+
+    this.setCacheFriendships(allFriendships, userId);
+
+    return allFriendships;
+  }
+
+  setCacheFriendships(allFriendShips: FindAllFriendshipsDto, userId: string) {
+    return this.redis.set(`cache:user:id:${userId}:all_friendships`, JSON.stringify(allFriendShips), "EX", CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME);
+  }
+
+  async getCacheFriendships(userId: string) {
+
+    try {
+      const stringData = await this.redis.getex(`cache:user:id:${userId}:all_friendships`, "EX", CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME);
+      if (stringData) {
+        return JSON.parse(stringData) as FindAllFriendshipsDto
+      }
+      return (null);
+    } catch (err) {
+      throw new InternalServerErrorException("cache redis internal error");
     }
+  }
+
+  delCacheFriendships(userId: string) {
+    return this.redis.del(`cache:user:id:${userId}:all_friendships`);
   }
 
   async setFriendshipStatus(
@@ -74,6 +104,7 @@ export class FriendService {
     }
 
     // Find any existing relationship in either direction
+
     const [existing] = await this.db
       .select()
       .from(friendships)
@@ -93,6 +124,8 @@ export class FriendService {
 
     // 1. BLOCKING: Can block regardless of whether a record currently exists
     if (status === FriendshipStatus.BLOCKED) {
+      this.delCacheFriendships(currentUserId);
+      this.delCacheFriendships(targetUserId);
       if (existing) {
         // Overwrite existing record: blocker becomes requester, blocked becomes addressee
         const [blocked] = await this.db
@@ -109,6 +142,7 @@ export class FriendService {
             ),
           )
           .returning();
+
 
         return blocked;
       }
@@ -150,6 +184,9 @@ export class FriendService {
       );
     }
 
+    this.delCacheFriendships(currentUserId);
+    this.delCacheFriendships(targetUserId);
+
     const [updated] = await this.db
       .update(friendships)
       .set({ status })
@@ -160,6 +197,7 @@ export class FriendService {
         ),
       )
       .returning();
+
 
     return updated;
   }
@@ -204,6 +242,9 @@ export class FriendService {
         }
       }
 
+      this.delCacheFriendships(requesterUserId);
+      this.delCacheFriendships(addresseeUserId);
+
       if (existing.status === FriendshipStatus.DECLINED) {
         const [updated] = await this.db
           .update(friendships)
@@ -228,6 +269,9 @@ export class FriendService {
         };
       }
     }
+
+    this.delCacheFriendships(requesterUserId);
+    this.delCacheFriendships(addresseeUserId);
 
     const [newFriendRequest] = await this.db
       .insert(friendships)
