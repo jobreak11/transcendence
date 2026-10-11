@@ -32,6 +32,10 @@ export async function Signup(
   }
 
   const payload: CreateUserDto = validationFields.data;
+  console.log({
+    message: "/auth/signup",
+    payload: payload
+  })
 
   let response: Response;
   try {
