@@ -2,7 +2,7 @@ import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect,
 import { Server, Socket } from 'socket.io'
 import { JwtService } from "@nestjs/jwt";
 import { Logger, UseGuards, UsePipes } from "@nestjs/common";
-import { mainGatewayChatRoom, mainGatewayPrivateUserRoom } from "./mainGatewayRoom.js";
+import { mainGatewayChatRoom, mainGatewayLobbyChatRoom, mainGatewayPrivateUserRoom } from "./mainGatewayRoom.js";
 import { WsZodValidationPipe } from "./pipes/wsZodValidationPipe.js";
 import { newChatMessageSchema } from "./dto/chatMessageZod.dto.js";
 import type { NewChatMessageZodDto } from "./dto/chatMessageZod.dto.js";
@@ -13,6 +13,8 @@ import { newPublicChatMessageSchema } from "./dto/publicChatMessageZod.dto.js";
 import type { NewPublicChatMessageZodDto, onPublicChatMessageResponse } from "./dto/publicChatMessageZod.dto.js";
 import { WsThrottlerGuard } from "./guards/ws-throttler.guard.js";
 import { Throttle } from "@nestjs/throttler";
+import { newLobbyChatMessageSchema } from "./dto/lobbyChatMessageZod.dto.js";
+import type { NewLobbyChatMessageZodDto } from "./dto/lobbyChatMessageZod.dto.js";
 
 @WebSocketGateway({
   transports: ['websocket'],
@@ -30,6 +32,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   ) {}
 
   afterInit(server: Server) {
+    this.mainGatewayService.setServer(server);
     this.logger.log('Websocket MainGateway Initialized');
   }
 
@@ -60,6 +63,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       // payload sub is the actual user id extracted from the jwtService
       await client.join(mainGatewayPrivateUserRoom(payload.sub));
+      await this.mainGatewayService.setUserIsOnline(payload.sub, true);
       this.logger.debug(`client User ID: ${payload.sub} joined the main user private room`);
     } catch (error) {
       this.logger.warn(`Connection rejected (Invalid token): ${client.id}`, error);
@@ -68,8 +72,9 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   }
 
-  handleDisconnect(client: Socket) {
+  async handleDisconnect(client: Socket) {
 
+    await this.mainGatewayService.setUserIsOnline(client.data.user, false);
     this.logger.log(`Client disconnected: ${client.id}`);
   }
 
@@ -93,8 +98,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   // Redis 
   // store message by ttl and the max amount of messages allowed
-  @UseGuards(WsThrottlerGuard)
-  @Throttle({ default: { limit: 3, ttl: 10000 } })
+  //@UseGuards(WsThrottlerGuard)
+  //@Throttle({ default: { limit: 3, ttl: 10000 } })
   @UsePipes(new WsZodValidationPipe(newJoinChatRoomSchema))
   @SubscribeMessage('newJoinChatRoom')
   newJoinChatRoom(@ConnectedSocket() client: Socket,
@@ -104,8 +109,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
 
-  @UseGuards(WsThrottlerGuard)
-  @Throttle({ default: { limit: 3, ttl: 10000  } })
+  //@UseGuards(WsThrottlerGuard)
+  //@Throttle({ default: { limit: 3, ttl: 10000  } })
   @UsePipes(new WsZodValidationPipe(newPublicChatMessageSchema))
   @SubscribeMessage('newPublicChatMessage')
   newPublicChatMessage(@ConnectedSocket() client: Socket,
@@ -119,6 +124,20 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     this.server
       .emit('onPublicChatMessage', res);
+  }
+
+  @UsePipes(new WsZodValidationPipe(newLobbyChatMessageSchema))
+  @SubscribeMessage('newLobbyChatMessage')
+  async newLobbyChatMessage(
+    @ConnectedSocket() client:Socket,
+    @MessageBody() body: NewLobbyChatMessageZodDto
+  ) {
+
+    const res = await this.mainGatewayService.newLobbyChatMessage(client, body);
+
+    this.server.to(mainGatewayLobbyChatRoom(res.lobbyPinId))
+      .emit('onLobbyChatMessage', res)
+
   }
   
 }

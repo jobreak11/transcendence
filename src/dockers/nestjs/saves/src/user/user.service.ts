@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 // import { InjectRepository } from '@nestjs/typeorm';
@@ -14,13 +14,17 @@ import { eq } from 'drizzle-orm';
 import { REDIS_CLIENT } from '../redis/redis.provider.js';
 import type { RedisClient } from '../redis/redis.provider.js';
 import { UserDto } from './dto/user.dto.js';
+import { TitleService } from './title/title.service.js';
 
 @Injectable()
 export class UserService {
 
+  private readonly logger = new Logger(UserService.name);
+
   constructor(
     @Inject(DRIZZLE) private db: DrizzleDB,
-    @Inject(REDIS_CLIENT) private readonly redis: RedisClient
+    @Inject(REDIS_CLIENT) private readonly redis: RedisClient,
+    private readonly titleService: TitleService,
   )
   {}
 
@@ -54,7 +58,7 @@ export class UserService {
 
       return newUser;
     } catch (error: any) {
-      if (error.code === '23505') {
+      if (error?.code === '23505') {
         throw new ConflictException(`This user is already exist`);
       }
       throw error
@@ -63,9 +67,9 @@ export class UserService {
 
   cacheDeleteUser(user: UserDto) {
     return this.redis.del(
-      `cache:user:id:${user.id}`,
-      `cache:user:email:${user.email}`,
-      `cache:user:tag_id:${user.tagId}`,
+      `cache:user:id:${user.id}:user_profile`,
+      `cache:user:email:${user.email}:user_profile`,
+      `cache:user:tag_id:${user.tagId}:user_profile`,
     )
   }
 
@@ -78,16 +82,16 @@ export class UserService {
 
     // <namespace>:...:${id}
     return this.redis.msetex(3, 
-      `cache:user:id:${user.id}`, stringCacheData,
-      `cache:user:email:${user.email}`, user.id, 
-      `cache:user:tag_id:${user.tagId}`, user.id,
+      `cache:user:id:${user.id}:user_profile`, stringCacheData,
+      `cache:user:email:${user.email}:user_profile`, user.id, 
+      `cache:user:tag_id:${user.tagId}:user_profile`, user.id,
       "EX", CACHING_USER_SERVICE_EXPIRE_TIME)
   }
 
   async findByEmail(email: string): Promise<UserDto> {
 
     // find from redis first this will return the id of the user
-    const cacheByUserEmailFound = await this.redis.getex(`cache:user:email:${email}`, "EX", CACHING_USER_SERVICE_EXPIRE_TIME);
+    const cacheByUserEmailFound = await this.redis.getex(`cache:user:email:${email}:user_profile`, "EX", CACHING_USER_SERVICE_EXPIRE_TIME);
     if (cacheByUserEmailFound) {
       // the id of the user to find the 
       return await this.findOne(cacheByUserEmailFound);
@@ -110,7 +114,7 @@ export class UserService {
   }
 
   async findByTagId(tagId: string): Promise<UserDto> {
-    const cacheByTagIdFound = await this.redis.get(`cache:user:tag_id:${tagId}`)
+    const cacheByTagIdFound = await this.redis.get(`cache:user:tag_id:${tagId}:user_profile`)
 
     if (cacheByTagIdFound) {
       return await this.findOne(cacheByTagIdFound)
@@ -139,7 +143,7 @@ export class UserService {
 
     try {
 
-      const cacheData = await this.redis.getex(`cache:user:id:${id}`, 'EX', CACHING_USER_SERVICE_EXPIRE_TIME);
+      const cacheData = await this.redis.getex(`cache:user:id:${id}:user_profile`, 'EX', CACHING_USER_SERVICE_EXPIRE_TIME);
       if (cacheData) {
         return (JSON.parse(cacheData) as UserDto);
       }
@@ -180,10 +184,28 @@ export class UserService {
       await this.cachingUser(updatedUser);
       return updatedUser;
     } catch (error: any) {
-      if (error.code === '23505') {
-        throw new ConflictException(`This user is already exist`);
+      if (error?.code) {
+        // Postgresql error
+
+        // unique primary key violation
+        if (error.code === '23505') {
+          throw new ConflictException(`This user is already exist`);
+        }
+
+        // foriegn key violation
+        if (error.code === '23503') {
+          throw new ForbiddenException("the title id is invalid")
+        }
+
       }
-      throw error
+
+      // something else shuld throw internal error and log 
+      this.logger.error({
+        message: "error from update()",
+        error: error
+      })
+       
+      throw new InternalServerErrorException("unknown error");
     }
   }
 

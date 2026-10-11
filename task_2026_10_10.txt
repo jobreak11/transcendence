@@ -1,0 +1,6 @@
+
+TASKS:
+  - need to fix the update dto to have zod schema,
+  - also how to turn class object into Record<string,string>
+
+  - user press Ready button

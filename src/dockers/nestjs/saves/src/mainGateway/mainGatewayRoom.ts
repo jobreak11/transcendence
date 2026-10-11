@@ -6,3 +6,7 @@ export function mainGatewayPrivateUserRoom(userId: string): string {
 export function mainGatewayChatRoom(chatRoomId: string): string {
   return `main_gateway_chat_room_${chatRoomId}`;
 }
+
+export function mainGatewayLobbyChatRoom(lobbyPinId: string): string {
+  return `main_gateway_lobby_chat_room_${lobbyPinId}`;
+}
