@@ -635,6 +635,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * create a lobby room
+         * @description user create a new lobby room. Must not currently in another lobby room.
+         */
         post: operations["LobbyController_createLobbyRoom"];
         delete?: never;
         options?: never;
@@ -651,6 +655,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * user join the lobby room
+         * @description user must not in any room
+         */
         post: operations["LobbyController_joinLobbyRoom"];
         delete?: never;
         options?: never;
@@ -667,8 +675,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["LobbyController_leaveLobbyRoom"];
-        delete?: never;
+        post?: never;
+        /**
+         * user leave the lobby room
+         * @description user must in a lobby room to leave
+         */
+        delete: operations["LobbyController_leaveLobbyRoom"];
         options?: never;
         head?: never;
         patch?: never;
@@ -681,6 +693,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * get all lobby rooms details
+         * @description get all details of the lobby room
+         */
         get: operations["LobbyController_getAllLobbyRoom"];
         put?: never;
         post?: never;
@@ -690,7 +706,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/game/lobby/settings": {
+    "/game/lobby/update": {
         parameters: {
             query?: never;
             header?: never;
@@ -703,6 +719,10 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        /**
+         * update the setting of the lobby room
+         * @description user must be the host of the room
+         */
         patch: operations["LobbyController_updateGameSettings"];
         trace?: never;
     };
@@ -1058,6 +1078,61 @@ export interface components {
             lobbyPinId: string;
             isSpectator: boolean;
             password?: string;
+        };
+        ResponseLobbyDto: {
+            /**
+             * @description the room identifier as       6 digits base-10 number randomly generated as string. User can use       this digit to quick join room
+             * @example 020321
+             */
+            roomPinId: string;
+            /**
+             * @description the catchphrase that would display when on the lobby list
+             * @example warm up match welcom new player
+             */
+            catchPhrase?: Record<string, never>;
+            /**
+             * @description type of the game room
+             * @example PUBLIC
+             * @enum {string}
+             */
+            roomType?: "PUBLIC" | "PRIVATE";
+            gameSettings?: components["schemas"]["GameSettingsDto"];
+            /**
+             * Format: date-time
+             * @description the time this lobby was created
+             */
+            createdAt?: string;
+            /** @description the host user of the lobby room */
+            hostUserId?: string;
+            /**
+             * @description the current status of the lobby room
+             * @example PLAYING
+             * @enum {string}
+             */
+            roomStatus?: "UNAVAILABLE" | "WAITING" | "PLAYING";
+            /** @description the number of current player in the lobby room */
+            currentPlayerCount?: number;
+            /** @description the number of current spectator in the lobby */
+            currentSpectatorCount?: number;
+        };
+        UpdateLobbyDto: {
+            /**
+             * @description the catchphrase that would display when on the lobby list
+             * @example warm up match welcom new player
+             */
+            catchPhrase?: Record<string, never>;
+            /**
+             * @description type of the game room
+             * @example PUBLIC
+             * @enum {string}
+             */
+            roomType: "PUBLIC" | "PRIVATE";
+            /**
+             * @description the password of the room if the roomType is set     to PUBLIC
+             * @example 12345687
+             */
+            password?: Record<string, never>;
+            gameSettings: components["schemas"]["GameSettingsDto"];
         };
     };
     responses: never;
@@ -1923,7 +1998,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ResponseLobbyDto"][];
+                };
             };
         };
     };
@@ -1934,13 +2011,19 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateLobbyDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["LobbyDto"];
+                };
             };
         };
     };

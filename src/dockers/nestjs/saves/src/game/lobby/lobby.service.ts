@@ -11,7 +11,8 @@ import { GameSettingFormat, GameSettingsDto } from './dto/game-settings.dto.js';
 import { real } from 'drizzle-orm/gel-core';
 import { ResponseLobbyDto } from './dto/response-lobby.dto.js';
 import { UpdateLobbyDto } from './dto/update-lobby.dto.js';
-import { string } from 'zod';
+import { keyof, map, record, string } from 'zod';
+import { groupSrvRecords } from 'ioredis/built/cluster/util.js';
 
 @Injectable()
 export class LobbyService implements OnModuleInit {
@@ -334,31 +335,18 @@ export class LobbyService implements OnModuleInit {
       gameSettings: createLobbyDto.gameSettings,
     }
 
+    const record = this.lobbySettingsRecord(newLobbyDto);
+
     // now the lobby is created and on the set we can
     const allRes = await this.redis
       .pipeline()
       .hset(
         lobby_redis_general_settings(newLobbyPinIdString),
-        {
-          roomPinId: newLobbyDto.roomPinId,
-          catchPhrase: newLobbyDto.catchPhrase ?? '',
-          roomType: newLobbyDto.roomType.toString(),
-          password: newLobbyDto.password ?? '',
-          createdByUserId: newLobbyDto.createdByUserId,
-          hostUserId: newLobbyDto.hostUserId,
-          createdAt: newLobbyDto.createdAt.toISOString(),
-          roomStatus: newLobbyDto.roomStatus.toString(),
-          //currentPlayerCount: newLobbyDto.currentPlayerCount.toString(),
-          //currentSpectatorCount: newLobbyDto.currentSpectatorCount ? newLobbyDto.currentSpectatorCount.toString() : "0"
-        }
+        record.generalSettingsRecord
       )
       .hset(
         lobby_redis_game_settings(newLobbyPinIdString), 
-        {
-          format: newLobbyDto.gameSettings.format.toString(),
-          maxPlayer: newLobbyDto.gameSettings.maxPlayer,
-          maxSpectator: newLobbyDto.gameSettings.maxSpectator
-        }
+        record.gameSettingsRecord
       )
       .zadd(
         lobby_redis_player_member_list(newLobbyPinIdString),
@@ -877,6 +865,29 @@ export class LobbyService implements OnModuleInit {
     return results;
   }
 
+  private lobbySettingsRecord(lobbyDto: LobbyDto)
+  : {
+    generalSettingsRecord: Record<string,string>;
+    gameSettingsRecord: Record<string,string>;
+  } {
+
+    const rawGeneralSettingsRecord = Object.fromEntries(
+      Object.entries(lobbyDto)
+        .filter(([key]) => key !== "gameSettings")
+        .map(([key, value]) => [key, value instanceof Date ? value.toISOString() : String(value ?? "")])
+    )
+
+    const rawGameSettingsRecord = Object.fromEntries(
+      Object.entries(lobbyDto)
+        .map(([key, value]) => [key, value instanceof Date ? value.toISOString() : String(value ?? "")])
+    )
+
+    return {
+      generalSettingsRecord: rawGeneralSettingsRecord,
+      gameSettingsRecord: rawGameSettingsRecord,
+    };
+  }
+
   async update(hostUserId: string, body: UpdateLobbyDto): Promise<LobbyDto> {
 
     // check the update dto
@@ -896,50 +907,26 @@ export class LobbyService implements OnModuleInit {
 
     let lobbyDto = await this.getLobbyDto(currentLobbyPinId);
 
+    if (hostUserId !== lobbyDto.hostUserId) {
+      throw new ForbiddenException("must be host to update the lobby settings");
+    }
+
     // perform checking the current state of lobby dto
     if (lobbyDto.roomStatus !== LobbyRoomStatus.WAITING) {
       throw new ForbiddenException("cannot modify lobby setting if the lobby is not waiting");
     }
 
-    if (body.catchPhrase && body.catchPhrase.length >= 100) {
-      throw new BadRequestException("catchphrase too long");
-    }
-
-    if (body.password && body.password.length < 1)
-      throw new BadRequestException("password too short");
-    if (body.gameSettings) {
-      if (body.gameSettings.maxPlayer < 2 || body.gameSettings.maxPlayer > 8)
-        throw new BadRequestException("max player must be in range");
-      if (body.gameSettings.maxSpectator < 0 || body.gameSettings.maxSpectator > 10)
-        throw new BadRequestException("max spectator must be in range");
-    }
-    
 
     lobbyDto = {
+      ...lobbyDto,
       ...body,
-      ...lobbyDto
     };
 
-    
+    const records = this.lobbySettingsRecord(lobbyDto);
 
     const res = await this.redis.pipeline()
-      .hset(lobby_redis_general_settings(currentLobbyPinId), {
-          roomPinId: lobbyDto.roomPinId,
-          catchPhrase: lobbyDto.catchPhrase ?? '',
-          roomType: lobbyDto.roomType.toString(),
-          password: lobbyDto.password ?? '',
-          createdByUserId: lobbyDto.createdByUserId,
-          hostUserId: lobbyDto.hostUserId,
-          createdAt: lobbyDto.createdAt.toISOString(),
-          roomStatus: lobbyDto.roomStatus.toString(),
-          //currentPlayerCount: lobbyDto.currentPlayerCount.toString(),
-          //currentSpectatorCount: lobbyDto.currentSpectatorCount ? lobbyDto.currentSpectatorCount.toString() : "0"
-      })
-      .hset(lobby_redis_game_settings(currentLobbyPinId), {
-          format: lobbyDto.gameSettings.format.toString(),
-          maxPlayer: lobbyDto.gameSettings.maxPlayer,
-          maxSpectator: lobbyDto.gameSettings.maxSpectator
-      })
+      .hset(lobby_redis_general_settings(currentLobbyPinId), records.generalSettingsRecord)
+      .hset(lobby_redis_game_settings(currentLobbyPinId), records.gameSettingsRecord)
       .exec();
 
     return lobbyDto;

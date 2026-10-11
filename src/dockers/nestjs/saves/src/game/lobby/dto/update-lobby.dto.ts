@@ -1,18 +1,10 @@
 import { OmitType, PartialType, PickType } from "@nestjs/swagger";
 import { LobbyDto } from "./lobby.dto.js";
 import z from "zod";
+import { CreateLobbyDto, CreateLobbySchema } from "./create-lobby.dto.js";
 
-export class UpdateLobbyDto extends  PartialType(OmitType(
-  LobbyDto,
-  [
-    'roomPinId',
-    'currentPlayerCount',
-    'currentSpectatorCount',
-    'createdAt',
-    'createdByUserId',
-    'hostUserId',
-    'roomStatus'
-  ]
-)) {
+export const UpdateLobbySchema = CreateLobbySchema.partial();
+
+export class UpdateLobbyDto extends CreateLobbyDto {
 
 }

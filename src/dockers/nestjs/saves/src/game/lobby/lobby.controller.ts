@@ -6,7 +6,7 @@ import { LobbyGuard } from './lobby.guard.js';
 import { ZodValidationPipe } from '../../pipes/ZodValidationPipe.js';
 import { CreateLobbyDto, CreateLobbySchema } from './dto/create-lobby.dto.js';
 import { JoinLobbyDto, JoinLobbySchema } from './dto/join-lobby.dto.js';
-import { UpdateLobbyDto } from './dto/update-lobby.dto.js';
+import { UpdateLobbyDto, UpdateLobbySchema } from './dto/update-lobby.dto.js';
 import { ApiOperation } from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard, LobbyGuard, ThrottlerGuard)
@@ -75,7 +75,7 @@ export class LobbyController {
   @Patch('update')
   updateGameSettings(
     @Req() req:any,
-    @Body() body: UpdateLobbyDto
+    @Body(new ZodValidationPipe(UpdateLobbySchema)) body: UpdateLobbyDto
   ) {
     return this.lobbyService.update(req.user.id, body);
   }
