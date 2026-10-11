@@ -8,13 +8,14 @@ import { RefreshAuthGuard } from './guards/refresh-auth/refresh-auth.guard.js';
 import { RefreshTokenSuccessDto } from './dto/refresh-token.dto.js';
 import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard.js';
 import { Public } from './decorators/public.decorators.js';
-import { CreateUserDto } from '../user/dto/create-user.dto.js';
+import { CreateUserDto, CreateUserSchema } from '../user/dto/create-user.dto.js';
 import { GoogleAuthGuard } from './guards/google-auth/google-auth.guard.js';
 import type { Response } from 'express';
 import { FortytwoAuthGuard } from './guards/fortytwo-auth/fortytwo-auth.guard.js';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { THROTTLER_AUTH_LOGIN_LIMIT, THROTTLER_AUTH_LOGIN_TTL, THROTTLER_AUTH_SIGNOUT_LIMIT, THROTTLER_AUTH_SIGNOUT_TTL, THROTTLER_AUTH_SIGNUP_LIMIT, THROTTLER_AUTH_SIGNUP_TTL } from '../constant.js';
 import { UserThrottlerGuard } from './guards/user-throttler/user-throttler.guard.js';
+import { ZodValidationPipe } from '../pipes/ZodValidationPipe.js';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -38,7 +39,7 @@ export class AuthController {
     }
   })
   @UseGuards(ThrottlerGuard)
-  registerUser(@Body() createUserDto: CreateUserDto) {
+  registerUser(@Body(new ZodValidationPipe(CreateUserSchema)) createUserDto: CreateUserDto) {
     return this.authService.registerUser(createUserDto);
   }
 

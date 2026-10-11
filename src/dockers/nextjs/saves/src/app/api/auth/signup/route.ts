@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SignupFormSchema } from "../../../../lib/type";
 import z from "zod";
-import { CreateUserDto, UserDto } from "../../../../types/dto";
+import { CreateUserDto } from "../../../../types/dto";
 import { BACKEND_URL } from "../../../../lib/constants";
 
 export async function POST(request: NextRequest) {
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (response.ok) {
-      const data: UserDto = await response.json();
+      const data = await response.json();
       return NextResponse.json(data, {status: response.status});
     }
 
