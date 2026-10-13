@@ -3,15 +3,16 @@ import { ChatService } from "../chat/chat.service.js";
 import { CreateMainGatewayPrivateGetAllChatRoomResponseDto } from "./dto/createMainGatewayPrivateResponse.dto.js";
 import { MainGatewayPrivateRequestCommand } from "./dto/createMainGatewayPrivateRequestZod.dto.js";
 import { Server, Socket } from "socket.io";
-import { mainGatewayChatRoom, mainGatewayLobbyChatRoom, mainGatewayPrivateUserRoom } from "./mainGatewayRoom.js";
+import { mainGatewayChatRoom, mainGatewayLobbyChatRoom, mainGatewayLobbyEventRoom, mainGatewayPrivateUserRoom } from "./mainGatewayRoom.js";
 import { NewChatMessageZodDto, onChatMessageResponse } from "./dto/chatMessageZod.dto.js";
 import { WsException } from "@nestjs/websockets";
 import { onJoinChatRoomResponse } from "./dto/joinChatRoom.dto.js";
 import { REDIS_CLIENT } from "../redis/redis.provider.js";
 import type { RedisClient } from "../redis/redis.provider.js";
 import { NewLobbyChatMessageZodDto, onLobbyChatMessageResponse } from "./dto/lobbyChatMessageZod.dto.js";
-import { LOBBY_REDIS_GLOBAL_DETAILS_LOBBY_LISTS, user_game_lobby } from "../game/lobby/lobby.constants.js";
 import { send } from "process";
+import { redis_user_game_lobby } from "../redis/namespaces/user.namespace.js";
+import { redis_lobby_global_details_lobby_lists } from "../redis/namespaces/lobby.namespace.js";
 
 @Injectable()
 export class MainGatewayService {
@@ -171,7 +172,7 @@ export class MainGatewayService {
   { 
     // send message to the current lobby
 
-    const currentLobbyPinId = await this.redis.get(user_game_lobby(client.data.user));
+    const currentLobbyPinId = await this.redis.get(redis_user_game_lobby(client.data.user));
 
     if (!currentLobbyPinId)
       throw new WsException("must be in a lobby first to send lobby message");
@@ -192,7 +193,7 @@ export class MainGatewayService {
   async joinLobbyChat(toJoinUserId: string, lobbyPinId: string): Promise<boolean> {
 
     const isExist = await this.redis.sismember(
-      LOBBY_REDIS_GLOBAL_DETAILS_LOBBY_LISTS,
+      redis_lobby_global_details_lobby_lists(),
       lobbyPinId
     )
 
@@ -212,7 +213,7 @@ export class MainGatewayService {
   async leaveLobbyChat(toLeaveUserId: string, lobbyPinId: string): Promise<boolean> {
 
     const isExist = await this.redis.sismember(
-      LOBBY_REDIS_GLOBAL_DETAILS_LOBBY_LISTS,
+      redis_lobby_global_details_lobby_lists(),
       lobbyPinId
     )
 
@@ -228,5 +229,5 @@ export class MainGatewayService {
 
     return (true);
   }
-  
+
 }

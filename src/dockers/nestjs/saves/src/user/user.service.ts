@@ -15,6 +15,7 @@ import { REDIS_CLIENT } from '../redis/redis.provider.js';
 import type { RedisClient } from '../redis/redis.provider.js';
 import { UserDto } from './dto/user.dto.js';
 import { TitleService } from './title/title.service.js';
+import { redis_cache_user_all_keys, redis_cache_user_email, redis_cache_user_profile, redis_cache_user_tag_id } from '../redis/namespaces/caching/cache-user.namespace.js';
 
 @Injectable()
 export class UserService {
@@ -67,9 +68,7 @@ export class UserService {
 
   cacheDeleteUser(user: UserDto) {
     return this.redis.del(
-      `cache:user:id:${user.id}:user_profile`,
-      `cache:user:email:${user.email}:user_profile`,
-      `cache:user:tag_id:${user.tagId}:user_profile`,
+      redis_cache_user_all_keys(user.id, user.email, user.tagId)
     )
   }
 
@@ -82,16 +81,17 @@ export class UserService {
 
     // <namespace>:...:${id}
     return this.redis.msetex(3, 
-      `cache:user:id:${user.id}:user_profile`, stringCacheData,
-      `cache:user:email:${user.email}:user_profile`, user.id, 
-      `cache:user:tag_id:${user.tagId}:user_profile`, user.id,
+      redis_cache_user_profile(user.id), stringCacheData,
+      redis_cache_user_email(user.email), user.id, 
+      redis_cache_user_tag_id(user.tagId), user.id,
       "EX", CACHING_USER_SERVICE_EXPIRE_TIME)
   }
 
   async findByEmail(email: string): Promise<UserDto> {
 
     // find from redis first this will return the id of the user
-    const cacheByUserEmailFound = await this.redis.getex(`cache:user:email:${email}:user_profile`, "EX", CACHING_USER_SERVICE_EXPIRE_TIME);
+    const cacheByUserEmailFound = await this.redis
+    .getex(redis_cache_user_email(email), "EX", CACHING_USER_SERVICE_EXPIRE_TIME);
     if (cacheByUserEmailFound) {
       // the id of the user to find the 
       return await this.findOne(cacheByUserEmailFound);
@@ -114,7 +114,8 @@ export class UserService {
   }
 
   async findByTagId(tagId: string): Promise<UserDto> {
-    const cacheByTagIdFound = await this.redis.get(`cache:user:tag_id:${tagId}:user_profile`)
+    const cacheByTagIdFound = await this.redis
+      .getex(redis_cache_user_tag_id(tagId), "EX", CACHING_USER_SERVICE_EXPIRE_TIME);
 
     if (cacheByTagIdFound) {
       return await this.findOne(cacheByTagIdFound)
@@ -143,7 +144,8 @@ export class UserService {
 
     try {
 
-      const cacheData = await this.redis.getex(`cache:user:id:${id}:user_profile`, 'EX', CACHING_USER_SERVICE_EXPIRE_TIME);
+      const cacheData = await this.redis
+        .getex(redis_cache_user_profile(id), 'EX', CACHING_USER_SERVICE_EXPIRE_TIME);
       if (cacheData) {
         return (JSON.parse(cacheData) as UserDto);
       }

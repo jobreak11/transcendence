@@ -10,3 +10,7 @@ export function mainGatewayChatRoom(chatRoomId: string): string {
 export function mainGatewayLobbyChatRoom(lobbyPinId: string): string {
   return `main_gateway_lobby_chat_room_${lobbyPinId}`;
 }
+
+export function mainGatewayLobbyEventRoom(lobbyPinId: string) {
+  return `main_gateway_lobby_event_room_${lobbyPinId}`
+}
