@@ -8,6 +8,7 @@ import { FriendshipsDto } from './dto/friend.dto.js';
 import { REDIS_CLIENT } from '../redis/redis.provider.js';
 import type { RedisClient } from '../redis/redis.provider.js';
 import { CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME } from '../constant.js';
+import { redis_cache_friendship_all_friendships } from '../redis/namespaces/caching/cache-friendship.namespace.js';
 
 @Injectable()
 export class FriendService {
@@ -70,13 +71,15 @@ export class FriendService {
   }
 
   setCacheFriendships(allFriendShips: FindAllFriendshipsDto, userId: string) {
-    return this.redis.set(`cache:user:id:${userId}:all_friendships`, JSON.stringify(allFriendShips), "EX", CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME);
+    return this.redis
+      .set(redis_cache_friendship_all_friendships(userId), JSON.stringify(allFriendShips), "EX", CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME);
   }
 
   async getCacheFriendships(userId: string) {
 
     try {
-      const stringData = await this.redis.getex(`cache:user:id:${userId}:all_friendships`, "EX", CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME);
+      const stringData = await this.redis
+        .getex(redis_cache_friendship_all_friendships(userId), "EX", CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME);
       if (stringData) {
         return JSON.parse(stringData) as FindAllFriendshipsDto
       }
@@ -87,7 +90,8 @@ export class FriendService {
   }
 
   delCacheFriendships(userId: string) {
-    return this.redis.del(`cache:user:id:${userId}:all_friendships`);
+    return this.redis
+      .del(redis_cache_friendship_all_friendships(userId));
   }
 
   async setFriendshipStatus(

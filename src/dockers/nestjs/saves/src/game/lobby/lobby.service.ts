@@ -2,7 +2,6 @@ import { BadRequestException, ConflictException, ForbiddenException, Inject, Inj
 import { REDIS_CLIENT } from '../../redis/redis.provider.js';
 import type { RedisClient } from '../../redis/redis.provider.js';
 import * as crypto from 'node:crypto'
-import { lobby_redis_game_settings, lobby_redis_general_settings, LOBBY_REDIS_GLOBAL_DETAILS_LOBBY_LISTS, lobby_redis_player_member_list, lobby_redis_spectator_member_list, LOBBY_ROOM_MAX, user_game_lobby } from './lobby.constants.js';
 import { MainGatewayService } from '../../mainGateway/mainGateway.service.js';
 import { CreateLobbyDto, LobbyRoomType } from './dto/create-lobby.dto.js';
 import { LobbyDto, LobbyRoomStatus } from './dto/lobby.dto.js';
@@ -13,6 +12,9 @@ import { ResponseLobbyDto } from './dto/response-lobby.dto.js';
 import { UpdateLobbyDto } from './dto/update-lobby.dto.js';
 import { keyof, map, record, string } from 'zod';
 import { groupSrvRecords } from 'ioredis/built/cluster/util.js';
+import { LOBBY_ROOM_MAX } from './lobby.constants.js';
+import { redis_user_game_lobby } from '../../redis/namespaces/user.namespace.js';
+import { redis_lobby_all_keys, redis_lobby_game_settings, redis_lobby_general_settings, redis_lobby_global_details_lobby_lists, redis_lobby_player_member_list, redis_lobby_spectator_member_list } from '../../redis/namespaces/lobby.namespace.js';
 
 @Injectable()
 export class LobbyService implements OnModuleInit {
@@ -277,8 +279,8 @@ export class LobbyService implements OnModuleInit {
     for (let i: number = 0; i < 10; i++) {
 
       redisInsertRes = await this.redis.lobbyRoomCreate(
-        user_game_lobby(creatorUserId),
-        LOBBY_REDIS_GLOBAL_DETAILS_LOBBY_LISTS,
+        redis_user_game_lobby(creatorUserId),
+        redis_lobby_global_details_lobby_lists(),
         LOBBY_ROOM_MAX,
         newLobbyPinIdString,
       )
@@ -341,20 +343,20 @@ export class LobbyService implements OnModuleInit {
     const allRes = await this.redis
       .pipeline()
       .hset(
-        lobby_redis_general_settings(newLobbyPinIdString),
+        redis_lobby_general_settings(newLobbyPinIdString),
         record.generalSettingsRecord
       )
       .hset(
-        lobby_redis_game_settings(newLobbyPinIdString), 
+        redis_lobby_game_settings(newLobbyPinIdString), 
         record.gameSettingsRecord
       )
       .zadd(
-        lobby_redis_player_member_list(newLobbyPinIdString),
+        redis_lobby_player_member_list(newLobbyPinIdString),
         new Date().getTime(),
         creatorUserId
       )
       .set(
-        user_game_lobby(creatorUserId),
+        redis_user_game_lobby(creatorUserId),
         newLobbyPinIdString
       )
       .exec();
@@ -377,8 +379,8 @@ export class LobbyService implements OnModuleInit {
 
   async setLobbyRoomStatus(lobbyPinId: string, status: LobbyRoomStatus) {
     const res = await this.redis.lobbyRoomSetStatus(
-      LOBBY_REDIS_GLOBAL_DETAILS_LOBBY_LISTS,
-      lobby_redis_general_settings(lobbyPinId),
+      redis_lobby_global_details_lobby_lists(),
+      redis_lobby_general_settings(lobbyPinId),
       lobbyPinId,
       status.toString()
     );
@@ -420,13 +422,13 @@ export class LobbyService implements OnModuleInit {
   // only host can kick the user out
   async kickLobbyMember(hostUserId: string, toKickUserId: string) {
 
-    const lobbyPinId = await this.redis.get(user_game_lobby(hostUserId));
+    const lobbyPinId = await this.redis.get(redis_user_game_lobby(hostUserId));
     
     if (!lobbyPinId) {
       throw new ForbiddenException("user must be in the room")
     }
 
-    const realHostUserId = await this.redis.hget(lobby_redis_general_settings(lobbyPinId), 'hostUserId');
+    const realHostUserId = await this.redis.hget(redis_lobby_general_settings(lobbyPinId), 'hostUserId');
 
     if (!realHostUserId) {
       throw new NotFoundException("lobby room not found");
@@ -449,7 +451,7 @@ export class LobbyService implements OnModuleInit {
     // the current user wants to leave their current room
 
     // have the current lobby room that user is currently in first
-    const lobbyPinId = await this.redis.get(user_game_lobby(leaveUserId));
+    const lobbyPinId = await this.redis.get(redis_user_game_lobby(leaveUserId));
     
     if (!lobbyPinId) {
       throw new ForbiddenException("user cannot leave if not in a lobby room")
@@ -486,12 +488,12 @@ export class LobbyService implements OnModuleInit {
     try {
 
       const res = await this.redis.lobbyRoomLeave(
-        lobby_redis_player_member_list(lobbyPinId),
-        lobby_redis_spectator_member_list(lobbyPinId),
-        LOBBY_REDIS_GLOBAL_DETAILS_LOBBY_LISTS,
-        user_game_lobby(leaveUserId),
-        lobby_redis_general_settings(lobbyPinId),
-        lobby_redis_game_settings(lobbyPinId),
+        redis_lobby_player_member_list(lobbyPinId),
+        redis_lobby_spectator_member_list(lobbyPinId),
+        redis_lobby_global_details_lobby_lists(),
+        redis_user_game_lobby(leaveUserId),
+        redis_lobby_general_settings(lobbyPinId),
+        redis_lobby_game_settings(lobbyPinId),
         leaveUserId,
         lobbyPinId
       );
@@ -520,14 +522,11 @@ export class LobbyService implements OnModuleInit {
     const res = await this.redis
       .pipeline()
       .srem(
-        LOBBY_REDIS_GLOBAL_DETAILS_LOBBY_LISTS,
+        redis_lobby_global_details_lobby_lists(),
         lobbyPinId
       )
       .del(
-        lobby_redis_general_settings(lobbyPinId),
-        lobby_redis_game_settings(lobbyPinId),
-        lobby_redis_player_member_list(lobbyPinId),
-        lobby_redis_spectator_member_list(lobbyPinId),
+        redis_lobby_all_keys(lobbyPinId)
       )
       .exec();
 
@@ -552,12 +551,12 @@ export class LobbyService implements OnModuleInit {
 
     try {
       const res = await this.redis.lobbyRoomJoin(
-        user_game_lobby(toJoinUserId),
-        LOBBY_REDIS_GLOBAL_DETAILS_LOBBY_LISTS,
-        lobby_redis_spectator_member_list(lobbyPinId),
-        lobby_redis_player_member_list(lobbyPinId),
-        lobby_redis_game_settings(lobbyPinId),
-        lobby_redis_general_settings(lobbyPinId),
+        redis_user_game_lobby(toJoinUserId),
+        redis_lobby_global_details_lobby_lists(),
+        redis_lobby_spectator_member_list(lobbyPinId),
+        redis_lobby_player_member_list(lobbyPinId),
+        redis_lobby_game_settings(lobbyPinId),
+        redis_lobby_general_settings(lobbyPinId),
         isSpectator ? "true" : "false",
         toJoinUserId,
         lobbyPassword ?? "",
@@ -627,11 +626,11 @@ export class LobbyService implements OnModuleInit {
     const allRes = await this.redis
       .pipeline()
       .sismember(
-        LOBBY_REDIS_GLOBAL_DETAILS_LOBBY_LISTS,
+        redis_lobby_global_details_lobby_lists(),
         lobbyPinId
       )
-      .zrange(lobby_redis_player_member_list(lobbyPinId), "0", "-1")
-      .zrange(lobby_redis_spectator_member_list(lobbyPinId), "0", "-1")
+      .zrange(redis_lobby_player_member_list(lobbyPinId), "0", "-1")
+      .zrange(redis_lobby_spectator_member_list(lobbyPinId), "0", "-1")
       .exec();
 
     if (!allRes) {
@@ -679,20 +678,20 @@ export class LobbyService implements OnModuleInit {
     const allRes = await this.redis
       .pipeline()
       .sismember(
-        LOBBY_REDIS_GLOBAL_DETAILS_LOBBY_LISTS,
+        redis_lobby_global_details_lobby_lists(),
         lobbyPinId
       )
       .hgetall(
-        lobby_redis_general_settings(lobbyPinId),
+        redis_lobby_general_settings(lobbyPinId),
       )
       .hgetall(
-        lobby_redis_game_settings(lobbyPinId),
+        redis_lobby_game_settings(lobbyPinId),
       )
       .zcard(
-        lobby_redis_player_member_list(lobbyPinId),
+        redis_lobby_player_member_list(lobbyPinId),
       )
       .zcard(
-        lobby_redis_spectator_member_list(lobbyPinId),
+        redis_lobby_spectator_member_list(lobbyPinId),
 
       )
       .exec();
@@ -802,7 +801,7 @@ export class LobbyService implements OnModuleInit {
 
   async findAll(): Promise<ResponseLobbyDto[]> {
 
-    const allLobbyRoomPinId = await this.redis.smembers(LOBBY_REDIS_GLOBAL_DETAILS_LOBBY_LISTS);
+    const allLobbyRoomPinId = await this.redis.smembers(redis_lobby_global_details_lobby_lists());
 
     if (allLobbyRoomPinId.length === 0) {
       return []
@@ -815,10 +814,10 @@ export class LobbyService implements OnModuleInit {
 
     const commandPerLobby = 4;
     for (const lobbyPinId of allLobbyRoomPinId) {
-      pipeline.hgetall(lobby_redis_general_settings(lobbyPinId));
-      pipeline.hgetall(lobby_redis_general_settings(lobbyPinId));
-      pipeline.zcard(lobby_redis_player_member_list(lobbyPinId));
-      pipeline.zcard(lobby_redis_spectator_member_list(lobbyPinId));
+      pipeline.hgetall(redis_lobby_general_settings(lobbyPinId));
+      pipeline.hgetall(redis_lobby_game_settings(lobbyPinId));
+      pipeline.zcard(redis_lobby_player_member_list(lobbyPinId));
+      pipeline.zcard(redis_lobby_spectator_member_list(lobbyPinId));
     }
 
     const allRes = await pipeline.exec();
@@ -899,7 +898,7 @@ export class LobbyService implements OnModuleInit {
     // only host can change the settings
 
     //get the lobby id the user is currently at
-    const currentLobbyPinId = await this.redis.get(user_game_lobby(hostUserId));
+    const currentLobbyPinId = await this.redis.get(redis_user_game_lobby(hostUserId));
 
     if (!currentLobbyPinId) {
       throw new ForbiddenException("user must be in the lobby room to perform");
@@ -925,8 +924,8 @@ export class LobbyService implements OnModuleInit {
     const records = this.lobbySettingsRecord(lobbyDto);
 
     const res = await this.redis.pipeline()
-      .hset(lobby_redis_general_settings(currentLobbyPinId), records.generalSettingsRecord)
-      .hset(lobby_redis_game_settings(currentLobbyPinId), records.gameSettingsRecord)
+      .hset(redis_lobby_general_settings(currentLobbyPinId), records.generalSettingsRecord)
+      .hset(redis_lobby_game_settings(currentLobbyPinId), records.gameSettingsRecord)
       .exec();
 
     return lobbyDto;
