@@ -2,4 +2,4 @@
 *.key
 temp/
 
-task*?.txt
+task*.txt

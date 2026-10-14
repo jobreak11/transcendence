@@ -2,7 +2,6 @@ import { BadRequestException, ConflictException, ForbiddenException, Inject, Inj
 import { REDIS_CLIENT } from '../../redis/redis.provider.js';
 import type { RedisClient } from '../../redis/redis.provider.js';
 import * as crypto from 'node:crypto'
-import { MainGatewayService } from '../../mainGateway/mainGateway.service.js';
 import { CreateLobbyDto, LobbyRoomType } from './dto/create-lobby.dto.js';
 import { LobbyDto, LobbyRoomStatus } from './dto/lobby.dto.js';
 import { GetLobbyMemberListDto } from './dto/get-lobby-member-list.dto.js';
@@ -13,8 +12,10 @@ import { UpdateLobbyDto } from './dto/update-lobby.dto.js';
 import { keyof, map, record, string } from 'zod';
 import { groupSrvRecords } from 'ioredis/built/cluster/util.js';
 import { LOBBY_ROOM_MAX } from './lobby.constants.js';
-import { redis_user_game_lobby } from '../../redis/namespaces/user.namespace.js';
-import { redis_lobby_all_keys, redis_lobby_game_settings, redis_lobby_general_settings, redis_lobby_global_details_lobby_lists, redis_lobby_player_member_list, redis_lobby_spectator_member_list } from '../../redis/namespaces/lobby.namespace.js';
+import { redis_user_game_lobby } from '../../redis/namespaces/user/user.namespace.js';
+import { redis_lobby_all_keys, redis_lobby_game_settings, redis_lobby_general_settings, redis_lobby_global_details_lobby_lists, redis_lobby_player_member_list, redis_lobby_spectator_member_list } from '../../redis/namespaces/lobby/lobby.namespace.js';
+import { ChatGatewayService } from '../../websocket/main-gateway/chat-gateway/chat-gateway.service.js';
+import { ASYNC_METHOD_SUFFIX, DEFAULT_METHOD_KEY } from '@nestjs/common/module-utils/constants.js';
 
 @Injectable()
 export class LobbyService implements OnModuleInit {
@@ -23,7 +24,7 @@ export class LobbyService implements OnModuleInit {
 
   constructor(
     @Inject(REDIS_CLIENT) private redis: RedisClient,
-    private readonly mainGatewayService: MainGatewayService,
+    private readonly chatGatewayService: ChatGatewayService
   ) {
   }
 
@@ -371,7 +372,7 @@ export class LobbyService implements OnModuleInit {
       throw new InternalServerErrorException("unknown error");
     }
 
-    await this.mainGatewayService.joinLobbyChat(creatorUserId, newLobbyPinIdString);
+    await this.chatGatewayService.joinLobbyChat(creatorUserId, newLobbyPinIdString);
 
     return newLobbyDto;
 
@@ -498,7 +499,7 @@ export class LobbyService implements OnModuleInit {
         lobbyPinId
       );
 
-      await this.mainGatewayService.leaveLobbyChat(leaveUserId, lobbyPinId);
+      await this.chatGatewayService.leaveLobbyChat(leaveUserId, lobbyPinId);
 
       return res;
 
@@ -550,6 +551,7 @@ export class LobbyService implements OnModuleInit {
   ) {
 
     try {
+
       const res = await this.redis.lobbyRoomJoin(
         redis_user_game_lobby(toJoinUserId),
         redis_lobby_global_details_lobby_lists(),
@@ -600,7 +602,7 @@ export class LobbyService implements OnModuleInit {
       }
 
       // after joining lobby it would create new lobby chat room
-      await this.mainGatewayService.joinLobbyChat(toJoinUserId, lobbyPinId);
+      await this.chatGatewayService.joinLobbyChat(toJoinUserId, lobbyPinId);
 
       return await this.getLobbyDto(lobbyPinId);
 
@@ -877,7 +879,7 @@ export class LobbyService implements OnModuleInit {
     )
 
     const rawGameSettingsRecord = Object.fromEntries(
-      Object.entries(lobbyDto)
+      Object.entries(lobbyDto.gameSettings)
         .map(([key, value]) => [key, value instanceof Date ? value.toISOString() : String(value ?? "")])
     )
 

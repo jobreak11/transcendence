@@ -1,13 +1,13 @@
 import { CanActivate, ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { MainGatewayService } from '../../mainGateway/mainGateway.service.js';
+import { ConnectionGatewayService } from '../../websocket/main-gateway/connection-gateway/connection-gateway.service.js';
 
 
 // This guard must be only after performing the jwtAuthGuard
 @Injectable()
 export class LobbyGuard implements CanActivate {
   constructor(
-    private readonly mainGatewayService: MainGatewayService
+    private readonly connectionGatewayService: ConnectionGatewayService
   ) {}
 
   canActivate(
@@ -16,6 +16,6 @@ export class LobbyGuard implements CanActivate {
 
     const req = context.switchToHttp().getRequest();
 
-    return this.mainGatewayService.isUserOnline(req.user.id);
+    return this.connectionGatewayService.isUserOnline(req.user.id);
   }
 }

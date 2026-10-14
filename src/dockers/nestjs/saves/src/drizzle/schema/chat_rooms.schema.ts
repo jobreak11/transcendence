@@ -3,7 +3,6 @@ import { v7 as uuidv7 } from 'uuid'
 
 
 export enum ChatRoomType {
-  PUBLIC = 'PUBLIC',
   PRIVATE = 'PRIVATE',
   DIRECT_MESSAGE = 'DIRECT_MESSAGE',
 }
