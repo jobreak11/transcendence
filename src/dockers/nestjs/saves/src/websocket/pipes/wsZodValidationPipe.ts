@@ -7,9 +7,9 @@ export class WsZodValidationPipe implements PipeTransform {
   constructor(private schema: z.ZodType) {}
 
   transform(value: any, metadata: ArgumentMetadata) {
-    if (metadata.type !== 'body') {
-      return value;
-    }
+    //if (metadata.type !== 'body') {
+    //  return value;
+    //}
 
     const result = this.schema.safeParse(value);
     if (!result.success) {

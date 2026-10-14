@@ -7,11 +7,11 @@ import { AuthModule } from './auth/auth.module.js';
 import { RedisModule } from './redis/redis.module.js';
 // import { DrizzleModule } from './drizzle/drizzle.module.js';
 import { FriendModule } from './friend/friend.module.js';
-import { MainGatewayModule } from './mainGateway/mainGateway.module.js';
 import { ChatModule } from './chat/chat.module.js';
 import { ThrottlerModule } from '@nestjs/throttler'
 import type { Redis } from 'ioredis';
 import { GameModule } from './game/game.module.js';
+import { WebsocketModule } from './websocket/websocket.module.js';
 
 @Module({
   controllers: [AppController],
@@ -30,10 +30,10 @@ import { GameModule } from './game/game.module.js';
     UserModule,
     AuthModule,
     RedisModule,
-    MainGatewayModule,
     ChatModule,
     FriendModule,
     GameModule,
+    WebsocketModule,
     // DrizzleModule
   ],
 })

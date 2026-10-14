@@ -1,18 +1,22 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException, NotImplementedException } from '@nestjs/common';
 import { DRIZZLE } from '../drizzle/drizzle.module.js';
 import type { DrizzleDB } from '../drizzle/types/drizzle.js';
 import { chat_rooms, ChatRoomType } from '../drizzle/schema/chat_rooms.schema.js';
 import { chat_room_members, ChatRoomMemberRole } from '../drizzle/schema/chat_room_members.schema.js';
 import { and, asc, desc, eq, ne, or } from 'drizzle-orm';
 import { chat_messages, ChatMessageType } from '../drizzle/schema/chat_messages.schema.js';
-import { char } from 'drizzle-orm/mysql-core';
-import { alias } from 'drizzle-orm/pg-core';
 import { throwIfEmpty } from 'rxjs';
 import { join } from 'path';
-import { id } from 'zod/v4/locales';
 import { UserService } from '../user/user.service.js';
 import { REDIS_CLIENT } from '../redis/redis.provider.js';
 import type { RedisClient } from '../redis/redis.provider.js';
+import { ChatMessage } from '../websocket/main-gateway/chat-gateway/dtos/chat-message.dto.js';
+import { PublicChatMessage } from './dtos/public-chat.dto.js';
+import { alias } from 'drizzle-orm/pg-core';
+import { redis_global_chat_messages } from '../redis/namespaces/global/chat.namespace.js';
+import { Result } from 'pg';
+import { redis_lobby_chat_messages, redis_lobby_global_details_lobby_lists } from '../redis/namespaces/lobby/lobby.namespace.js';
+import { redis_user_game_lobby } from '../redis/namespaces/user/user.namespace.js';
 
 @Injectable()
 export class ChatService {
@@ -179,7 +183,7 @@ export class ChatService {
 
     if (hostUserInRoom.role === ChatRoomMemberRole.OWNER) {
 
-      await this.writeRoomSystemMessage(chatRoomId, `user ${hostUserId} invited user ${toJoinUserId} into the room.`);
+      await this.writeSpecificRoomSystemMessage(chatRoomId, `user ${hostUserId} invited user ${toJoinUserId} into the room.`);
       return await this.joinRoom(toJoinUserId, chatRoomId, role);
     } else {
       if (foundRoom.type === ChatRoomType.PRIVATE) {
@@ -189,11 +193,11 @@ export class ChatService {
         if (role === ChatRoomMemberRole.OWNER)
           throw new ForbiddenException("only OWNER can invite new user as OWNER role");
 
-        await this.writeRoomSystemMessage(chatRoomId, `user ${hostUserId} invited user ${toJoinUserId} into the room.`);
+        await this.writeSpecificRoomSystemMessage(chatRoomId, `user ${hostUserId} invited user ${toJoinUserId} into the room.`);
         return await this.joinRoom(toJoinUserId, chatRoomId, role);
       }
       else {
-        await this.writeRoomSystemMessage(chatRoomId, `user ${hostUserId} invited user ${toJoinUserId} into the room.`);
+        await this.writeSpecificRoomSystemMessage(chatRoomId, `user ${hostUserId} invited user ${toJoinUserId} into the room.`);
         return await this.joinRoom(toJoinUserId, chatRoomId, ChatRoomMemberRole.MEMBER);
       }
     }
@@ -225,7 +229,7 @@ export class ChatService {
       throw new BadRequestException("Cannot leave the room");
 
 
-    this.writeRoomSystemMessage(chatRoomId, `User ${userId} just left the chat room`);
+    this.writeSpecificRoomSystemMessage(chatRoomId, `User ${userId} just left the chat room`);
     return (res);
   }
 
@@ -263,7 +267,7 @@ export class ChatService {
     if (!res || res.length !== 1)
       throw new BadRequestException("Cannot kick the target user in the room");
 
-    await this.writeRoomSystemMessage(chatRoomId, `user ${toKickUserId} got kicked out by user ${hostUserId}`);
+    await this.writeSpecificRoomSystemMessage(chatRoomId, `user ${toKickUserId} got kicked out by user ${hostUserId}`);
     return (res);
   }
 
@@ -298,7 +302,7 @@ export class ChatService {
         .returning();
 
       this.logger.debug("insert chat room member success");
-      await this.writeRoomSystemMessage(chatRoomId, `user ${toJoinUserId} just joined.`);
+      await this.writeSpecificRoomSystemMessage(chatRoomId, `user ${toJoinUserId} just joined.`);
       return (result);
     }
     catch (err) {
@@ -356,7 +360,7 @@ export class ChatService {
     return room[0];
   }
 
-  async writeRoomSystemMessage(chatRoomId: string, message: string) {
+  async writeSpecificRoomSystemMessage(chatRoomId: string, message: string) {
 
     try {
       const [result] = await this.db
@@ -376,7 +380,7 @@ export class ChatService {
     }
   }
 
-  async writeRoomMessage(senderUserId: string, chatRoomId: string, message: string) {
+  async writeSpecificRoomMessage(senderUserId: string, chatRoomId: string, message: string) {
     // find the room first
     const room = await this.isUserInRoom(senderUserId, chatRoomId);
 
@@ -406,4 +410,124 @@ export class ChatService {
       throw new InternalServerErrorException("unknown error");
     }
   }
+
+  async writePublicRoomMessage(
+    senderUserId: string, 
+    publicRoomType: Exclude<ChatMessage.RoomType, ChatMessage.RoomType.SPECIFIC_ROOM>,
+    message: string,
+  ) {
+
+    let redisKey: string;
+    // check the room type
+    if (publicRoomType === ChatMessage.RoomType.GLOBAL) {
+      // global message user can send anytime
+      redisKey = redis_global_chat_messages();
+
+    }
+    else if (publicRoomType === ChatMessage.RoomType.LOBBY) {
+      const lobbyPinId = await this.redis.get(redis_user_game_lobby(senderUserId));
+
+      if (!lobbyPinId) {
+        throw new ForbiddenException("user must be in lobby to send message");
+      }
+
+      const res = await this.redis.sismember(redis_lobby_global_details_lobby_lists(), lobbyPinId);
+
+      if (res === 0) {
+        throw new NotFoundException("lobby not found");
+      }
+
+      redisKey = redis_lobby_chat_messages(lobbyPinId)
+
+    }
+    else if (publicRoomType === ChatMessage.RoomType.IN_GAME) {
+      // NOT IMPLEMENT REMEMBER
+      throw new NotImplementedException("not implemented game room chat yet");
+    }
+    else {
+      this.logger.error({
+        message: "error from writePublicRoomMessage()",
+        error: "public room type is wrong"
+      })
+      throw new InternalServerErrorException("Internal wrong logic");
+    }
+
+    const chatMessage: PublicChatMessage = {
+      message: message,
+      messageType: ChatMessageType.USER_MESSAGE,
+      senderUserId: senderUserId,
+      createdAt: new Date()
+    }
+    // write on redis should define the redis can order message by
+    await this.redis.multi()
+      .lpush(redisKey, JSON.stringify(chatMessage))
+      .ltrim(redisKey, 0, 199)
+      .exec()
+
+    return chatMessage
+
+  }
+
+
+  async writePublicRoomSystemMessage(
+    publicRoomType: Exclude<ChatMessage.RoomType, ChatMessage.RoomType.SPECIFIC_ROOM>,
+    message: string,
+    lobbyPinId?: string,
+    gameRoomId?: string
+  ) {
+
+    let redisKey: string;
+    // check the room type
+    if (publicRoomType === ChatMessage.RoomType.GLOBAL) {
+      // global message user can send anytime
+      redisKey = redis_global_chat_messages();
+
+    }
+    else if (publicRoomType === ChatMessage.RoomType.LOBBY) {
+      if (lobbyPinId) {
+        const res = await this.redis.sismember(redis_lobby_global_details_lobby_lists(), lobbyPinId);
+
+        if (!res) {
+          throw new InternalServerErrorException("unknwon errror");
+        }
+
+        if (res === 0) {
+          throw new NotFoundException("lobby not found");
+
+        }
+
+        redisKey = redis_lobby_chat_messages(lobbyPinId)
+      }
+      else {
+        throw new BadRequestException("lobby chat message should provide lobbyPinId")
+      }
+    }
+    else if (publicRoomType === ChatMessage.RoomType.IN_GAME) {
+      // NOT IMPLEMENT REMEMBER
+      throw new NotImplementedException("not implemented game room chat yet");
+    }
+    else {
+      this.logger.error({
+        message: "error from writePublicRoomMessage()",
+        error: "public room type is wrong"
+      })
+      throw new InternalServerErrorException("Internal wrong logic");
+    }
+
+    const chatMessage: PublicChatMessage = {
+      message: message,
+      messageType: ChatMessageType.SYSTEM_MESSAGE,
+      createdAt: new Date(),
+      senderUserId: ""
+    }
+    // write on redis should define the redis can order message by
+    await this.redis.multi()
+      .lpush(redisKey, JSON.stringify(chatMessage))
+      .ltrim(redisKey, 0, 199)
+      .exec()
+
+    return chatMessage
+
+  }
+
 }

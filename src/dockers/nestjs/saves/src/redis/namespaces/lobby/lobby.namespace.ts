@@ -19,6 +19,7 @@ export function redis_lobby_all_keys(lobbyPinId: string): string[] {
     redis_lobby_player_member_list(lobbyPinId),
     redis_lobby_spectator_member_list(lobbyPinId),
     redis_lobby_player_ready_list(lobbyPinId),
+    ...redis_lobby_chat_all_keys(lobbyPinId)
   ]
 }
 // use hset hget
@@ -45,3 +46,23 @@ export function redis_lobby_spectator_member_list(lobbyPinId: string) {
 export function redis_lobby_player_ready_list(lobbyPinId: string) {
   return `${redis_lobby_namespace(lobbyPinId)}:ready_list`
 }
+
+function redis_lobby_chat_namespace(roomPinId: string) {
+  return `${redis_lobby_namespace(roomPinId)}:chat`
+}
+
+
+// ###############################################
+// chat
+
+export function redis_lobby_chat_all_keys(lobbyPinId: string): string[] {
+  return [
+    redis_lobby_chat_messages(lobbyPinId),
+  ]
+}
+
+// use lpush lrange ltrim
+export function redis_lobby_chat_messages(lobbyPinId: string) {
+  return `${redis_lobby_chat_namespace(lobbyPinId)}:messages`
+}
+
