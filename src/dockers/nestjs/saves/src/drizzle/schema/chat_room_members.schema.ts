@@ -1,6 +1,7 @@
 import { check, index, pgEnum, pgTable, primaryKey, timestamp, uuid } from "drizzle-orm/pg-core";
 import { chat_rooms } from "./chat_rooms.schema.js";
-import { users } from "./users.schema.js";
+import { users } from "./users/users.schema.js";
+import { createInsertSchema, createSelectSchema } from "drizzle-orm/zod";
 
 export enum ChatRoomMemberRole {
   MEMBER = 'MEMBER',
@@ -28,3 +29,8 @@ export const chat_room_members = pgTable("chat_room_members",
     index("chat_room_user_idx").on(t.userId),
   ]
 )
+
+export const chatRoomMemberSchema = {
+  select: createSelectSchema(chat_room_members),
+  insert: createInsertSchema(chat_room_members),
+}

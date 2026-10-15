@@ -1,39 +1,55 @@
-import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Pool } from 'pg'
-import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres'
-import * as schema from './schema/schema.js'
+import { Global, Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { DrizzleModule as NestDrizzleModule } from '@nestjs/drizzle';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { dbRelations, dbSchema } from './schema/schema.js';
+import { Pool } from 'pg';
 
-export const DRIZZLE = Symbol("drizzle-connection");
+//@Module({
+//  imports: [
+//    NestDrizzleModule.forRootAsync({
+//      imports: [ConfigModule],
+//      inject: [ConfigService],
+//      useFactory: (configService: ConfigService) => ({
+//        drizzle,
+//        connection: {
+//          host: configService.getOrThrow<string>('POSTGRES_HOST'),
+//          port: parseInt(configService.getOrThrow<string>('POSTGRES_PORT'), 10),
+//          database: configService.getOrThrow<string>('POSTGRES_DB'),
+//          user: configService.getOrThrow<string>('POSTGRES_USER'),
+//          password: configService.getOrThrow<string>('POSTGRES_PASSWORD'),
+//          ssl: false,
+//        },
+//      }),
+//    }),
+//  ],
+//  exports: [NestDrizzleModule],
+//})
+//export class DrizzleModule {}
 
+export const DRIZZLE = Symbol('DRIZZLE')
+
+@Global()
 @Module({
-	providers: [
-		{
-			provide: DRIZZLE,
-			inject: [ConfigService],
-			useFactory: async (configService:ConfigService) => {
-				const type = 'postgres';
-				const host = configService.getOrThrow<string>('POSTGRES_HOST');
-				const port = parseInt( configService.getOrThrow<string>('POSTGRES_PORT'), 10);
-				const database = configService.getOrThrow<string>('POSTGRES_DB');
-				const username = configService.getOrThrow<string>('POSTGRES_USER');
-				const password = configService.getOrThrow<string>('POSTGRES_PASSWORD');
-				const autoLoadEntities = true;
-				const synchronize = configService.getOrThrow('POSTGRES_SYNC') === 'true';
+  providers: [
+    {
+      provide: DRIZZLE,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const pool = new Pool({
+          host: config.getOrThrow('POSTGRES_HOST'),
+          port: parseInt(config.getOrThrow('POSTGRES_PORT'), 10),
+          database: config.getOrThrow('POSTGRES_DB'),
+          user: config.getOrThrow('POSTGRES_USER'),
+          password: config.getOrThrow('POSTGRES_PASSWORD'),
+          ssl: false
+        });
 
-				const pool = new Pool({
-					host: host,
-					port: port,
-					database: database,
-					user: username,
-					password: password,
-					ssl: false
-				})
+        return drizzle({client: pool, relations: dbRelations})
+      }
+    }
+  ],
+  exports: [DRIZZLE]
 
-				return drizzle(pool, {schema}) as NodePgDatabase<typeof schema>;
-			}
-		}
-	],
-	exports: [DRIZZLE]
 })
 export class DrizzleModule {}

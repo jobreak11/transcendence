@@ -1,4 +1,5 @@
 import { pgEnum, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { createInsertSchema, createSelectSchema } from "drizzle-orm/zod";
 import { v7 as uuidv7 } from 'uuid'
 
 
@@ -15,3 +16,8 @@ export const chat_rooms = pgTable("chat_rooms", {
   type: chatRoomTypeEnum("type").default(ChatRoomType.PRIVATE).notNull(),
   createdAt: timestamp("created_at", {withTimezone: true}).defaultNow().notNull()
 })
+
+export const chatRoomSchema = {
+  select: createSelectSchema(chat_rooms),
+  insert: createInsertSchema(chat_rooms)
+}

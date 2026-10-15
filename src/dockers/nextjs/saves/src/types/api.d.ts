@@ -758,23 +758,7 @@ export interface components {
             /** @example Unauthorized */
             message: string;
         };
-        GetUserProfileDto: {
-            /**
-             * @description tag id of user
-             * @example YYMMDD_0000
-             */
-            tagId: string;
-            /**
-             * @description the email of the user
-             * @example user@example.com
-             */
-            email: string;
-            /**
-             * @description The role of the user
-             * @example USER
-             * @enum {string}
-             */
-            role: "ADMIN" | "EDITOR" | "USER";
+        UserProfileBase: {
             /**
              * @description the display name of the user
              * @example InwZa007
@@ -782,11 +766,6 @@ export interface components {
             displayName: string | null;
             /** @description The url to the profile image of the user */
             avatarUrl: string | null;
-            /**
-             * Format: date-time
-             * @description The time and date that this user was created
-             */
-            createdAt: string;
             /**
              * @description The pronoun of the user
              * @example they/them
@@ -809,18 +788,38 @@ export interface components {
              * @enum {string}
              */
             cardTheme: "STANDARD" | "FANTASY";
+        };
+        GetUserProfileDto: {
+            /**
+             * @description tag id of user
+             * @example YYMMDD_0000
+             */
+            tagId: string;
+            /**
+             * @description the email of the user
+             * @example user@example.com
+             */
+            email: string;
+            /**
+             * @description The role of the user
+             * @example USER
+             * @enum {string}
+             */
+            role: "ADMIN" | "EDITOR" | "USER";
+            /**
+             * Format: date-time
+             * @description The time and date that this user was created
+             */
+            createdAt: string;
             /**
              * @description The active title name that user use
              * @example Sheriff
              */
             titleName: string | null;
+            /** @description the profile details of the user */
+            user_profile: components["schemas"]["UserProfileBase"];
         };
-        UpdateUserDto: {
-            /**
-             * @description the hashed password of the user
-             * @example SecurePassword123
-             */
-            password?: string;
+        BaseUserProfileDto: {
             /**
              * @description the display name of the user
              * @example InwZa007
@@ -850,6 +849,15 @@ export interface components {
              * @enum {string}
              */
             cardTheme?: "STANDARD" | "FANTASY";
+        };
+        UpdateUserDto: {
+            /**
+             * @description the hashed password of the user
+             * @example SecurePassword123
+             */
+            password?: string;
+            /** @description the user profile details */
+            user_profile?: components["schemas"]["BaseUserProfileDto"];
         };
         TitleDto: {
             /**
@@ -1010,7 +1018,7 @@ export interface components {
              * @example BEGINNER
              * @enum {string}
              */
-            format: "BEGINNER" | "PRO" | "TURBO";
+            format: "BEGINNER" | "PRO" | "TURBO" | "CUSTOM";
         };
         CreateLobbyDto: {
             /**

@@ -1,14 +1,14 @@
 import { ConflictException, ForbiddenException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
-import { DRIZZLE } from '../../drizzle/drizzle.module.js';
 import { REDIS_CLIENT } from '../../redis/redis.provider.js';
-import type { DrizzleDB } from '../../drizzle/types/drizzle.js';
 import type { RedisClient } from '../../redis/redis.provider.js';
 import { titles } from '../../drizzle/schema/titles.schema.js';
 import { user_titles } from '../../drizzle/schema/user_titles.schema.js';
 import { and, asc, desc, eq } from 'drizzle-orm';
 import { CreateNewTitleZodDto, GetUserTitleDto, TitleDto, UpdateTitleZodDto, UserTitleDto } from './title.dto.js';
 import { CACHING_TITLE_SERVICE1_EXPIRE_TIME } from '../../constant.js';
-import { title } from 'process';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { dbRelations } from '../../drizzle/schema/schema.js';
+import { DRIZZLE } from '../../drizzle/drizzle.module.js';
 
 @Injectable()
 export class TitleService {
@@ -16,7 +16,7 @@ export class TitleService {
   private readonly logger = new Logger(TitleService.name);
 
   constructor(
-    @Inject(DRIZZLE) private db: DrizzleDB,
+    @Inject(DRIZZLE) private db: NodePgDatabase<typeof dbRelations>,
     @Inject(REDIS_CLIENT) private readonly redis: RedisClient
   ) { }
 

@@ -1,5 +1,4 @@
 import { BadRequestException, ForbiddenException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException, NotImplementedException } from '@nestjs/common';
-import { DRIZZLE } from '../drizzle/drizzle.module.js';
 import type { DrizzleDB } from '../drizzle/types/drizzle.js';
 import { chat_rooms, ChatRoomType } from '../drizzle/schema/chat_rooms.schema.js';
 import { chat_room_members, ChatRoomMemberRole } from '../drizzle/schema/chat_room_members.schema.js';
@@ -17,6 +16,10 @@ import { redis_global_chat_messages } from '../redis/namespaces/global/chat.name
 import { Result } from 'pg';
 import { redis_lobby_chat_messages, redis_lobby_global_details_lobby_lists } from '../redis/namespaces/lobby/lobby.namespace.js';
 import { redis_user_game_lobby } from '../redis/namespaces/user/user.namespace.js';
+import { InjectDrizzle } from '@nestjs/drizzle';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { dbRelations, dbSchema } from '../drizzle/schema/schema.js';
+import { DRIZZLE } from '../drizzle/drizzle.module.js';
 
 @Injectable()
 export class ChatService {
@@ -24,7 +27,7 @@ export class ChatService {
   private readonly logger = new Logger(ChatService.name);
 
   constructor(
-    @Inject(DRIZZLE) private db: DrizzleDB,
+    @Inject(DRIZZLE) private db: NodePgDatabase<typeof dbRelations>,
     private userService: UserService,
     @Inject(REDIS_CLIENT) private readonly redis: RedisClient
   ) {}

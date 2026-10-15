@@ -6,7 +6,6 @@ import { CreateLobbyDto, LobbyRoomType } from './dto/create-lobby.dto.js';
 import { LobbyDto, LobbyRoomStatus } from './dto/lobby.dto.js';
 import { GetLobbyMemberListDto } from './dto/get-lobby-member-list.dto.js';
 import { GameSettingFormat, GameSettingsDto } from './dto/game-settings.dto.js';
-import { real } from 'drizzle-orm/gel-core';
 import { ResponseLobbyDto } from './dto/response-lobby.dto.js';
 import { UpdateLobbyDto } from './dto/update-lobby.dto.js';
 import { keyof, map, record, string } from 'zod';

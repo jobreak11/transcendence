@@ -1,7 +1,10 @@
 import { index, pgEnum, pgTable, primaryKey, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { chat_rooms } from "./chat_rooms.schema.js";
-import { users } from "./users.schema.js";
+import { users } from "./users/users.schema.js";
 import { v7 as uuidv7 } from 'uuid'
+import { z } from 'zod'
+import { createInsertSchema, createSelectSchema } from "drizzle-orm/zod";
+import { updateUserSchema } from "../../user/dto/update-user.dto.js";
 
 export enum ChatMessageType {
   USER_MESSAGE = "USER_MESSAGE",
@@ -38,3 +41,8 @@ export const chat_messages = pgTable("chat_messages",
     index("chat_messages_user_idx").on(t.userId),
   ]
 )
+
+export const chatMessageSchema = {
+  select: createSelectSchema(chat_messages),
+  insert: createInsertSchema(chat_messages)
+}

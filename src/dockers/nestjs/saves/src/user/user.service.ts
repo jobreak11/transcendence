@@ -1,21 +1,28 @@
-import { ConflictException, ForbiddenException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto.js';
-import { UpdateUserDto } from './dto/update-user.dto.js';
+import { UpdateUserDto, UpdateUserResponseDto, updateUserSchema } from './dto/update-user.dto.js';
 // import { InjectRepository } from '@nestjs/typeorm';
 // import { Repository } from 'typeorm';
 import * as argon2 from 'argon2';
 import * as path from 'path';
 import * as fs from 'fs/promises'
-import { CACHING_USER_SERVICE_EXPIRE_TIME, SHARED_STORAGE_PATH, STORAGE_URL_PATH } from '../constant.js';
-import { DRIZZLE } from '../drizzle/drizzle.module.js';
-import type { DrizzleDB } from '../drizzle/types/drizzle.js';
-import { users } from '../drizzle/schema/users.schema.js';
-import { eq } from 'drizzle-orm';
+import { SHARED_STORAGE_PATH, STORAGE_URL_PATH } from '../constant.js';
+import { users, userSchema } from '../drizzle/schema/users/users.schema.js';
+import { eq, Update } from 'drizzle-orm';
 import { REDIS_CLIENT } from '../redis/redis.provider.js';
 import type { RedisClient } from '../redis/redis.provider.js';
-import { UserDto } from './dto/user.dto.js';
+import { UserDto } from '../drizzle/schema/users/user.dto.js';
 import { TitleService } from './title/title.service.js';
 import { redis_cache_user_all_keys, redis_cache_user_email, redis_cache_user_profile, redis_cache_user_tag_id } from '../redis/namespaces/caching/cache-user.namespace.js';
+import { InjectDrizzle } from '@nestjs/drizzle';
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { dbSchema } from '../drizzle/schema/schema.js';
+import { text } from 'stream/consumers';
+import { user_profiles, userProfileSchema } from '../drizzle/schema/user_profiles/user_profiles.schema.js';
+import z from 'zod';
+import { UserRedisService } from '../redis/user-redis/user-redis.service.js';
+import { UserAndProfileDto } from './dto/user-and-profile.dto.js';
+import { DRIZZLE } from '../drizzle/drizzle.module.js';
 
 @Injectable()
 export class UserService {
@@ -23,114 +30,137 @@ export class UserService {
   private readonly logger = new Logger(UserService.name);
 
   constructor(
-    @Inject(DRIZZLE) private db: DrizzleDB,
-    @Inject(REDIS_CLIENT) private readonly redis: RedisClient,
+    @Inject(DRIZZLE) private db: NodePgDatabase<typeof dbSchema.dbRelations>,
+    private readonly userRedisService: UserRedisService,
     private readonly titleService: TitleService,
   )
   {}
 
-  async updateHashedRefreshToken(userId: string, hashedRefreshToken: string | null): Promise<UserDto>{
+  async updateHashedRefreshToken(userId: string, hashedRefreshToken: string | null): Promise<UserAndProfileDto>{
 
-    const [updateUser] = await this.db
-      .update(users)
-      .set({hashedRefreshToken: hashedRefreshToken})
-      .where(eq(users.id, userId))
-      .returning();
+    try {
+      const res = await this.db.transaction(async (tx): Promise<UserAndProfileDto> => {
 
-    if (!updateUser) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
+        const [updateUser] = await tx
+          .update(users)
+          .set({hashedRefreshToken: hashedRefreshToken})
+          .where(eq(users.id, userId))
+          .returning();
+
+        if (!updateUser) {
+          tx.rollback();
+          throw new Error(`user id ${userId} not found`)
+        }
+
+        const userProfile = await tx.query.user_profiles.findFirst({
+          where: {
+            userId: userId
+          }
+        })
+
+        if (!userProfile) {
+          throw new Error(`user id ${userId} not found`)
+        }
+
+        return {
+          ...updateUser,
+          user_profile: userProfile
+        }
+
+      })
+
+      return res
+    } catch (error: any) {
+      throw new NotFoundException("user not found")
     }
-    await this.cachingUser(updateUser);
-    return updateUser;
   }
 
   async create(createUserDto: CreateUserDto) {
     
-
     const hashedPassword = await argon2.hash(createUserDto.password);
+    const {email, avatarUrl, displayName} = createUserDto;
 
     try {
-      const [newUser] = await this.db.insert(users)
-        .values({
-          ...createUserDto,
-          password: hashedPassword
-        })
-        .returning();
+      const result = await this.db.transaction(async (tx) => {
+        const [newUser] = await tx.insert(users)
+          .values({
+            email: email,
+            password: hashedPassword
+          })
+          .returning();
+        
+        const [newProfile] = await tx.insert(user_profiles)
+          .values({
+            userId: newUser.id,
+            displayName: displayName,
+            avatarUrl: avatarUrl,
+          })
+          .returning();
 
-      return newUser;
+        return newUser
+      })
+
+      return result;
     } catch (error: any) {
-      if (error?.code === '23505') {
+      if (error?.cause?.code === '23505') {
         throw new ConflictException(`This user is already exist`);
       }
-      throw error
+
+      this.logger.error({
+        message: "error from create()",
+        error: {...error}
+      })
+      throw new InternalServerErrorException("unknown error");
     }
   }
 
-  cacheDeleteUser(user: UserDto) {
-    return this.redis.del(
-      redis_cache_user_all_keys(user.id, user.email, user.tagId)
-    )
-  }
-
-  cachingUser(user: UserDto) {
-    const stringCacheData = JSON.stringify(user);
-    //await this.redis.pipeline()
-    //  .set(`cache:user:id:${id}`, stringCacheData, "EX", CACHING_USER_SERVICE_EXPIRE_TIME)
-    //  .set(`cache:user:email:${user.email}`, id, "EX", CACHING_USER_SERVICE_EXPIRE_TIME - 1)
-    //  .exec()
-
-    // <namespace>:...:${id}
-    return this.redis.msetex(3, 
-      redis_cache_user_profile(user.id), stringCacheData,
-      redis_cache_user_email(user.email), user.id, 
-      redis_cache_user_tag_id(user.tagId), user.id,
-      "EX", CACHING_USER_SERVICE_EXPIRE_TIME)
-  }
-
-  async findByEmail(email: string): Promise<UserDto> {
+  async findByEmail(email: string): Promise<UserAndProfileDto> {
 
     // find from redis first this will return the id of the user
-    const cacheByUserEmailFound = await this.redis
-    .getex(redis_cache_user_email(email), "EX", CACHING_USER_SERVICE_EXPIRE_TIME);
+    const cacheByUserEmailFound = await this.userRedisService.getCacheByEmail(email);
     if (cacheByUserEmailFound) {
       // the id of the user to find the 
-      return await this.findOne(cacheByUserEmailFound);
-    }
+        return cacheByUserEmailFound;
+      }
 
     // cache by email not found
+    const user = await this.db.query.users.findFirst({
+      where: {
+        email: email
+      },
+      with: {
+        user_profile: true
+      }
+    });
 
-    const [user] = await this.db.select().from(users).where(eq(users.email, email)).limit(1);
     if (!user)
       throw new NotFoundException(`User ${email} not found`)
 
-    await this.cachingUser(user);
+    await this.userRedisService.cachingUser(user);
 
     return user;
-
-
-
-    return user;
-
   }
 
-  async findByTagId(tagId: string): Promise<UserDto> {
-    const cacheByTagIdFound = await this.redis
-      .getex(redis_cache_user_tag_id(tagId), "EX", CACHING_USER_SERVICE_EXPIRE_TIME);
+  async findByTagId(tagId: string): Promise<UserAndProfileDto> {
+    const cacheByTagIdFound = await this.userRedisService.getCacheByTagId(tagId);
 
     if (cacheByTagIdFound) {
-      return await this.findOne(cacheByTagIdFound)
+      return cacheByTagIdFound
     }
 
-    const [user] = await this.db
-      .select()
-      .from(users)
-      .where(eq(users.tagId, tagId))
-      .limit(1);
+    const user = await this.db.query.users.findFirst({
+      where: {
+        tagId: tagId
+      },
+      with: {
+        user_profile: true
+      }
+    });
 
     if (!user)
       throw new NotFoundException(`User tagId ${tagId} not found.`);
 
-    this.cachingUser(user);
+    this.userRedisService.cachingUser(user);
 
     return (user);
   }
@@ -140,52 +170,107 @@ export class UserService {
     return await this.db.select().from(users);
   }
 
-  async findOne(id: string): Promise<UserDto> {
+  async findOne(id: string): Promise<UserAndProfileDto> {
 
-    try {
+    const foundCache = await this.userRedisService.getCacheById(id);
 
-      const cacheData = await this.redis
-        .getex(redis_cache_user_profile(id), 'EX', CACHING_USER_SERVICE_EXPIRE_TIME);
-      if (cacheData) {
-        return (JSON.parse(cacheData) as UserDto);
-      }
-    } catch (err) {
-      throw new InternalServerErrorException("unknown error from redis");
+    if (foundCache) {
+      return foundCache
     }
 
-    const [user] = await this.db.select().from(users).where(eq(users.id, id))
-    .limit(1);
+    //const [user] = await this.db.select().from(users).where(eq(users.id, id))
+    //.limit(1);
+
+    const user = await this.db.query.users.findFirst({
+      where: {
+        id: id
+      },
+      with: {
+        user_profile: true
+      }
+    });
 
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    await this.cachingUser(user);
+    await this.userRedisService.cachingUser(user);
 
     return user;
-
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
 
-    if (updateUserDto.password) {
-      updateUserDto.password = await argon2.hash(updateUserDto.password);
+
+    // strip thrw updateUserDto
+    const userProfile = userProfileSchema.update.strip().safeParse(updateUserDto.user_profile);
+    const userData = userSchema.update.strip().safeParse(updateUserDto);
+
+    if (!userProfile.success || !userData.success) {
+      throw new BadRequestException({
+        message: "updateDto validation failed",
+        userProfileError: userProfile.error ? z.treeifyError(userProfile.error)  : null,
+        userDataError: userData.error ? z.treeifyError(userData.error)  : null
+      })
+    }
+
+    //const checkResult = updateUserSchema.safeParse(updateUserDto);
+
+    //if (!checkResult.success) {
+    //  throw new BadRequestException({
+    //    message: "updateDto validation failed",
+    //    error: z.treeifyError(checkResult.error)
+    //  })
+    //}
+
+    let data = userData.data;
+
+    if (data.password) {
+      data.password = await argon2.hash(data.password);
     }
 
     try {
-      const [updatedUser] = await this.db
-        .update(users)
-        .set(updateUserDto)
-        .where(eq(users.id, id))
-        .returning();
 
-      if (!updatedUser) {
-        throw new NotFoundException(`User with ID  ${id} not found`);
+      const result = await this.db.transaction(async (tx): Promise<UserAndProfileDto> => {
+
+
+        const [userDataUpdateResult] = await tx
+          .update(users)
+          .set(data)
+          .where(eq(users.id, id))
+          .returning();
+
+        if (!userDataUpdateResult) {
+          tx.rollback();
+          throw new Error(`user id ${id} not found`);
+        }
+
+        const [userProfileUpdateResult] = await tx
+          .update(user_profiles)
+          .set(userProfile.data)
+          .where(eq(user_profiles.userId, id))
+          .returning();
+
+        if (!userProfileUpdateResult) {
+          tx.rollback();
+          throw new Error(`user id ${id} not found`);
+        }
+
+        return {
+          ...userDataUpdateResult,
+          user_profile: userProfileUpdateResult
+        }
+
+      })
+
+      await this.userRedisService.cachingUser(result);
+      return result;
+    } catch (error: any) {
+
+      if (error instanceof Error) {
+        throw new NotFoundException("user id not found");
       }
 
-      await this.cachingUser(updatedUser);
-      return updatedUser;
-    } catch (error: any) {
       if (error?.code) {
         // Postgresql error
 
@@ -211,7 +296,7 @@ export class UserService {
     }
   }
 
-  async uploadProfilePic(id: string, fileBuffer: Buffer) {
+  async uploadProfilePic(id: string, fileBuffer: Buffer): Promise<UserAndProfileDto> {
 
     await this.findOne(id);
 
@@ -223,19 +308,12 @@ export class UserService {
 
     const newAvatarURL = path.join(STORAGE_URL_PATH, `${id}/profile.jpg`);
 
-    const [updatedUser] = await this.db
-      .update(users)
-      .set({avatarUrl: newAvatarURL})
-      .where(eq(users.id, id))
-      .returning();
+    return this.update(id, {user_profile: {avatarUrl: newAvatarURL}})
     
-    this.cachingUser(updatedUser);
-
-    return updatedUser;
   }
 
 
-  async remove(id: string) {
+  async remove(id: string): Promise<UserDto> {
     const [deletedUser] = await this.db
       .delete(users)
       .where(eq(users.id, id))
@@ -245,13 +323,8 @@ export class UserService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    this.cacheDeleteUser(deletedUser);
+    await this.userRedisService.cacheDeleteUser(deletedUser.id);
 
-    return (
-      {
-        deleted: true,
-        id: deletedUser.id
-      }
-    )
+    return deletedUser
   }
 }
