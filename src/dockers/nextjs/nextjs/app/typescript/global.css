@@ -1,0 +1,49 @@
+/* USAGE:
+	import "global.css" */
+
+@import "tailwindcss";
+
+html {
+	font-family: sans-serif;
+	-ms-text-size-adjust: 100%;
+	-webkit-text-size-adjust: 100%;
+}
+body {
+	margin: 0;
+	min-width: 800px;
+	min-height: 600px;
+}
+/* details, */
+/* canvas, */
+/* header, */
+/* footer, */
+/* main, */
+/* menu, */
+/* nav, */
+/* section, */
+summary {
+	display: block;
+}
+/* audio, */
+/* audio:not([controls]) {
+	display: none;
+	height: 0;
+} */
+/* video {
+	display: inline-block;
+	vertical-align: baseline;
+} */
+a {
+	background-color: transparent;
+}
+/* a:active, */
+a:hover {
+	outline: 0;
+}
+/* b, */
+/* strong {
+	font-weight: bold;
+} */
+/* dfn {
+	font-style: italic;
+} */
