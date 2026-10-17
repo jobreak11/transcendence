@@ -1,4 +1,5 @@
 import { index, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { createInsertSchema, createSelectSchema } from "drizzle-orm/zod";
 import { v7 as uuidv7 } from 'uuid'
 
 /* The */
@@ -26,3 +27,7 @@ export const titles = pgTable("titles",
   ]
 );
 
+export const titleSchema = {
+  select: createSelectSchema(titles),
+  insert: createInsertSchema(titles)
+}

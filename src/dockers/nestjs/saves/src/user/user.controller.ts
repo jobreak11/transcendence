@@ -1,11 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotImplementedException, SetMetadata, HttpCode, HttpStatus, ParseIntPipe, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, BadRequestException, PayloadTooLargeException, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotImplementedException, SetMetadata, HttpCode, HttpStatus, ParseIntPipe, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, BadRequestException, PayloadTooLargeException, Query, InternalServerErrorException, Logger } from '@nestjs/common';
 import { UserService } from './user.service.js';
-import { CreateUserDto } from './dto/create-user.dto.js';
-import { UpdateUserDto } from './dto/update-user.dto.js';
+import { CreateUserDto, createUserSchema } from './dto/create-user.dto.js';
+import { UpdateUserDto, updateUserSchema } from './dto/update-user.dto.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth/jwt-auth.guard.js';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConsumes, ApiForbiddenResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { UnauthorizedErrorDto } from '../auth/dto/login.dto.js';
-import { GetUserProfileDto } from './dto/get-user-profile.dto.js';
+import { GetUserProfileDto, getUserProfileSchema } from './dto/get-user-profile.dto.js';
 import { Role } from '../auth/enums/role.enum.js';
 import { Roles } from '../auth/decorators/roles.decorators.js';
 import { Multer } from 'multer'
@@ -18,9 +18,14 @@ import type { AuthJwtFastifyRequest } from '../auth/types/auth-jwtFastifyRequest
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { UserThrottlerGuard } from '../auth/guards/user-throttler/user-throttler.guard.js';
 import { TitleService } from './title/title.service.js';
+import { ZodValidationPipe } from '../pipes/ZodValidationPipe.js';
+import z from 'zod';
 
 @Controller('user')
 export class UserController {
+
+  private readonly logger = new Logger(UserController.name);
+
   constructor(
     private readonly userService: UserService,
     private readonly titleService: TitleService
@@ -32,7 +37,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
+  create(@Body(new ZodValidationPipe(createUserSchema)) createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
 
@@ -94,27 +99,27 @@ export class UserController {
     }
 
     let resName: string | null = null;
-    if (result.activeTitleId) {
+    if (result.user_profile?.activeTitleId) {
       // get the name immediately
-      const {name} = await this.titleService.findOne(result.activeTitleId);
+      const {name} = await this.titleService.findOne(result.user_profile.activeTitleId);
 
       if (name)
         resName = name;
     }
 
-    return {
-      email: result.email,
-      avatarUrl: result.avatarUrl,
-      displayName: result.displayName,
-      tagId: result.tagId,
-      createdAt: result.createdAt,
-      pronoun: result.pronoun,
-      role: result.role,
-      signature: result.signature,
-      activeTitleId: result.activeTitleId,
-      titleName: resName,
-      cardTheme: result.cardTheme,
+    const slice = getUserProfileSchema.safeParse({...result, titleName: resName});
+
+    if (slice.success) {
+      return slice.data
     }
+
+    this.logger.error({
+      message: "from getProfile()",
+      error: "zod schema failed",
+      zodError: z.treeifyError(slice.error)
+    })
+    throw new InternalServerErrorException("internal error");
+
   }
 
 
@@ -208,8 +213,11 @@ export class UserController {
       throw new PayloadTooLargeException('File size exceeds the 10MB limit');
     }
 
+    const res = await this.userService.uploadProfilePic(req.user.id, buffer);
 
-    return this.userService.uploadProfilePic(req.user.id, buffer);
+    return {
+      avatarUrl: res.user_profile?.avatarUrl ?? null
+    }
   }
 
 
@@ -226,32 +234,30 @@ export class UserController {
       ttl: THROTTLER_USER_PROFILE_UPDATE_TTL
     }
   })
-  async update(@Req() req:any, @Body() updateUserDto: UpdateUserDto)
+  async update(@Req() req:any, @Body(new ZodValidationPipe(updateUserSchema)) updateUserDto: UpdateUserDto)
   : Promise<GetUserProfileDto>
   {
     //throw new NotImplementedException('still not implement')
 
-    const res = await this.userService.update(req.user.id, updateUserDto);
+    const result = await this.userService.update(req.user.id, updateUserDto);
 
     let resName: string | null = null;
-    if (res.activeTitleId) {
-      const {name} = await this.titleService.findOne(res.activeTitleId);
+    if (result.user_profile?.activeTitleId) {
+      const {name} = await this.titleService.findOne(result.user_profile.activeTitleId);
       resName = name;
     }
 
-    return {
-      email: res.email,
-      avatarUrl: res.avatarUrl,
-      displayName: res.displayName,
-      tagId: res.tagId,
-      createdAt: res.createdAt,
-      pronoun: res.pronoun,
-      role: res.role,
-      signature: res.signature,
-      activeTitleId: res.activeTitleId,
-      titleName: resName,
-      cardTheme: res.cardTheme,
+    const slice = getUserProfileSchema.safeParse({...result, titleName: resName});
+
+    if (slice.success) {
+      return slice.data
     }
+
+    this.logger.error({
+      message: "from getProfile()",
+      error: "zod schema failed"
+    })
+    throw new InternalServerErrorException("internal error");
 
   }
 
