@@ -1,6 +1,7 @@
 import { check, index, pgEnum, pgTable, primaryKey, timestamp, uuid } from "drizzle-orm/pg-core";
-import { users } from "./users.schema.js";
+import { users } from "./users/users.schema.js";
 import { sql } from "drizzle-orm";
+import { createInsertSchema, createSelectSchema } from "drizzle-orm/zod";
 
 export enum FriendshipStatus {
   PENDING = 'PENDING',
@@ -9,7 +10,7 @@ export enum FriendshipStatus {
   BLOCKED = 'BLOCKED'
 }
 
-export const friendshipStausEnum = pgEnum("friendship_status", FriendshipStatus);
+export const friendshipStatusEnum = pgEnum("friendship_status", FriendshipStatus);
 
 export const friendships = pgTable(
   "friendships",
@@ -22,7 +23,7 @@ export const friendships = pgTable(
       .notNull()
       .references(() => users.id, {onDelete: 'cascade'}),
 
-    status: friendshipStausEnum('status').default(FriendshipStatus.PENDING).notNull(),
+    status: friendshipStatusEnum('status').default(FriendshipStatus.PENDING).notNull(),
     createdAt: timestamp("created_at", {withTimezone: true}).defaultNow().notNull(),
 
   },
@@ -33,3 +34,8 @@ export const friendships = pgTable(
     index("friendship_addressee_user_idx").on(t.addresseeUserId),
   ]
 )
+
+export const friendshipSchema = {
+  select: createSelectSchema(friendships),
+  insert: createInsertSchema(friendships)
+}

@@ -1,6 +1,7 @@
 import { index, pgTable, primaryKey, timestamp, uuid } from "drizzle-orm/pg-core";
 import { titles } from "./titles.schema.js";
-import { users } from "./users.schema.js";
+import { users } from "./users/users.schema.js";
+import { createInsertSchema, createSelectSchema } from "drizzle-orm/zod";
 
 
 export const user_titles = pgTable("user_titles",
@@ -21,3 +22,7 @@ export const user_titles = pgTable("user_titles",
   ]
 );
 
+export const userTitleSchema = {
+  select: createSelectSchema(user_titles),
+  insert: createInsertSchema(user_titles)
+}

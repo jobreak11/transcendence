@@ -4,7 +4,7 @@ import "dotenv/config"
 import { defineConfig } from 'drizzle-kit'
 
 export default defineConfig({
-	schema: "./src/drizzle/schema/**.schema.ts",
+	schema: "./src/drizzle/schema/**/*.schema.ts",
 	dialect: "postgresql",
 	dbCredentials: {
 		host: process.env.POSTGRES_HOST || 'localhost',

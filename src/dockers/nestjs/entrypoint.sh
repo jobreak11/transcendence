@@ -98,12 +98,13 @@ EOF
   passport-google-oauth20 \
   passport-oauth2  \
   uuid \
-  dotenv drizzle-orm \
+  dotenv \
   @nestjs/platform-fastify \
   @fastify/static @fastify/multipart \
   fastify \
   zod \
   @nestjs/throttler \
+  drizzle-orm@rc @nestjs/drizzle
   # @nestjs/typeorm typeorm \
 
 
@@ -119,7 +120,7 @@ EOF
     @types/passport-google-oauth20 \
     @types/passport-oauth2 \
     @types/pg \
-    drizzle-kit
+    drizzle-kit@rc
 
   if [ -d "/app/saves" ] && [ -n "$(ls -A /app/saves 2>/dev/null)" ]; then
     printf "Restoring project from /app/saves\n"

@@ -1,6 +1,4 @@
 import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { DRIZZLE } from '../drizzle/drizzle.module.js';
-import type { DrizzleDB } from '../drizzle/types/drizzle.js';
 import { friendships, FriendshipStatus } from '../drizzle/schema/friendships.schema.js';
 import { and, eq, or } from 'drizzle-orm';
 import { FindAllFriendshipsDto } from './dto/find-all-friendships.dto.js';
@@ -9,12 +7,16 @@ import { REDIS_CLIENT } from '../redis/redis.provider.js';
 import type { RedisClient } from '../redis/redis.provider.js';
 import { CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME } from '../constant.js';
 import { redis_cache_friendship_all_friendships } from '../redis/namespaces/caching/cache-friendship.namespace.js';
+import { InjectDrizzle } from '@nestjs/drizzle';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { DRIZZLE } from '../drizzle/drizzle.module.js';
+import { dbRelations } from '../drizzle/schema/schema.js';
 
 @Injectable()
 export class FriendService {
 
   constructor(
-    @Inject(DRIZZLE) private db: DrizzleDB,
+    @Inject(DRIZZLE) private db: NodePgDatabase<typeof dbRelations>,
     @Inject(REDIS_CLIENT) private readonly redis:RedisClient
   ) {}
 

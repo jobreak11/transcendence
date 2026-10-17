@@ -24,10 +24,10 @@ export function redis_cache_user_profile(userId: string) {
 
 // set get
 export function redis_cache_user_email(email: string) {
-  return `${redis_cache_namespace}:user:email:${email}`
+  return `${redis_cache_namespace()}:user:email:${email}`
 }
 
 // set get
 export function redis_cache_user_tag_id(tagId: string) {
-  return `${redis_cache_namespace}:user:tag_id:${tagId}`
+  return `${redis_cache_namespace()}:user:tag_id:${tagId}`
 }

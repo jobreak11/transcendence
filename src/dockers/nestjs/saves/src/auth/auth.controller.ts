@@ -8,7 +8,7 @@ import { RefreshAuthGuard } from './guards/refresh-auth/refresh-auth.guard.js';
 import { RefreshTokenSuccessDto } from './dto/refresh-token.dto.js';
 import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard.js';
 import { Public } from './decorators/public.decorators.js';
-import { CreateUserDto, CreateUserSchema } from '../user/dto/create-user.dto.js';
+import { CreateUserDto, createUserSchema } from '../user/dto/create-user.dto.js';
 import { GoogleAuthGuard } from './guards/google-auth/google-auth.guard.js';
 import type { Response } from 'express';
 import { FortytwoAuthGuard } from './guards/fortytwo-auth/fortytwo-auth.guard.js';
@@ -39,7 +39,7 @@ export class AuthController {
     }
   })
   @UseGuards(ThrottlerGuard)
-  registerUser(@Body(new ZodValidationPipe(CreateUserSchema)) createUserDto: CreateUserDto) {
+  registerUser(@Body(new ZodValidationPipe(createUserSchema)) createUserDto: CreateUserDto) {
     return this.authService.registerUser(createUserDto);
   }
 
