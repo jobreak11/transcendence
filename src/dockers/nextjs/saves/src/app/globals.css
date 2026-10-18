@@ -1,6 +1,0 @@
-
-@import "tailwindcss";
-
-code {
-  @apply bg-white/10 p-2 rounded-2xl;
-}
