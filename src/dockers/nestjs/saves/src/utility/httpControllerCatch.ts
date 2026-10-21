@@ -29,4 +29,4 @@ export function httpControllerCatch(error: any) {
     }
 
     return new InternalServerErrorException("unknown error");
-  }
+}

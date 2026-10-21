@@ -11,6 +11,9 @@ import { logErrorRedisError, logErrorRedisPipeLine } from "../utility/redis-logE
 import { errorWithCode } from "../../utility/errorWithCode.js";
 import { ChatMessageDto } from "../../chat/dtos/chat-message.dto.js";
 import { ChatMessageType } from "../../drizzle/schema/chat_messages/chat_messages.schema.js";
+import { InviteUserToChatRoomZodDto } from "../../chat/dtos/chat.dto.js";
+import { GetChatRoomDto } from "../../chat/dtos/get-chat-room.dto.js";
+import { InstanceWrapper } from "@nestjs/core/internal";
 
 @Injectable()
 export class ChatRedisService implements OnModuleInit {
@@ -50,6 +53,13 @@ export class ChatRedisService implements OnModuleInit {
 
   }
 
+  async isUserInRoom(chatRoomId: string, userId: string) {
+
+    const res = await this.getChatRoomMemberDto(chatRoomId, userId)
+
+    return res;
+  }
+
   async findAllChatRooms(userId: string)
   : Promise<ChatRoomDto[]> {
 
@@ -73,7 +83,7 @@ export class ChatRedisService implements OnModuleInit {
     return result;
   }
 
-  async findChatRoom(chatRoomId: string): Promise<ChatRoomDto | null> {
+  async findChatRoom(chatRoomId: string): Promise<ChatRoomDto> {
 
     const resAll = await this.redis.pipeline()
       .exists(redis_chat_room_details(chatRoomId))
@@ -111,7 +121,10 @@ export class ChatRedisService implements OnModuleInit {
 
     if (isExist === 0) {
       // the chatroom is not exist
-      return null;
+      throw errorWithCode(
+        HttpStatus.NOT_FOUND,
+        "chat room not found"
+      )
     }
 
     const result = this.recordToChatRoomDetails(rawRoomDetails);
@@ -511,9 +524,12 @@ export class ChatRedisService implements OnModuleInit {
     if (oldestMemberId) {
       await this.setRole(chatRoomId, oldestMemberId, ChatRoomMemberRole.OWNER);
     }
-    else if (oldestSpectatorId) {
-      await this.setRole(chatRoomId, oldestSpectatorId, ChatRoomMemberRole.OWNER);
+    else {
+      await this.removeRoom(chatRoomId);
     }
+    //else if (oldestSpectatorId) {
+    //  await this.setRole(chatRoomId, oldestSpectatorId, ChatRoomMemberRole.OWNER);
+    //}
 
     return memberDetails;
   }
@@ -679,6 +695,81 @@ export class ChatRedisService implements OnModuleInit {
     }
 
     return payload;
+  }
+
+  async inviteUserToChatRoom(
+    inviteDto: InviteUserToChatRoomZodDto,
+    hostUserId: string,
+  ): Promise<ChatRoomMemberDto> {
+
+    const [roomDetails, hostDetails, newUserDetails] = await Promise.all([
+      this.findChatRoom(inviteDto.chatRoomId),
+      this.getChatRoomMemberDto(inviteDto.chatRoomId, hostUserId).catch((error: any) => {
+        if (error instanceof Error) {
+          const cause = error.cause as {code?: HttpStatus}
+          if (cause?.code === HttpStatus.NOT_FOUND) {
+            return null;
+          }
+        }
+        throw error;
+      }),
+      this.getChatRoomMemberDto(inviteDto.chatRoomId, inviteDto.targetUserId).catch((error: any) => {
+        if (error instanceof Error) {
+          const cause = error.cause as {code?: HttpStatus}
+          if (cause?.code === HttpStatus.NOT_FOUND) {
+            return null;
+          }
+        }
+        throw error;
+      }),
+    ]);
+
+    if (newUserDetails !== null) {
+      throw errorWithCode(
+        HttpStatus.CONFLICT,
+        "the user you invited already in this chat room"
+      );
+    }
+
+    if (hostDetails === null) {
+      throw errorWithCode(
+        HttpStatus.NOT_FOUND,
+        "host user member not found"
+      )
+    }
+
+
+    if (roomDetails.visibilityType === ChatRoomVisibilityType.DIRECT_MESSAGE) {
+      throw errorWithCode(
+        HttpStatus.FORBIDDEN,
+        "cannot invite user to direct message chat room",
+      )
+    }
+
+    if (roomDetails.visibilityType === ChatRoomVisibilityType.PRIVATE) {
+      // private chat room only the owner can invite others
+      if (hostDetails.role !== ChatRoomMemberRole.OWNER) {
+        throw errorWithCode(
+          HttpStatus.FORBIDDEN,
+          "only owner allowed to invite to private chat room"
+        )
+      }
+    }
+    else {
+
+      // if spectator in public chat room can only invite
+      // another user as spectator
+      if (hostDetails.role === ChatRoomMemberRole.SPECTATOR) {
+        if (inviteDto.role !== ChatRoomMemberRole.SPECTATOR) {
+          throw errorWithCode(
+            HttpStatus.FORBIDDEN,
+            "spectator in public chat room can only invite another user as spectator"
+          );
+        }
+      }
+    }
+
+    return this.joinRoom(inviteDto.targetUserId, inviteDto.chatRoomId, inviteDto.role)
   }
 }
 

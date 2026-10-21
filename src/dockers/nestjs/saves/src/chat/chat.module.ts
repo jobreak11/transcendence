@@ -3,9 +3,10 @@ import { ChatController } from './chat.controller.js';
 import { ChatService } from './chat.service.js';
 import { DrizzleModule } from '../drizzle/drizzle.module.js';
 import { UserModule } from '../user/user.module.js';
+import { ChatRedisModule } from '../redis/chat-redis/chat-redis.module.js';
 
 @Module({
-  imports: [DrizzleModule, UserModule],
+  imports: [DrizzleModule, ChatRedisModule],
   controllers: [ChatController],
   providers: [ChatService],
   exports: [ChatService],

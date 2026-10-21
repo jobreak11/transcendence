@@ -8,6 +8,11 @@ import { THROTTLER_CHAT_CONTROLLER_LIMIT, THROTTLER_CHAT_CONTROLLER_TTL } from '
 import { CreateChatRoomSchema, InviteUserToChatRoomSchema, KickUserChatRoomSchema } from './dtos/chat.dto.js';
 import type { CreateChatRoomZodDto, InviteUserToChatRoomZodDto, KickUserChatRoomZodDto } from './dtos/chat.dto.js';
 import { ChatService } from './chat.service.js';
+import { ChatRoomVisibilityType } from '../drizzle/schema/chat_rooms/chat_rooms.schema.js';
+import { httpControllerCatch } from '../utility/httpControllerCatch.js';
+import { brotliDecompressSync } from 'node:zlib';
+import { ChatRoomMemberRole } from '../drizzle/schema/chat_room_members/chat_room_members.schema.js';
+import { UserTitleDto } from '../user/title/title.dto.js';
 
 @UseGuards(JwtAuthGuard, UserThrottlerGuard)
 @Throttle({
@@ -27,56 +32,90 @@ export class ChatController {
   @Get()
   // retrieve all the chat room this user can join
   getAllUserRoom(@Req() req:any) {
-    return this.chatService.findAllChatRooms(req.user.id);
+    try {
+      return this.chatService.findAllChatRooms(req.user.id);
+    } catch (error: any) {
+      
+      throw httpControllerCatch(error);
+    }
   }
 
   @Post('dm')
   dmUser(@Req() req:any, @Query('targetUserId') targetUserId:string) {
 
-    // return the chatRoomId for websocket in client side to listen to
+    try {
 
-    if (req.user.id === targetUserId) {
-      throw new BadRequestException('cannot establish direct message room to your self');
+      if (req.user.id === targetUserId) {
+        throw new BadRequestException('cannot establish direct message room to your self');
+      }
+      return this.chatService.directMessageRoom(req.user.id, targetUserId)
+      // return the chatRoomId for websocket in client side to listen to
+
+    } catch (error: any) {
+      throw httpControllerCatch(error);
     }
-
-    return this.chatService.directMessageRoom(req.user.id, targetUserId)
   }
 
   @Get('message')
   async getMessagesRoom(@Req() req:any, @Query('chatRoomId') chatRoomId:string) {
 
-    if (!chatRoomId)
-      throw new BadRequestException('chatRoomId query parameter is required');
+    try {
+      if (!chatRoomId)
+        throw new BadRequestException('chatRoomId query parameter is required');
 
-    const roomRes = await this.chatService.isUserInRoom(req.user.id, chatRoomId);
+      const result = await this.chatService.isUserInRoom(req.user.id, chatRoomId);
 
-    if (!roomRes) {
-      throw new ForbiddenException('User is not in the target chatroom');
-    }
+      if (!result) {
+        throw new ForbiddenException('User is not in the target chatroom');
+      }
     
-    return await this.chatService.getChatMessages(chatRoomId);
+      return await this.chatService.getMessages(chatRoomId);
+    } catch (error: any) {
+      throw httpControllerCatch(error);
+    }
   }
 
 
   @HttpCode(HttpStatus.CREATED)
   @Post('room/create')
-  async createChatRoom(@Req() req:any, 
-    @Body(new ZodValidationPipe(CreateChatRoomSchema)) body: CreateChatRoomZodDto) {
-
-    const res = await this.chatService.createRoom(req.user.id, body.type, body.roomName);
-    if (!res) 
-      throw new InternalServerErrorException("Cannot create the chat room.");
-
-    return res;
+  async createChatRoom(
+    @Req() req:any, 
+    @Body(new ZodValidationPipe(CreateChatRoomSchema)) body: CreateChatRoomZodDto
+  ) {
+    try {
+      const res = await this.chatService.createNewChatRoom({
+        roomName: body.roomName ?? null,
+        isTemporary: false,
+        createdByUserId: req.user.id as string,
+        visibilityType: body.type
+      });
+      if (!res) 
+        throw new InternalServerErrorException("Cannot create the chat room.");
+      return res;
+    } catch (error: any) {
+      throw httpControllerCatch(error);
+    }
   }
 
 
   @HttpCode(HttpStatus.OK)
   @Post('room/invite')
-  inviteToChatRoom(@Req() req:any, 
+  async inviteToChatRoom(@Req() req:any, 
   @Body(new ZodValidationPipe(InviteUserToChatRoomSchema)) body: InviteUserToChatRoomZodDto) {
 
-    return this.chatService.inviteToRoom(req.user.id, body.targetUserId, body.chatRoomId, body.role);
+    try {
+      const roomDetails = await this.chatService.findOne(body.chatRoomId);
+      const userMember = await this.chatService.isUserInRoom(body.chatRoomId, req.user.id);
+
+      if (roomDetails.visibilityType === ChatRoomVisibilityType.DIRECT_MESSAGE) {
+        throw new ForbiddenException("cannot invite ")
+      }
+
+
+      return this.chatService.inviteUserToChatRoom(body, req.user.id);
+    } catch (error: any) {
+      throw httpControllerCatch(error);
+    }
   }
 
 
@@ -85,7 +124,7 @@ export class ChatController {
   leaveTheChatRoom(@Req() req:any,
     @Query('chatRoomId', new ParseUUIDPipe()) chatRoomId: string
   ) {
-    return this.chatService.leaveChatRoom(req.user.id, chatRoomId);
+    return this.chatService.leaveRoom(req.user.id, chatRoomId);
   }
 
   @HttpCode(HttpStatus.OK)
@@ -94,7 +133,7 @@ export class ChatController {
   kickUserChatRoom(@Req() req: any,
     @Body(new ZodValidationPipe(KickUserChatRoomSchema)) body: KickUserChatRoomZodDto
   ) {
-    return this.chatService.kickUserChatRoom(req.user.id, body.targetUserId, body.chatRoomId);
+    return this.chatService.kickUser(req.user.id, body.targetUserId, body.chatRoomId);
   }
 
 

@@ -21,6 +21,8 @@ import { errorWithCode } from "../utility/errorWithCode.js";
 import { ChatMessageDto } from "./dtos/chat-message.dto.js";
 import { chat_messages, ChatMessageType } from "../drizzle/schema/chat_messages/chat_messages.schema.js";
 import { alias } from "drizzle-orm/pg-core";
+import { InviteUserToChatRoomSchema, InviteUserToChatRoomZodDto } from "./dtos/chat.dto.js";
+import { TokenError } from "passport-oauth2";
 
 @Injectable()
 export class ChatService {
@@ -29,7 +31,6 @@ export class ChatService {
 
   constructor(
     @Inject(DRIZZLE) private readonly db: NodePgDatabase<typeof dbRelations>,
-    private readonly userService: UserService,
     private readonly chatRedisService: ChatRedisService
   ) {
 
@@ -38,6 +39,32 @@ export class ChatService {
   isChatRoomExist() {
 
   }
+
+  async isUserInRoom(chatRoomId: string, userId: string) {
+
+    const isTemp = await this.isChatRoomTemporary(chatRoomId);
+
+    if (isTemp) {
+      return this.chatRedisService.isUserInRoom(chatRoomId, userId);
+    }
+
+    const found = await this.db.query.chat_room_members.findFirst({
+      where: {
+        chatRoomId: chatRoomId,
+        userId: userId
+      }
+    });
+
+    if (found === undefined) {
+      throw errorWithCode(
+        HttpStatus.NOT_FOUND,
+        "room member not found",
+      );
+    }
+
+    return found
+  }
+
 
   async findAllChatRooms(userId: string):
   Promise<ChatRoomDto[]> {
@@ -225,7 +252,7 @@ export class ChatService {
 
   // find chat room from both redis and database
   // must find one
-  async findOne(chatRoomId: string): Promise<GetChatRoomDto | null> {
+  async findOne(chatRoomId: string): Promise<GetChatRoomDto> {
 
     const [dbResult, redisResult] = await Promise.allSettled([
       this.db.query.chat_rooms.findFirst({
@@ -272,7 +299,10 @@ export class ChatService {
       }
     }
     else {
-      return null;
+      throw errorWithCode(
+        HttpStatus.NOT_FOUND,
+        "chat room not found"
+      )
     }
   }
 
@@ -384,10 +414,13 @@ export class ChatService {
       if (oldestRoomMember) {
         await this.setRole(chatRoomId, oldestRoomMember.userId, ChatRoomMemberRole.OWNER);
       }
-      else if (oldestRoomSpectator) {
-
-        await this.setRole(chatRoomId, oldestRoomSpectator.userId, ChatRoomMemberRole.OWNER);
+      else {
+        await this.removeRoom(chatRoomId);
       }
+      //else if (oldestRoomSpectator) {
+
+      //  await this.setRole(chatRoomId, oldestRoomSpectator.userId, ChatRoomMemberRole.OWNER);
+      //}
 
       return res;
     }
@@ -584,5 +617,98 @@ export class ChatService {
       .returning();
   
     return (newRoom);
+  }
+
+  async inviteUserToChatRoom(
+    inviteDto: InviteUserToChatRoomZodDto,
+    hostUserId: string
+  ): Promise<ChatRoomMemberDto> {
+
+    const roomDetails = await this.findOne(inviteDto.chatRoomId);
+    if (roomDetails.isTemporary === true) {
+      return this.chatRedisService.inviteUserToChatRoom(inviteDto, hostUserId);
+    }
+
+    const [hostDetails, newUserDetails] = await Promise.all([
+      this.isUserInRoom(inviteDto.chatRoomId, hostUserId).catch((error: any) => {
+        if (error instanceof Error) {
+          const cause = error.cause as {code?: HttpStatus}
+          if (cause?.code === HttpStatus.NOT_FOUND) {
+            return null;
+          }
+        }
+        throw error;
+      }),
+      this.isUserInRoom(inviteDto.chatRoomId, inviteDto.targetUserId).catch((error: any) => {
+        if (error instanceof Error) {
+          const cause = error.cause as {code?: HttpStatus}
+          if (cause?.code === HttpStatus.NOT_FOUND) {
+            return null;
+          }
+        }
+        throw error;
+      }),
+    ]);
+
+    if (newUserDetails !== null) {
+      throw errorWithCode(
+        HttpStatus.CONFLICT,
+        "the user you invited already in this chat room"
+      );
+    }
+
+    if (hostDetails === null) {
+      throw errorWithCode(
+        HttpStatus.NOT_FOUND,
+        "host user member not found"
+      )
+    }
+
+
+    if (roomDetails.visibilityType === ChatRoomVisibilityType.DIRECT_MESSAGE) {
+      throw errorWithCode(
+        HttpStatus.FORBIDDEN,
+        "cannot invite user to direct message chat room",
+      )
+    }
+
+    if (roomDetails.visibilityType === ChatRoomVisibilityType.PRIVATE) {
+      // private chat room only the owner can invite others
+      if (hostDetails.role !== ChatRoomMemberRole.OWNER) {
+        throw errorWithCode(
+          HttpStatus.FORBIDDEN,
+          "only owner allowed to invite to private chat room"
+        )
+      }
+    }
+    else {
+
+      // if spectator in public chat room can only invite
+      // another user as spectator
+      if (hostDetails.role === ChatRoomMemberRole.SPECTATOR) {
+        if (inviteDto.role !== ChatRoomMemberRole.SPECTATOR) {
+          throw errorWithCode(
+            HttpStatus.FORBIDDEN,
+            "spectator in public chat room can only invite another user as spectator"
+          );
+        }
+      }
+    }
+
+    return this.joinRoom(inviteDto.targetUserId, inviteDto.chatRoomId, inviteDto.role)
+  }
+
+  async kickUser(hostUserId: string, toKickUserId: string, chatRoomId: string) {
+
+    const hostDetails = await this.isUserInRoom(chatRoomId, hostUserId)
+
+    if (hostDetails.role !== ChatRoomMemberRole.OWNER) {
+      throw errorWithCode(
+        HttpStatus.FORBIDDEN,
+        "user must be host of this chat room to kick another user"
+      )
+    }
+
+    return this.leaveRoom(toKickUserId, chatRoomId);
   }
 }
