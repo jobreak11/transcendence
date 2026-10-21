@@ -8,16 +8,11 @@ import * as path from 'path';
 import * as fs from 'fs/promises'
 import { SHARED_STORAGE_PATH, STORAGE_URL_PATH } from '../constant.js';
 import { users, userSchema } from '../drizzle/schema/users/users.schema.js';
-import { eq, Update } from 'drizzle-orm';
-import { REDIS_CLIENT } from '../redis/redis.provider.js';
-import type { RedisClient } from '../redis/redis.provider.js';
+import { eq } from 'drizzle-orm';
 import { UserDto } from '../drizzle/schema/users/user.dto.js';
 import { TitleService } from './title/title.service.js';
-import { redis_cache_user_all_keys, redis_cache_user_email, redis_cache_user_profile, redis_cache_user_tag_id } from '../redis/namespaces/caching/cache-user.namespace.js';
-import { InjectDrizzle } from '@nestjs/drizzle';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { dbSchema } from '../drizzle/schema/schema.js';
-import { text } from 'stream/consumers';
 import { user_profiles, userProfileSchema } from '../drizzle/schema/user_profiles/user_profiles.schema.js';
 import z from 'zod';
 import { UserRedisService } from '../redis/user-redis/user-redis.service.js';
@@ -271,16 +266,16 @@ export class UserService {
         throw new NotFoundException("user id not found");
       }
 
-      if (error?.code) {
+      if (error?.cause?.code) {
         // Postgresql error
 
         // unique primary key violation
-        if (error.code === '23505') {
+        if (error?.cause?.code === '23505') {
           throw new ConflictException(`This user is already exist`);
         }
 
         // foriegn key violation
-        if (error.code === '23503') {
+        if (error?.cause?.code === '23503') {
           throw new ForbiddenException("the title id is invalid")
         }
 

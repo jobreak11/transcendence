@@ -3,7 +3,7 @@ import { WebSocketServer } from "@nestjs/websockets";
 import { Server } from "socket.io";
 import { REDIS_CLIENT } from "../../../redis/redis.provider.js";
 import type { RedisClient } from "../../../redis/redis.provider.js";
-import { redis_user_is_online } from "../../../redis/namespaces/user/user.namespace.js";
+import { redis_user_is_online } from "../../../redis/user-redis/namespaces/user.namespace.js";
 
 
 @Injectable()

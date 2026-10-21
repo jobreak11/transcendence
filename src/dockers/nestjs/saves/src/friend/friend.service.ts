@@ -7,7 +7,6 @@ import { REDIS_CLIENT } from '../redis/redis.provider.js';
 import type { RedisClient } from '../redis/redis.provider.js';
 import { CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME } from '../constant.js';
 import { redis_cache_friendship_all_friendships } from '../redis/namespaces/caching/cache-friendship.namespace.js';
-import { InjectDrizzle } from '@nestjs/drizzle';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DRIZZLE } from '../drizzle/drizzle.module.js';
 import { dbRelations } from '../drizzle/schema/schema.js';

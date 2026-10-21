@@ -104,7 +104,7 @@ EOF
   fastify \
   zod \
   @nestjs/throttler \
-  drizzle-orm@rc @nestjs/drizzle
+  drizzle-orm@rc
   # @nestjs/typeorm typeorm \
 
 

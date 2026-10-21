@@ -12,7 +12,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   private readonly logger = new Logger(MainGateway.name);
 
   @WebSocketServer()
-  server: Server;
+  private server: Server;
 
   constructor (
     private readonly mainGatewayService: MainGatewayService,

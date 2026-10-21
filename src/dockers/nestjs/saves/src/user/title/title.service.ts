@@ -154,7 +154,7 @@ export class TitleService {
       if (error?.code) {
         // Postgresql error code
 
-         if (error.code === '23505')
+         if (error?.cause?.code === '23505')
           throw new ConflictException("name must be unique");
       }
 
@@ -316,10 +316,10 @@ export class TitleService {
       // check if the postgresql error
       if (error?.code) {
 
-        if (error.code === '23505') {
+        if (error?.cause?.code === '23505') {
           // 23505 is unique violation of the primary key
           throw new ConflictException(`The user ${userId} id already have this title`);
-        } else if (error.code === '23503') {
+        } else if (error?.cause?.code === '23503') {
           // 23503 is foreign key violation, meaning that the parent might not exist
           throw new ForbiddenException(`the user or title id is not existed`);
         }

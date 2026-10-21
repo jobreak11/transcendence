@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ChatMessageType } from '../../../../drizzle/schema/chat_messages.schema.js';
+import { ChatMessageType } from '../../../../drizzle/schema/chat_messages/chat_messages.schema.js';
 
 export namespace ChatMessage {
 

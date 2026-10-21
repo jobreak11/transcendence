@@ -2,10 +2,10 @@ import { HttpException, Inject, Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 import { Server } from 'socket.io';
 import { ChatService } from '../../../chat/chat.service.js';
-import { ChatRoomType } from '../../../drizzle/schema/chat_rooms.schema.js';
+import { ChatRoomType } from '../../../drizzle/schema/chat_rooms/chat_rooms.schema.js';
 import { WsException } from '@nestjs/websockets';
 import { InstanceLinksHost } from '@nestjs/core/injector/instance-links-host.js';
-import { ChatMessageType } from '../../../drizzle/schema/chat_messages.schema.js';
+import { ChatMessageType } from '../../../drizzle/schema/chat_messages/chat_messages.schema.js';
 import { room_main_chat_lobby, room_main_chat_specific } from '../rooms/chat.room.js';
 import { event_main_chat } from '../events/chat.event.js';
 import { resourceLimits } from 'worker_threads';
@@ -13,7 +13,7 @@ import { ChatMessage } from './dtos/chat-message.dto.js';
 import { room_main_private_user } from '../rooms/user.room.js';
 import { REDIS_CLIENT } from '../../../redis/redis.provider.js';
 import  type { RedisClient } from '../../../redis/redis.provider.js';
-import { redis_lobby_global_details_lobby_lists } from '../../../redis/namespaces/lobby/lobby.namespace.js';
+import { redis_lobby_global_details_lobby_lists } from '../../../redis/lobby-redis/namespaces/lobby.namespace.js';
 
 @Injectable()
 export class ChatGatewayService {

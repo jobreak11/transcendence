@@ -1,13 +1,13 @@
 import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, InternalServerErrorException, ParseUUIDPipe, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth/jwt-auth.guard.js';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { ChatService } from './chat.service.js';
 import { ZodValidationPipe } from '../pipes/ZodValidationPipe.js';
 import { UserThrottlerGuard } from '../auth/guards/user-throttler/user-throttler.guard.js';
 import { Throttle } from '@nestjs/throttler';
 import { THROTTLER_CHAT_CONTROLLER_LIMIT, THROTTLER_CHAT_CONTROLLER_TTL } from '../constant.js';
 import { CreateChatRoomSchema, InviteUserToChatRoomSchema, KickUserChatRoomSchema } from './dtos/chat.dto.js';
 import type { CreateChatRoomZodDto, InviteUserToChatRoomZodDto, KickUserChatRoomZodDto } from './dtos/chat.dto.js';
+import { ChatService } from './chat.service.js';
 
 @UseGuards(JwtAuthGuard, UserThrottlerGuard)
 @Throttle({
@@ -27,7 +27,7 @@ export class ChatController {
   @Get()
   // retrieve all the chat room this user can join
   getAllUserRoom(@Req() req:any) {
-    return this.chatService.findAllJoinedChatRoom(req.user.id);
+    return this.chatService.findAllChatRooms(req.user.id);
   }
 
   @Post('dm')

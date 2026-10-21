@@ -3,7 +3,7 @@ import { ChatGatewayService } from "./chat-gateway.service.js";
 import { event_main_chat } from "../events/chat.event.js";
 import { Server, Socket } from "socket.io";
 import { WsZodValidationPipe } from "../../pipes/wsZodValidationPipe.js";
-import { ChatMessageType } from "../../../drizzle/schema/chat_messages.schema.js";
+import { ChatMessageType } from "../../../drizzle/schema/chat_messages/chat_messages.schema.js";
 import { ChatMessage } from "./dtos/chat-message.dto.js";
 
 @WebSocketGateway({
@@ -13,7 +13,7 @@ import { ChatMessage } from "./dtos/chat-message.dto.js";
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 
   @WebSocketServer()
-  private server: Server;
+  server: Server;
 
   constructor(
     private readonly chatGatewayService: ChatGatewayService,

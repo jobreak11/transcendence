@@ -1,10 +1,9 @@
 import { z } from "zod"
-import { ChatRoomType } from "../../drizzle/schema/chat_rooms.schema.js";
-import { ChatRoomMemberRole } from "../../drizzle/schema/chat_room_members.schema.js";
+import { ChatRoomVisibilityType } from "../../drizzle/schema/chat_rooms/chat_rooms.schema.js";
 
 export const CreateChatRoomSchema = z.object({
   roomName: z.string().max(100).optional(),
-  type: z.enum([ ChatRoomType.PRIVATE]).default(ChatRoomType.PRIVATE),
+  type: z.enum([ ChatRoomVisibilityType.PRIVATE]).default(ChatRoomVisibilityType.PRIVATE),
 })
 
 export type CreateChatRoomZodDto = z.infer<typeof CreateChatRoomSchema>;

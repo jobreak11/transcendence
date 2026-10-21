@@ -1,0 +1,2 @@
+
+export const REDIS_CHAT_LOBBY_MESSAGE_LIMIT = 200;

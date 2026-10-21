@@ -1,12 +1,12 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { REDIS_CLIENT } from '../redis.provider.js';
 import type { RedisClient } from '../redis.provider.js';
-import { redis_cache_user_all_keys, redis_cache_user_email, redis_cache_user_profile, redis_cache_user_tag_id } from '../namespaces/caching/cache-user.namespace.js';
-import { RedisCacheUserDto } from '../schemas/user/user.redis.schema.js';
-import { CACHING_USER_SERVICE_EXPIRE_TIME } from './user-redis.constants.js';
+import { redis_user_game_client_socket_list, redis_user_game_room_list, redis_user_lobby_list, redis_user_main_client_socket_list } from './namespaces/user.namespace.js';
+import { REDIS_USER_GAME_CLIENT_SOCKET_LIMIT, REDIS_USER_GAME_ROOM_LIMIT, REDIS_USER_LOBBY_LIST_LIMIT, REDIS_USER_MAIN_CLIENT_SOCKET_LIMIT } from './user-redis.constants.js';
+import { ThrottlerStorageProvider } from '@nestjs/throttler/dist/throttler.providers.js';
 
 @Injectable()
-export class UserRedisService {
+export class UserRedisService implements OnModuleInit {
 
   private readonly logger = new Logger(UserRedisService.name);
 
@@ -16,71 +16,110 @@ export class UserRedisService {
 
   }
 
-  async getCacheByEmail(email: string): Promise<RedisCacheUserDto | null> {
-
-    const foundRes = await this.redis.get(redis_cache_user_email(email))
-
-    if (foundRes) {
-      return this.getCacheById(foundRes)
-    }
-
-    return (null);
+  async onModuleInit() {
+    
   }
 
-  async getCacheByTagId(tagId: string): Promise<RedisCacheUserDto | null> {
-
-    const foundRes = await this.redis.get(redis_cache_user_tag_id(tagId))
-
-    if (foundRes) {
-      return this.getCacheById(foundRes)
-    }
-
-    return (null);
-  }
-
-  async getCacheById(userId: string): Promise<RedisCacheUserDto | null> {
-
-    const res = await this.redis.get(redis_cache_user_profile(userId));
-
-    if (!res) {
-      return null;
-    }
-
-    const data = JSON.parse(res) as RedisCacheUserDto
-    await this.resetExpireTime(data.id, data.email, data.tagId);
-    return data;
-  }
-
-  private async resetExpireTime(userId: string, email: string, tagId: string) {
-    await this.redis.pipeline()
-      .expire(redis_cache_user_profile(userId), CACHING_USER_SERVICE_EXPIRE_TIME)
-      .expire(redis_cache_user_email(email), CACHING_USER_SERVICE_EXPIRE_TIME)
-      .expire(redis_cache_user_tag_id(tagId), CACHING_USER_SERVICE_EXPIRE_TIME)
-      .exec()
-  }
-
-  cachingUser(redisCacheUserDto: RedisCacheUserDto) {
-
-    const stringCacheData = JSON.stringify(redisCacheUserDto);
-
-    return this.redis.msetex(3,
-      redis_cache_user_profile(redisCacheUserDto.id), stringCacheData,
-      redis_cache_user_email(redisCacheUserDto.email), redisCacheUserDto.id, 
-      redis_cache_user_tag_id(redisCacheUserDto.tagId), redisCacheUserDto.id,
-      "EX", CACHING_USER_SERVICE_EXPIRE_TIME
+  // might pop the old client socket out for the gateway to use
+  addGameClientSocketList(userId: string, clientSocketId: string) {
+    return this.redis.sortedSetFIFOWithLimitAdd(
+      redis_user_game_client_socket_list(userId),
+      clientSocketId,
+      REDIS_USER_GAME_CLIENT_SOCKET_LIMIT,
+      Date.now()
     )
   }
 
-  async cacheDeleteUser(userId: string) {
-    const res = await this.redis.get(redis_cache_user_profile(userId));
+  // might pop the old client socket out for the gateway to use
+  addMainClientSocketList(userId :string, clientSocketId: string) {
+    return this.redis.sortedSetFIFOWithLimitAdd(
+      redis_user_main_client_socket_list(userId),
+      clientSocketId,
+      REDIS_USER_MAIN_CLIENT_SOCKET_LIMIT,
+      Date.now()
+    )
+  }
 
-    if (res) {
-      const data = JSON.parse(res) as RedisCacheUserDto;
+  // return true false whether adding new lobby is successful
+  async addNewLobby(userId: string, lobbyPinId: string) {
+    const res = await this.redis.setWithLimitAdd(
+      redis_user_lobby_list(userId),
+      lobbyPinId,
+      REDIS_USER_LOBBY_LIST_LIMIT
+    )
 
-      await this.redis.unlink(
-        redis_cache_user_all_keys(data.id, data.email, data.tagId)
-      )
+    if (res === 0) {
+      return false;
     }
+    return true;
+  }
+
+  async addNewGameRoom(userId: string, gameRoomId: string) {
+    const res = await this.redis.setWithLimitAdd(
+      redis_user_game_room_list(userId),
+      gameRoomId,
+      REDIS_USER_GAME_ROOM_LIMIT
+    )
+
+    if (res === 0) {
+      return false;
+    }
+    return true;
+  }
+
+  // get amount of lobby the user is currently in
+  getUserLobbyList(userId: string) {
+    return this.redis.smembers(redis_user_lobby_list(userId));
+  }
+
+  getUserGameRoomList(userId: string) {
+    return this.redis.smembers(redis_user_game_room_list(userId));
+  }
+
+  getMainClientSocketList(userId: string) {
+    return this.redis.zrange(redis_user_main_client_socket_list(userId), 0, "-1");
+  }
+
+  getGameClientSocketList(userId: string) {
+    return this.redis.zrange(redis_user_game_client_socket_list(userId), 0, "-1");
+  }
+
+  // remove target Socket Id from the list
+  removeMainClientSocket(userId: string, clientSocketId: string) {
+    return this.redis.zrem(redis_user_main_client_socket_list(userId), clientSocketId);
+  }
+
+  // remove target Socket Id from the list
+  removeGameClientSocket(userId: string, clientSocketId: string) {
+    return this.redis.zrem(redis_user_game_client_socket_list(userId), clientSocketId);
+  }
+
+  removeUserLobbyList(userId: string, lobbyPinId: string) {
+    return this.redis.srem(redis_user_lobby_list(userId), lobbyPinId);
+  }
+
+  removeUserGameRoomList(userId: string, gameRoomId: string) {
+    return this.redis.srem(redis_user_game_room_list(userId), gameRoomId);
+  }
+
+  // check whether user is online or not via client socket list
+  async isUserOnline(userId: string) {
+    const res = await this.redis.exists(redis_user_main_client_socket_list(userId));
+
+    if (res === 0) {
+      return false
+    }
+    return true;
+  }
+
+  async isUserInLobby(userId: string, lobbyPinId: string) {
+
+    const res = await this.redis.sismember(redis_user_lobby_list(userId), lobbyPinId);
+
+    if (res === 0) {
+      return false
+    }
+    return true;
   }
 
 }
