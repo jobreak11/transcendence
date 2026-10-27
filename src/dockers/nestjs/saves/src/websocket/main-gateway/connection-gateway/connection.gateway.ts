@@ -56,8 +56,7 @@ export class ConnectionGateway implements OnGatewayInit, OnGatewayConnection, On
       // client need to join thier own room for all notification that would have notify here
 
       // payload sub is the actual user id extracted from the jwtService
-      await client.join(room_main_private_user(payload.sub));
-      await this.connectionGatewayService.setUserIsOnline(payload.sub, true);
+      await this.connectionGatewayService.addClientId(client.id, client.data.user);
       this.logger.debug(`client User ID: ${payload.sub} joined the main user private room`);
     } catch (error) {
       this.logger.warn(`Connection rejected (Invalid token): ${client.id}`, error);
@@ -66,7 +65,8 @@ export class ConnectionGateway implements OnGatewayInit, OnGatewayConnection, On
   }
 
   async handleDisconnect(client: Socket) {
-    await this.connectionGatewayService.setUserIsOnline(client.data.user, false);
+    await this.connectionGatewayService.removeClientId(client.id, client.data.user);
     this.logger.log(`Client disconnected: ${client.id}`);
   }
+  
 }

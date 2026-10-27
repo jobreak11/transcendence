@@ -2,28 +2,25 @@ import { BadRequestException, ConflictException, ForbiddenException, Inject, Inj
 import { friendships, FriendshipStatus } from '../drizzle/schema/friendships.schema.js';
 import { and, eq, or } from 'drizzle-orm';
 import { FindAllFriendshipsDto } from './dto/find-all-friendships.dto.js';
-import { FriendshipsDto } from './dto/friend.dto.js';
-import { REDIS_CLIENT } from '../redis/redis.provider.js';
-import type { RedisClient } from '../redis/redis.provider.js';
-import { CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME } from '../constant.js';
-import { redis_cache_friendship_all_friendships } from '../redis/namespaces/caching/cache-friendship.namespace.js';
-import { InjectDrizzle } from '@nestjs/drizzle';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DRIZZLE } from '../drizzle/drizzle.module.js';
 import { dbRelations } from '../drizzle/schema/schema.js';
+import { FriendshipsCachingService } from '../redis/caching/friendships-caching/friendships-caching.service.js';
 
 @Injectable()
 export class FriendService {
 
   constructor(
     @Inject(DRIZZLE) private db: NodePgDatabase<typeof dbRelations>,
-    @Inject(REDIS_CLIENT) private readonly redis:RedisClient
-  ) {}
+    private readonly friendshipsCachingService: FriendshipsCachingService,
+  ) {
+
+  }
 
   async findAllFriendships(userId: string): Promise<FindAllFriendshipsDto> {
 
     // find from redis first
-    const foundFromCache = await this.getCacheFriendships(userId);
+    const foundFromCache = await this.friendshipsCachingService.getCacheFriendships(userId);
     if (foundFromCache) {
       return foundFromCache;
     }
@@ -67,33 +64,9 @@ export class FriendService {
     }
 
 
-    this.setCacheFriendships(allFriendships, userId);
+    this.friendshipsCachingService.setCacheFriendships(allFriendships, userId);
 
     return allFriendships;
-  }
-
-  setCacheFriendships(allFriendShips: FindAllFriendshipsDto, userId: string) {
-    return this.redis
-      .set(redis_cache_friendship_all_friendships(userId), JSON.stringify(allFriendShips), "EX", CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME);
-  }
-
-  async getCacheFriendships(userId: string) {
-
-    try {
-      const stringData = await this.redis
-        .getex(redis_cache_friendship_all_friendships(userId), "EX", CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME);
-      if (stringData) {
-        return JSON.parse(stringData) as FindAllFriendshipsDto
-      }
-      return (null);
-    } catch (err) {
-      throw new InternalServerErrorException("cache redis internal error");
-    }
-  }
-
-  delCacheFriendships(userId: string) {
-    return this.redis
-      .del(redis_cache_friendship_all_friendships(userId));
   }
 
   async setFriendshipStatus(
@@ -130,8 +103,8 @@ export class FriendService {
 
     // 1. BLOCKING: Can block regardless of whether a record currently exists
     if (status === FriendshipStatus.BLOCKED) {
-      this.delCacheFriendships(currentUserId);
-      this.delCacheFriendships(targetUserId);
+      this.friendshipsCachingService.delCacheFriendships(currentUserId);
+      this.friendshipsCachingService.delCacheFriendships(targetUserId);
       if (existing) {
         // Overwrite existing record: blocker becomes requester, blocked becomes addressee
         const [blocked] = await this.db
@@ -190,8 +163,8 @@ export class FriendService {
       );
     }
 
-    this.delCacheFriendships(currentUserId);
-    this.delCacheFriendships(targetUserId);
+    this.friendshipsCachingService.delCacheFriendships(currentUserId);
+    this.friendshipsCachingService.delCacheFriendships(targetUserId);
 
     const [updated] = await this.db
       .update(friendships)
@@ -248,8 +221,8 @@ export class FriendService {
         }
       }
 
-      this.delCacheFriendships(requesterUserId);
-      this.delCacheFriendships(addresseeUserId);
+      this.friendshipsCachingService.delCacheFriendships(requesterUserId);
+      this.friendshipsCachingService.delCacheFriendships(addresseeUserId);
 
       if (existing.status === FriendshipStatus.DECLINED) {
         const [updated] = await this.db
@@ -276,8 +249,8 @@ export class FriendService {
       }
     }
 
-    this.delCacheFriendships(requesterUserId);
-    this.delCacheFriendships(addresseeUserId);
+    this.friendshipsCachingService.delCacheFriendships(requesterUserId);
+    this.friendshipsCachingService.delCacheFriendships(addresseeUserId);
 
     const [newFriendRequest] = await this.db
       .insert(friendships)

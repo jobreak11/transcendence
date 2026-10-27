@@ -12,7 +12,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   private readonly logger = new Logger(MainGateway.name);
 
   @WebSocketServer()
-  server: Server;
+  private server: Server;
 
   constructor (
     private readonly mainGatewayService: MainGatewayService,
@@ -25,11 +25,11 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     
   }
 
-  handleConnection(client: any, ...args: any[]) {
-    
+  async handleConnection(client: any) {
+
   }
   
-  handleDisconnect(client: any, reason?: string) {
+  handleDisconnect(client: any) {
     
   }
 

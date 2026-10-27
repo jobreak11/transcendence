@@ -1,0 +1,2 @@
+
+export const CACHING_TITLE_SERVICE1_EXPIRE_TIME = 600;

@@ -34,7 +34,6 @@ import { WebsocketModule } from './websocket/websocket.module.js';
     FriendModule,
     GameModule,
     WebsocketModule,
-    // DrizzleModule
   ],
 })
 export class AppModule {}

@@ -5,9 +5,10 @@ import { UserController } from './user.controller.js';
 import { DrizzleModule } from '../drizzle/drizzle.module.js';
 import { TitleModule } from './title/title.module.js';
 import { UserRedisModule } from '../redis/user-redis/user-redis.module.js';
+import { UserCachingModule } from '../redis/caching/user-caching/user-caching.module.js';
 
 @Module({
-  imports: [DrizzleModule, TitleModule, UserRedisModule],
+  imports: [DrizzleModule, TitleModule, UserRedisModule, UserCachingModule],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService]

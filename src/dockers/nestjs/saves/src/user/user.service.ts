@@ -8,21 +8,17 @@ import * as path from 'path';
 import * as fs from 'fs/promises'
 import { SHARED_STORAGE_PATH, STORAGE_URL_PATH } from '../constant.js';
 import { users, userSchema } from '../drizzle/schema/users/users.schema.js';
-import { eq, Update } from 'drizzle-orm';
-import { REDIS_CLIENT } from '../redis/redis.provider.js';
-import type { RedisClient } from '../redis/redis.provider.js';
+import { eq } from 'drizzle-orm';
 import { UserDto } from '../drizzle/schema/users/user.dto.js';
 import { TitleService } from './title/title.service.js';
-import { redis_cache_user_all_keys, redis_cache_user_email, redis_cache_user_profile, redis_cache_user_tag_id } from '../redis/namespaces/caching/cache-user.namespace.js';
-import { InjectDrizzle } from '@nestjs/drizzle';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { dbSchema } from '../drizzle/schema/schema.js';
-import { text } from 'stream/consumers';
 import { user_profiles, userProfileSchema } from '../drizzle/schema/user_profiles/user_profiles.schema.js';
 import z from 'zod';
 import { UserRedisService } from '../redis/user-redis/user-redis.service.js';
 import { UserAndProfileDto } from './dto/user-and-profile.dto.js';
 import { DRIZZLE } from '../drizzle/drizzle.module.js';
+import { UserCachingService } from '../redis/caching/user-caching/user-caching.service.js';
 
 @Injectable()
 export class UserService {
@@ -32,6 +28,7 @@ export class UserService {
   constructor(
     @Inject(DRIZZLE) private db: NodePgDatabase<typeof dbSchema.dbRelations>,
     private readonly userRedisService: UserRedisService,
+    private readonly userCachingService: UserCachingService,
     private readonly titleService: TitleService,
   )
   {}
@@ -117,7 +114,7 @@ export class UserService {
   async findByEmail(email: string): Promise<UserAndProfileDto> {
 
     // find from redis first this will return the id of the user
-    const cacheByUserEmailFound = await this.userRedisService.getCacheByEmail(email);
+    const cacheByUserEmailFound = await this.userCachingService.getCacheByEmail(email);
     if (cacheByUserEmailFound) {
       // the id of the user to find the 
         return cacheByUserEmailFound;
@@ -136,13 +133,13 @@ export class UserService {
     if (!user)
       throw new NotFoundException(`User ${email} not found`)
 
-    await this.userRedisService.cachingUser(user);
+    await this.userCachingService.cachingUser(user);
 
     return user;
   }
 
   async findByTagId(tagId: string): Promise<UserAndProfileDto> {
-    const cacheByTagIdFound = await this.userRedisService.getCacheByTagId(tagId);
+    const cacheByTagIdFound = await this.userCachingService.getCacheByTagId(tagId);
 
     if (cacheByTagIdFound) {
       return cacheByTagIdFound
@@ -160,7 +157,7 @@ export class UserService {
     if (!user)
       throw new NotFoundException(`User tagId ${tagId} not found.`);
 
-    this.userRedisService.cachingUser(user);
+    this.userCachingService.cachingUser(user);
 
     return (user);
   }
@@ -172,7 +169,7 @@ export class UserService {
 
   async findOne(id: string): Promise<UserAndProfileDto> {
 
-    const foundCache = await this.userRedisService.getCacheById(id);
+    const foundCache = await this.userCachingService.getCacheById(id);
 
     if (foundCache) {
       return foundCache
@@ -194,7 +191,7 @@ export class UserService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    await this.userRedisService.cachingUser(user);
+    await this.userCachingService.cachingUser(user);
 
     return user;
   }
@@ -263,7 +260,7 @@ export class UserService {
 
       })
 
-      await this.userRedisService.cachingUser(result);
+      await this.userCachingService.cachingUser(result);
       return result;
     } catch (error: any) {
 
@@ -323,7 +320,7 @@ export class UserService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    await this.userRedisService.cacheDeleteUser(deletedUser.id);
+    await this.userCachingService.cacheDeleteUser(deletedUser.id);
 
     return deletedUser
   }

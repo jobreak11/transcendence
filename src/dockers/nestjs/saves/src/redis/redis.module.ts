@@ -4,6 +4,7 @@ import type { RedisClient } from './redis.provider.js';
 import { REDIS_CLIENT, redisProvider } from './redis.provider.js';
 import { UserRedisModule } from './user-redis/user-redis.module.js';
 
+
 @Global()
 @Module({
   providers: [redisProvider, RedisService],
