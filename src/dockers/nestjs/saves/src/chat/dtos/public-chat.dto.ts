@@ -4,7 +4,6 @@ import { ChatMessage } from "../../websocket/main-gateway/chat-gateway/dtos/chat
 
 const publicChatSchema = ChatMessage.responseSchema.omit({
   chatRoomId: true,
-  roomType: true
 }).extend({
   createdAt: z.date()
 })

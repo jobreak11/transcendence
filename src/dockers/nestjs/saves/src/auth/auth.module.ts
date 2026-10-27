@@ -16,6 +16,7 @@ import googleOauthConfig from './config/google-oauth.config.js';
 import { GoogleStrategy } from './strategies/google.strategy.js';
 import fortyTwoOauthConfig from './config/fortyTwo-oauth.config.js';
 import { FortyTwoStrategy } from './strategies/fortyTwo.strategy.js';
+import { UserRedisModule } from '../redis/user-redis/user-redis.module.js';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { FortyTwoStrategy } from './strategies/fortyTwo.strategy.js';
     ConfigModule.forFeature(refreshJwtConfig),
     ConfigModule.forFeature(googleOauthConfig),
     ConfigModule.forFeature(fortyTwoOauthConfig),
+    UserRedisModule
   ],
   controllers: [AuthController],
   providers: [

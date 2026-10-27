@@ -5,8 +5,8 @@ function event_main_chat_namespace() {
 }
 
 export const event_main_chat = {
-  from_client() {
-    return `${event_main_chat_namespace()}:from_client`
+  to_server() {
+    return `${event_main_chat_namespace()}:to_server`
   },
   to_client() {
     return `${event_main_chat_namespace()}:to_client`

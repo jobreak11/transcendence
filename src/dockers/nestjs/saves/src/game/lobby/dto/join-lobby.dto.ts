@@ -1,29 +1,26 @@
+import z from "zod";
+import { joinLobbySchema } from "../schemas/join-lobby.schema.js";
 import { ApiProperty } from "@nestjs/swagger";
-import { z } from "zod"
+
+type joinLobbyDtoBase = z.infer<typeof joinLobbySchema>
 
 
-export const JoinLobbySchema = z.object({
-  lobbyPinId: z.string().min(6).max(6),
-  isSpectator: z.boolean(),
-  password: z.string().optional(),
-})
-
-type _JoinLobbyZodDtoBase = z.infer<typeof JoinLobbySchema>
-
-export class JoinLobbyDto implements _JoinLobbyZodDtoBase {
+export class JoinLobbyDto implements joinLobbyDtoBase {
 
   @ApiProperty({
-    required: true
+    description: "lobby pin id",
+    example: "149234"
   })
   lobbyPinId: string;
 
   @ApiProperty({
-    required: true
+    description: "to join as spectator or not",
+    example: false
   })
   isSpectator: boolean;
 
   @ApiProperty({
-    required: false
+    description: "password of the lobby room if needed"
   })
-  password?: string;
+  password?: string | undefined;
 }

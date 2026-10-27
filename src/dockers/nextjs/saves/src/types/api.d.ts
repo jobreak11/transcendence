@@ -546,6 +546,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/chat/public": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicChatController_getAllChatMessages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/friend": {
         parameters: {
             query?: never;
@@ -979,6 +995,72 @@ export interface components {
              */
             refreshToken: string;
         };
+        ChatRoomDto: {
+            /** @description the uuid of the chat room */
+            id: string;
+            /**
+             * @description the room name
+             * @example yolo room
+             */
+            roomName: string | null;
+            /**
+             * @description room visibility type, PUBLIC would mean anyone could join and private would mean can only invite to the room
+             * @example PRIVATE
+             * @enum {string}
+             */
+            visibilityType: "PUBLIC" | "PRIVATE" | "DIRECT_MESSAGE";
+            /**
+             * Format: date-time
+             * @description the date this chat room was created
+             */
+            createdAt: string;
+        };
+        ChatMessageDto: {
+            /**
+             * @description the user id that send this message. Can be empty if it is system message.
+             * @example 01a105d0-bf8f-758a-a1ab-cf9098fded20
+             */
+            userId: string | null;
+            /**
+             * @description the chat message type to fast check whether it is USER message or SYSTEM message
+             * @example USER_MESSAGE
+             * @enum {string}
+             */
+            type: "USER_MESSAGE" | "SYSTEM_MESSAGE";
+            /**
+             * @description the message
+             * @example hello world. my name is pop siam.
+             */
+            messageText: string;
+            /**
+             * Format: date-time
+             * @description the time this message was created
+             */
+            createdAt: string;
+        };
+        ChatRoomMemberDto: {
+            /**
+             * @description user uuid
+             * @example 01a17e7e-80ed-7495-95be-0795296607b6
+             */
+            userId: string;
+            /**
+             * @description chat room uuid
+             * @example 01a17e7e-80ef-7085-b3e0-3cef467c7bdc
+             */
+            chatRoomId: string;
+            /**
+             * Format: date-time
+             * @description the date this user has joined
+             */
+            joinedAt: string;
+            /**
+             * @description user role on this chat room
+             * @example MEMBER
+             * @enum {string}
+             */
+            role: "MEMBER" | "OWNER" | "SPECTATOR";
+        };
         FindAllFriendshipsDto: {
             sentRequests: {
                 userId: string;
@@ -1002,69 +1084,15 @@ export interface components {
                 createdAt: string;
             }[];
         };
-        GameSettingsDto: {
+        LobbyDetailsDto: {
             /**
-             * @description the max number of player to game in the game
-             * @example 4
-             */
-            maxPlayer: number;
-            /**
-             * @description the max number of spectator to watch this game
-             * @example 2
-             */
-            maxSpectator: number;
-            /**
-             * @description the format to play in this lobby
-             * @example BEGINNER
-             * @enum {string}
-             */
-            format: "BEGINNER" | "PRO" | "TURBO" | "CUSTOM";
-        };
-        CreateLobbyDto: {
-            /**
-             * @description the catchphrase that would display when on the lobby list
-             * @example warm up match welcom new player
-             */
-            catchPhrase?: Record<string, never>;
-            /**
-             * @description type of the game room
-             * @example PUBLIC
-             * @enum {string}
-             */
-            roomType: "PUBLIC" | "PRIVATE";
-            /**
-             * @description the password of the room if the roomType is set     to PUBLIC
-             * @example 12345687
-             */
-            password?: Record<string, never>;
-            gameSettings: components["schemas"]["GameSettingsDto"];
-        };
-        LobbyDto: {
-            /**
-             * @description the catchphrase that would display when on the lobby list
-             * @example warm up match welcom new player
-             */
-            catchPhrase?: Record<string, never>;
-            /**
-             * @description type of the game room
-             * @example PUBLIC
-             * @enum {string}
-             */
-            roomType: "PUBLIC" | "PRIVATE";
-            /**
-             * @description the password of the room if the roomType is set     to PUBLIC
-             * @example 12345687
-             */
-            password?: Record<string, never>;
-            gameSettings: components["schemas"]["GameSettingsDto"];
-            /**
-             * @description the room identifier as       6 digits base-10 number randomly generated as string. User can use       this digit to quick join room
-             * @example 020321
+             * @description the pin id of the lobby room
+             * @example 067821
              */
             roomPinId: string;
             /**
              * Format: date-time
-             * @description the time this lobby was created
+             * @description the date the lobby room was created
              */
             createdAt: string;
             /** @description the user that created this lobby room */
@@ -1073,74 +1101,72 @@ export interface components {
             hostUserId: string;
             /**
              * @description the current status of the lobby room
-             * @example PLAYING
              * @enum {string}
              */
             roomStatus: "UNAVAILABLE" | "WAITING" | "PLAYING";
-            /** @description the number of current player in the lobby room */
+            /** @description the current player in the lobby room */
             currentPlayerCount: number;
-            /** @description the number of current spectator in the lobby */
+            /** @description the chat room id of this lobby room */
+            chatRoomId: string;
+            /** @description the current spectator count of the lobby room */
             currentSpectatorCount?: number;
         };
-        JoinLobbyDto: {
-            lobbyPinId: string;
-            isSpectator: boolean;
-            password?: string;
-        };
-        ResponseLobbyDto: {
+        LobbyGameSettingsDto: {
+            /** @description the max amount of player */
+            maxPlayer: number;
+            /** @description the max amount of spectator */
+            maxSpectator: number;
             /**
-             * @description the room identifier as       6 digits base-10 number randomly generated as string. User can use       this digit to quick join room
-             * @example 020321
-             */
-            roomPinId: string;
-            /**
-             * @description the catchphrase that would display when on the lobby list
-             * @example warm up match welcom new player
-             */
-            catchPhrase?: Record<string, never>;
-            /**
-             * @description type of the game room
-             * @example PUBLIC
+             * @description the format of the game
              * @enum {string}
              */
-            roomType?: "PUBLIC" | "PRIVATE";
-            gameSettings?: components["schemas"]["GameSettingsDto"];
-            /**
-             * Format: date-time
-             * @description the time this lobby was created
-             */
-            createdAt?: string;
-            /** @description the host user of the lobby room */
-            hostUserId?: string;
-            /**
-             * @description the current status of the lobby room
-             * @example PLAYING
-             * @enum {string}
-             */
-            roomStatus?: "UNAVAILABLE" | "WAITING" | "PLAYING";
-            /** @description the number of current player in the lobby room */
-            currentPlayerCount?: number;
-            /** @description the number of current spectator in the lobby */
-            currentSpectatorCount?: number;
+            format: "BEGINNER" | "PRO" | "TURBO" | "CUSTOM";
+            /** @description the starting chips */
+            startingChips: number;
+            /** @description the bigblind amount */
+            bigBlind: number;
+            /** @description the ante amount */
+            ante: number | null;
         };
-        UpdateLobbyDto: {
+        LobbyGeneralSettingsDto: {
             /**
-             * @description the catchphrase that would display when on the lobby list
-             * @example warm up match welcom new player
+             * @description the catchphrase of the room
+             * @example hell newbie welcome
              */
-            catchPhrase?: Record<string, never>;
+            catchPhrase: string | null;
             /**
-             * @description type of the game room
+             * @description the lobby room type
              * @example PUBLIC
              * @enum {string}
              */
             roomType: "PUBLIC" | "PRIVATE";
             /**
-             * @description the password of the room if the roomType is set     to PUBLIC
-             * @example 12345687
+             * @description the password of the room
+             * @example veryStringPassword1234
              */
-            password?: Record<string, never>;
-            gameSettings: components["schemas"]["GameSettingsDto"];
+            password: string | null;
+        };
+        LobbyDto: {
+            /** @description the details information of the lobby */
+            details: components["schemas"]["LobbyDetailsDto"];
+            /** @description the game settings of the lobby */
+            gameSettings: components["schemas"]["LobbyGameSettingsDto"];
+            /** @description the general settings of the lobby */
+            generalSettings: components["schemas"]["LobbyGeneralSettingsDto"];
+        };
+        JoinLobbyDto: {
+            /**
+             * @description lobby pin id
+             * @example 149234
+             */
+            lobbyPinId: string;
+            /**
+             * @description to join as spectator or not
+             * @example false
+             */
+            isSpectator: boolean;
+            /** @description password of the lobby room if needed */
+            password?: string;
         };
     };
     responses: never;
@@ -1723,7 +1749,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ChatRoomDto"][];
+                };
             };
         };
     };
@@ -1743,7 +1771,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ChatRoomDto"];
                 };
             };
         };
@@ -1763,7 +1791,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ChatMessageDto"][];
+                };
             };
         };
     };
@@ -1780,7 +1810,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ChatRoomDto"];
+                };
             };
         };
     };
@@ -1797,7 +1829,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ChatRoomMemberDto"];
+                };
             };
         };
     };
@@ -1816,7 +1850,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ChatRoomMemberDto"];
+                };
             };
         };
     };
@@ -1833,7 +1869,28 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ChatRoomMemberDto"];
+                };
+            };
+        };
+    };
+    PublicChatController_getAllChatMessages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessageDto"][];
+                };
             };
         };
     };
@@ -1939,11 +1996,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateLobbyDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             201: {
                 headers: {
@@ -1978,7 +2031,9 @@ export interface operations {
     };
     LobbyController_leaveLobbyRoom: {
         parameters: {
-            query?: never;
+            query: {
+                lobbyPinId: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2007,7 +2062,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ResponseLobbyDto"][];
+                    "application/json": components["schemas"]["LobbyDto"][];
                 };
             };
         };
@@ -2019,11 +2074,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateLobbyDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {

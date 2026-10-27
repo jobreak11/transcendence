@@ -1,25 +1,28 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException, NotImplementedException } from '@nestjs/common';
-import type { DrizzleDB } from '../drizzle/types/drizzle.js';
-import { chat_rooms, ChatRoomType } from '../drizzle/schema/chat_rooms.schema.js';
-import { chat_room_members, ChatRoomMemberRole } from '../drizzle/schema/chat_room_members.schema.js';
-import { and, asc, desc, eq, ne, or } from 'drizzle-orm';
-import { chat_messages, ChatMessageType } from '../drizzle/schema/chat_messages.schema.js';
-import { throwIfEmpty } from 'rxjs';
-import { join } from 'path';
-import { UserService } from '../user/user.service.js';
-import { REDIS_CLIENT } from '../redis/redis.provider.js';
-import type { RedisClient } from '../redis/redis.provider.js';
-import { ChatMessage } from '../websocket/main-gateway/chat-gateway/dtos/chat-message.dto.js';
-import { PublicChatMessage } from './dtos/public-chat.dto.js';
-import { alias } from 'drizzle-orm/pg-core';
-import { redis_global_chat_messages } from '../redis/namespaces/global/chat.namespace.js';
-import { Result } from 'pg';
-import { redis_lobby_chat_messages, redis_lobby_global_details_lobby_lists } from '../redis/namespaces/lobby/lobby.namespace.js';
-import { redis_user_game_lobby } from '../redis/namespaces/user/user.namespace.js';
-import { InjectDrizzle } from '@nestjs/drizzle';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { dbRelations, dbSchema } from '../drizzle/schema/schema.js';
-import { DRIZZLE } from '../drizzle/drizzle.module.js';
+import { BadRequestException, ConflictException, HttpException, HttpStatus, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from "@nestjs/common";
+import z from "zod";
+import { chatRoomCreateSchema } from "./schemas/chat-room-create.schema.js";
+import { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { DRIZZLE } from "../drizzle/drizzle.module.js";
+import { dbRelations } from "../drizzle/schema/schema.js";
+import { UserService } from "../user/user.service.js";
+import { ChatRedisService } from "../redis/chat-redis/chat-redis.service.js";
+import { chat_rooms, ChatRoomVisibilityType } from "../drizzle/schema/chat_rooms/chat_rooms.schema.js";
+import { chat_room_members, ChatRoomMemberRole } from "../drizzle/schema/chat_room_members/chat_room_members.schema.js";
+import { GetChatRoomDto } from "./dtos/get-chat-room.dto.js";
+import { ChatRoomCreateInputDto } from "./dtos/chat-room-create.dto.js";
+import { ChatRoomDto } from "../drizzle/schema/chat_rooms/chat_room.dto.js";
+import { v7 as uuidv7 } from "uuid";
+import { NotFoundError } from "rxjs";
+import { ChatRoomMemberDto } from "../drizzle/schema/chat_room_members/chat_room_member.dto.js";
+import { and, count, eq, inArray, or } from "drizzle-orm";
+import { logError } from "../utility/logError.js";
+import { error, log } from "console";
+import { errorWithCode } from "../utility/errorWithCode.js";
+import { ChatMessageDto } from "./dtos/chat-message.dto.js";
+import { chat_messages, ChatMessageType } from "../drizzle/schema/chat_messages/chat_messages.schema.js";
+import { alias } from "drizzle-orm/pg-core";
+import { InviteUserToChatRoomSchema, InviteUserToChatRoomZodDto } from "./dtos/chat.dto.js";
+import { TokenError } from "passport-oauth2";
 
 @Injectable()
 export class ChatService {
@@ -27,510 +30,685 @@ export class ChatService {
   private readonly logger = new Logger(ChatService.name);
 
   constructor(
-    @Inject(DRIZZLE) private db: NodePgDatabase<typeof dbRelations>,
-    private userService: UserService,
-    @Inject(REDIS_CLIENT) private readonly redis: RedisClient
-  ) {}
+    @Inject(DRIZZLE) private readonly db: NodePgDatabase<typeof dbRelations>,
+    private readonly chatRedisService: ChatRedisService
+  ) {
 
-  
-  async findAllJoinedChatRoom(userId: string) {
+  }
 
-    return await this.db
-      .select({
-        id: chat_rooms.id,
-        roomName: chat_rooms.roomName,
-        type: chat_rooms.type,
-        createdAt: chat_rooms.createdAt,
-        role: chat_room_members.role,
-        joinedAt: chat_room_members.joinedAt,
-      })
+  isChatRoomExist() {
+
+  }
+
+  async isUserInRoom(chatRoomId: string, userId: string) {
+
+    const isTemp = await this.isChatRoomTemporary(chatRoomId);
+
+    if (isTemp) {
+      return this.chatRedisService.isUserInRoom(chatRoomId, userId);
+    }
+
+    const found = await this.db.query.chat_room_members.findFirst({
+      where: {
+        chatRoomId: chatRoomId,
+        userId: userId
+      }
+    });
+
+    if (found === undefined) {
+      throw errorWithCode(
+        HttpStatus.NOT_FOUND,
+        "room member not found",
+      );
+    }
+
+    return found
+  }
+
+
+  async findAllChatRooms(userId: string):
+  Promise<ChatRoomDto[]> {
+
+    const dbRoomMember = await this.db.query.chat_room_members.findMany({
+      where: {
+        userId: userId
+      },
+    });
+
+    const chatRoomIdArray = dbRoomMember.map((res) => {
+      return res.chatRoomId
+    })
+
+    const dbResult = await this.db
+      .select()
       .from(chat_rooms)
-      .innerJoin(
-        chat_room_members,
-        eq(chat_rooms.id, chat_room_members.chatRoomId),
-      )
-      .where(eq(chat_room_members.userId, userId));
-  }
-
-  getChatMessages(chatRoomId: string, limit = 50) {
-
-    return this.db
-      .select({
-        chatMessageId: chat_messages.id,
-        senderUserId: chat_messages.userId,
-        messageText: chat_messages.messageText,
-        createdAt: chat_messages.createdAt
-      })
-      .from(chat_messages)
       .where(
-          eq(chat_messages.chatRoomId, chatRoomId)
-      )
-      .orderBy(asc(chat_messages.createdAt))
-      .limit(limit);
+        inArray(chat_rooms.id, chatRoomIdArray)
+      );
+
+    
+
+    const redisResult = await this.chatRedisService.findAllChatRooms(userId);
+
+    return [...dbResult, ...redisResult];
   }
 
-  getAllChatMessage(userId: string) {
-    return  this.db
-      .select({
-        chatMessageId: chat_messages.id,
-        senderUserId: chat_messages.userId,
-        chatRoomId: chat_messages.chatRoomId,
-        type: chat_messages.type,
-        createdAt: chat_messages.createdAt
-      })
-      .from(chat_messages)
-      .innerJoin(
-        chat_room_members,
-        and(
-          eq(chat_messages.chatRoomId, chat_room_members.chatRoomId),
-          eq(chat_room_members.userId, userId)
+  async createNewChatRoom(createNewChatRoomDto: ChatRoomCreateInputDto)
+  : Promise<ChatRoomDto> {
+
+    const result = chatRoomCreateSchema.insert.safeParse(createNewChatRoomDto);
+
+    if (!result.success) {
+      const treeErrors = z.treeifyError(result.error);
+
+      throw logError(
+        this.logger,
+        "error from createNewChatRoom()",
+        "invalid payload for this function",
+        HttpStatus.BAD_REQUEST,
+        treeErrors
+      )
+
+    }
+
+    const inputPayload = result.data;
+
+    const genId = uuidv7();
+
+    if (inputPayload.isTemporary) {
+
+      const res = await this.chatRedisService.createChatRoom({
+        id: genId,
+        roomName: inputPayload.roomName,
+        visibilityType: inputPayload.visibilityType,
+        createdAt: new Date()
+      });
+
+      if (inputPayload.createdByUserId) {
+        const redisJoined = await this.chatRedisService.joinRoom(
+          inputPayload.createdByUserId,
+          genId,
+          ChatRoomMemberRole.OWNER
         )
-      )
-      .orderBy(
-        asc(chat_messages.chatRoomId),
-        desc(chat_messages.createdAt)
-      )
-  }
-
-  async createRoom(creatorUserId: string, type?: ChatRoomType, roomName?: string) {
-
-    try {
-      const [createdRoom] = await this.db
-        .insert(chat_rooms)
-        .values({
-         type: type ?? ChatRoomType.PRIVATE,
-         roomName: roomName
-        })
-        .returning()
-
-      if (createdRoom) {
-        await this.joinRoom(creatorUserId, createdRoom.id, ChatRoomMemberRole.OWNER);
       }
 
-      return createdRoom;
-    } catch (error) {
-      throw new InternalServerErrorException("unknown error");
-    }
-  }
-
-  async directMessageRoom(senderUserId: string, targetUserId:string) {
-
-    if (senderUserId === targetUserId)
-      throw new BadRequestException('Cannot establish direct message room to yourself');
-
-    const member1 = alias(chat_room_members, 'm1');
-    const member2 = alias(chat_room_members, 'm2');
-
-    // find if found any direct message room first
-    const [room] = await this.db
-      .select(
-        {
-          chatRoomId: member1.chatRoomId,
-        }
-      )
-      .from(member1)
-      .innerJoin(member2, eq(member1.chatRoomId, member2.chatRoomId))
-      .innerJoin(chat_rooms, eq(member1.chatRoomId, chat_rooms.id))
-      .where(
-        and(
-          eq(chat_rooms.type, ChatRoomType.DIRECT_MESSAGE),
-          eq(member1.userId, senderUserId),
-          eq(member2.userId, targetUserId),
-        ),
-      )
-    
-    // if the room is not found yet need to create the new chat room
-    if (room)
-      return (room);
-
-    console.debug("need to create room");
-
-    const newRoom =  await this.createRoom(senderUserId, ChatRoomType.DIRECT_MESSAGE);
-
-    if (newRoom) {
-      await this.joinRoom(targetUserId, newRoom.id, ChatRoomMemberRole.OWNER)
-      console.debug("joined on the member table");
-      return newRoom;
+      return res;
     }
     else {
-      throw new InternalServerErrorException("unknown error");
-    }
-  }
+      try {
 
+        const [createdRoom] = await this.db
+          .insert(chat_rooms)
+          .values({
+            id: genId,
+            roomName: inputPayload.roomName,
+            visibilityType: inputPayload.visibilityType,
+          })
+          .returning()
 
-  // Invite the target user into the room, but the host user need to be in the room first before
-  async inviteToRoom(hostUserId: string, toJoinUserId: string, chatRoomId:string, role?: ChatRoomMemberRole ) {
+          if (inputPayload.createdByUserId) {
+            const joined = await this.joinRoom(
+              inputPayload.createdByUserId,
+              genId,
+              ChatRoomMemberRole.OWNER
+            );
 
-    if (hostUserId === toJoinUserId)
-      throw new ForbiddenException("Cannot invite yourself into a room");
+          }
 
-    // need to check first if this user id is valid 
+          return createdRoom;
+        
+      } catch (error: any) {
 
-    const foundRoom = await this.findChatRoom(chatRoomId);
+        throw logError(
+          this.logger,
+          "error from createNewChatRoom()",
+          "unknown error",
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          error
+        );
 
-    if (!foundRoom) {
-      throw new ForbiddenException("Cannot invite user to the unknown room");
-    }
-
-    if (foundRoom.type === ChatRoomType.DIRECT_MESSAGE)
-      throw new ForbiddenException("Cannot invite any user into direct message room");
-
-    const hostUserInRoom = await this.isUserInRoom(hostUserId, chatRoomId);
-
-    if (!hostUserInRoom)
-      throw new ForbiddenException("you cannot invite some to a room if you are not in the room");
-
-
-    if (hostUserInRoom.role === ChatRoomMemberRole.SPECTATOR)
-      throw new ForbiddenException("SPECTATOR ROLE cannot invite other user in the room");
-
-    if (hostUserInRoom.role === ChatRoomMemberRole.OWNER) {
-
-      await this.writeSpecificRoomSystemMessage(chatRoomId, `user ${hostUserId} invited user ${toJoinUserId} into the room.`);
-      return await this.joinRoom(toJoinUserId, chatRoomId, role);
-    } else {
-      if (foundRoom.type === ChatRoomType.PRIVATE) {
-        throw new ForbiddenException("Private room can only be invited by OWNER");
-      } 
-      if (role) {
-        if (role === ChatRoomMemberRole.OWNER)
-          throw new ForbiddenException("only OWNER can invite new user as OWNER role");
-
-        await this.writeSpecificRoomSystemMessage(chatRoomId, `user ${hostUserId} invited user ${toJoinUserId} into the room.`);
-        return await this.joinRoom(toJoinUserId, chatRoomId, role);
-      }
-      else {
-        await this.writeSpecificRoomSystemMessage(chatRoomId, `user ${hostUserId} invited user ${toJoinUserId} into the room.`);
-        return await this.joinRoom(toJoinUserId, chatRoomId, ChatRoomMemberRole.MEMBER);
       }
     }
   }
 
-  // this userId want to leave the chat room
-  async leaveChatRoom(userId: string, chatRoomId: string) {
+  // true false if temporary, not exist return null
+  async isChatRoomTemporary(chatRoomId: string): Promise<boolean> {
 
-    // need to make sure that that the target user is really in the room first
-    const foundUserRoom = this.isUserInRoom(userId, chatRoomId);
+    const res1 = await this.db.query.chat_rooms.findFirst({
+      where:{
+        id: chatRoomId
+      }
+    });
 
-    let res;
-    try {
-      res = await this.db
-        .delete(chat_room_members)
-        .where(
-          and(
-            eq(chat_room_members.userId, userId),
-            eq(chat_room_members.chatRoomId, chatRoomId)
-          )
-        )
-        .returning();
+    if (res1 === undefined) {
+      const res2 = await this.chatRedisService.findChatRoom(chatRoomId);
 
-    } catch(err) {
-      throw new InternalServerErrorException("unknown error");
+      if (res2 === null) {
+        throw errorWithCode(
+          HttpStatus.NOT_FOUND,
+          "chat room not found"
+        );
+      }
+
+      return true;
     }
 
-    if (!res || res.length !== 1)
-      throw new BadRequestException("Cannot leave the room");
-
-
-    this.writeSpecificRoomSystemMessage(chatRoomId, `User ${userId} just left the chat room`);
-    return (res);
+    return false;
   }
 
-  // kick user from a chat room 
-  async kickUserChatRoom(hostUserId: string, toKickUserId: string, chatRoomId: string) {
+  async joinRoom(toJoinUserId: string, chatRoomId: string, role: ChatRoomMemberRole = ChatRoomMemberRole.MEMBER): Promise<ChatRoomMemberDto> {
 
-    if (hostUserId === toKickUserId)
-      throw new ForbiddenException("Cannot kick yourself out of a room");
-    // get the role of the host user first;
-    const hostFoundUserRoom = await this.isUserInRoom(hostUserId, chatRoomId);
-
-    if (hostFoundUserRoom.role !== ChatRoomMemberRole.OWNER) {
-      throw new ForbiddenException("only OWNER can kick user out of the chat room");
+    const isTemp = await this.isChatRoomTemporary(chatRoomId);
+    if (isTemp === true) {
+      return this.chatRedisService.joinRoom(
+        toJoinUserId,
+        chatRoomId,
+        role
+      )
     }
 
-    const toKickUserFoundRoom = await this.isUserInRoom(toKickUserId, chatRoomId);
-
-    let res;
-
     try {
-      res = await this.db
-        .delete(chat_room_members)
-        .where(
-          and(
-            eq(chat_room_members.chatRoomId, chatRoomId),
-            eq(chat_room_members.userId, toKickUserId),
-          )
-        )
-        .returning();
-
-    } catch (err) {
-      throw new InternalServerErrorException("unknown error");
-    }
-
-    if (!res || res.length !== 1)
-      throw new BadRequestException("Cannot kick the target user in the room");
-
-    await this.writeSpecificRoomSystemMessage(chatRoomId, `user ${toKickUserId} got kicked out by user ${hostUserId}`);
-    return (res);
-  }
-
-  async joinRoom(toJoinUserId: string, chatRoomId: string, role?: ChatRoomMemberRole) {
-
-    // check if the user exist
-    // this function will automatically throw exceptions if user is not found
-    const foundUser = this.userService.findOne(toJoinUserId);
-
-
-    // check first if user already exist in the room
-    const chatRoomFound = await this.findChatRoom(chatRoomId);
-    //if (!chatRoomFound)
-    //  throw new NotFoundException("Target Room is Not Found");
-
-    //const room = await this.isUserInRoom(toJoinUserId, chatRoomId);
-
-    //if (room) {
-    //  // user found
-    //  throw new ForbiddenException("The user is already in the room")
-    //}
-
-    try {
-      const [ result ] = await this.db
+      const [result] = await this.db
         .insert(chat_room_members)
         .values({
           chatRoomId: chatRoomId,
           userId: toJoinUserId,
-          role: role ?? ChatRoomMemberRole.MEMBER
-        }
-        )
-        .returning();
-
-      this.logger.debug("insert chat room member success");
-      await this.writeSpecificRoomSystemMessage(chatRoomId, `user ${toJoinUserId} just joined.`);
-      return (result);
-    }
-    catch (err) {
-      this.logger.debug("insert chat room member not found");
-      throw new InternalServerErrorException("user to join room failed");
-    }
-  }
-
-  async findChatRoom(chatRoomId: string) {
-
-    let room
-    try {
-      room = await this.db
-        .select(
-        )
-        .from(chat_rooms)
-        .where(
-          eq(chat_rooms.id, chatRoomId)
-        )
-        .limit(1);
-
-    } catch (err) {
-      throw new InternalServerErrorException("unknown error");
-    }
-
-    if (!room || room.length !== 1)
-      throw new NotFoundException("Chat Room Not Found");
-
-    return (room[0]);
-  }
-
-  async isUserInRoom(userId: string, chatRoomId: string) {
-
-    let room;
-    try {
-      room = await this.db
-        .select(
-        )
-        .from(chat_room_members)
-        .where(
-          and(
-            eq(chat_room_members.chatRoomId, chatRoomId),
-            eq(chat_room_members.userId, userId)
-          )
-        )
-        .limit(1);
-
-    } catch (err) {
-      throw new InternalServerErrorException("unknown error");
-    }
-
-    if (!room || room.length !== 1)
-      throw new NotFoundException("The user is not in the room");
-
-    return room[0];
-  }
-
-  async writeSpecificRoomSystemMessage(chatRoomId: string, message: string) {
-
-    try {
-      const [result] = await this.db
-        .insert(chat_messages)
-        .values(
-          {
-            chatRoomId: chatRoomId,
-            messageText: message,
-            type: ChatMessageType.SYSTEM_MESSAGE
-          }
-        )
+          role: role
+        })
         .returning();
 
       return result;
-    } catch (err) {
-      throw new InternalServerErrorException("unknown error");
+    }
+    catch (error: any) {
+      if (error?.cause?.code) {
+        if (error?.cause?.code === '23505') {
+          // not unique, meaing that user is already in chat room
+
+          throw errorWithCode(
+            HttpStatus.CONFLICT,
+            "user is already in this room",
+          );
+        }
+        if (error?.cause?.code === '23503') {
+          // foreign key error, could be userId or chat room id
+          throw errorWithCode(
+            HttpStatus.NOT_FOUND,
+            "user or chat room is not found",
+          )
+        }
+      }
+
+      throw logError(
+        this.logger,
+        "error from joinRoom()",
+        "unknown error",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        error
+      )
+
+    }
+    
+  }
+
+  // find chat room from both redis and database
+  // must find one
+  async findOne(chatRoomId: string): Promise<GetChatRoomDto> {
+
+    const [dbResult, redisResult] = await Promise.allSettled([
+      this.db.query.chat_rooms.findFirst({
+        where: {
+          id: chatRoomId
+        }
+      }),
+      this.chatRedisService.findChatRoom(chatRoomId)
+    ])
+
+    let dbChatRoom: ChatRoomDto | null = null;
+    if (dbResult.status === 'fulfilled') {
+      dbChatRoom = dbResult.value ?? null;
+    }
+    let redisChatRoom: ChatRoomDto | null = null;
+    if (redisResult.status === 'fulfilled') {
+      redisChatRoom = redisResult.value;
+    }
+
+    if (dbChatRoom && redisChatRoom) {
+      throw logError(
+        this.logger,
+        "error from findOne()",
+        "unknown",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "found multiple chat room but suppose to found only one"
+      )
+
+    }
+    else if (dbChatRoom) {
+      return {
+        roomName: dbChatRoom.roomName,
+        createdAt: dbChatRoom.createdAt,
+        visibilityType: dbChatRoom.visibilityType,
+        isTemporary: false,
+      }
+    }
+    else if (redisChatRoom) {
+      return {
+        roomName: redisChatRoom.roomName,
+        createdAt: redisChatRoom.createdAt,
+        visibilityType: redisChatRoom.visibilityType,
+        isTemporary: true,
+      }
+    }
+    else {
+      throw errorWithCode(
+        HttpStatus.NOT_FOUND,
+        "chat room not found"
+      )
     }
   }
 
-  async writeSpecificRoomMessage(senderUserId: string, chatRoomId: string, message: string) {
-    // find the room first
-    const room = await this.isUserInRoom(senderUserId, chatRoomId);
+  async currentRoomMemberCount(chatRoomId: string) 
+  : Promise<{memberCount: number, spectatorCount: number}> {
 
-    if (!room) {
-      throw new ForbiddenException("Cannot write message to the room that doesn't belong to the user");
+    const isTemp = await this.isChatRoomTemporary(chatRoomId);
+
+    if (isTemp === true) {
+      return this.chatRedisService.currentRoomMemberCount(chatRoomId);
     }
-    
-    if ( room.role === ChatRoomMemberRole.SPECTATOR)
-      throw new ForbiddenException("SPEACTATOR cannot write message to the chat room");
 
-    // found room then we can insert new message
+    const [memberCount] = await this.db
+      .select({
+        count: count()
+      })
+      .from(chat_room_members)
+      .where(
+        and(
+          eq(chat_room_members.chatRoomId, chatRoomId),
+          or(
+            eq(chat_room_members.role, ChatRoomMemberRole.OWNER),
+            eq(chat_room_members.role, ChatRoomMemberRole.MEMBER),
+          )
+        )
+      );
 
-    try {
-      const [result] = await this.db
-        .insert(chat_messages)
-        .values(
-          {
-            chatRoomId: chatRoomId,
-            userId: senderUserId,
-            messageText: message
-          }
+    const [spectatorCount] = await this.db
+      .select({
+        count: count()
+      })
+      .from(chat_room_members)
+      .where(
+        and(
+          eq(chat_room_members.chatRoomId, chatRoomId),
+          eq(chat_room_members.role, ChatRoomMemberRole.SPECTATOR)
+        )
+      )
+
+    return {
+      memberCount: memberCount?.count ?? 0,
+      spectatorCount: spectatorCount?.count ?? 0
+    }
+  }
+  
+
+  async leaveRoom(toLeaveUserId: string, chatRoomId: string)
+  : Promise<ChatRoomMemberDto> {
+
+    const isTemporary = await this.isChatRoomTemporary(chatRoomId);
+
+    if (isTemporary === true) {
+
+      const data = await this.chatRedisService.leaveRoom(
+        toLeaveUserId, chatRoomId
+      )
+
+      return data;
+
+    } else {
+
+      const [res] = await this.db
+        .delete(chat_room_members)
+        .where(
+          and(
+            eq(chat_room_members.userId, toLeaveUserId),
+            eq(chat_room_members.userId, chatRoomId)
+          )
         )
         .returning();
 
-      return (result);
-    } catch (err) {
-      throw new InternalServerErrorException("unknown error");
-    }
-  }
-
-  async writePublicRoomMessage(
-    senderUserId: string, 
-    publicRoomType: Exclude<ChatMessage.RoomType, ChatMessage.RoomType.SPECIFIC_ROOM>,
-    message: string,
-  ) {
-
-    let redisKey: string;
-    // check the room type
-    if (publicRoomType === ChatMessage.RoomType.GLOBAL) {
-      // global message user can send anytime
-      redisKey = redis_global_chat_messages();
-
-    }
-    else if (publicRoomType === ChatMessage.RoomType.LOBBY) {
-      const lobbyPinId = await this.redis.get(redis_user_game_lobby(senderUserId));
-
-      if (!lobbyPinId) {
-        throw new ForbiddenException("user must be in lobby to send message");
+      if (!res) {
+        throw errorWithCode(HttpStatus.NOT_FOUND, "target room member to remove not found");
       }
 
-      const res = await this.redis.sismember(redis_lobby_global_details_lobby_lists(), lobbyPinId);
+      // findone of oldest member
 
-      if (res === 0) {
-        throw new NotFoundException("lobby not found");
+      const currentRoomCount = await this.currentRoomMemberCount(chatRoomId);
+
+      if (currentRoomCount.memberCount <= 0 && currentRoomCount.spectatorCount <= 0) {
+        await this.removeRoom(chatRoomId);
+        return res;
       }
 
-      redisKey = redis_lobby_chat_messages(lobbyPinId)
+      if (res.role !== ChatRoomMemberRole.OWNER) {
+        return res;
+      }
 
-    }
-    else if (publicRoomType === ChatMessage.RoomType.IN_GAME) {
-      // NOT IMPLEMENT REMEMBER
-      throw new NotImplementedException("not implemented game room chat yet");
-    }
-    else {
-      this.logger.error({
-        message: "error from writePublicRoomMessage()",
-        error: "public room type is wrong"
+      const oldestRoomMember = await this.db.query.chat_room_members.findFirst({
+        where: {
+          chatRoomId: chatRoomId,
+          role: ChatRoomMemberRole.MEMBER
+        },
+        orderBy: {
+          joinedAt: "asc"
+        }
+      });
+
+      const oldestRoomSpectator = await this.db.query.chat_room_members.findFirst({
+        where: {
+          chatRoomId: chatRoomId,
+          role: ChatRoomMemberRole.SPECTATOR
+        },
+        orderBy: {
+          joinedAt: "asc"
+        }
       })
-      throw new InternalServerErrorException("Internal wrong logic");
-    }
 
-    const chatMessage: PublicChatMessage = {
-      message: message,
-      messageType: ChatMessageType.USER_MESSAGE,
-      senderUserId: senderUserId,
-      createdAt: new Date()
-    }
-    // write on redis should define the redis can order message by
-    await this.redis.multi()
-      .lpush(redisKey, JSON.stringify(chatMessage))
-      .ltrim(redisKey, 0, 199)
-      .exec()
-
-    return chatMessage
-
-  }
-
-
-  async writePublicRoomSystemMessage(
-    publicRoomType: Exclude<ChatMessage.RoomType, ChatMessage.RoomType.SPECIFIC_ROOM>,
-    message: string,
-    lobbyPinId?: string,
-    gameRoomId?: string
-  ) {
-
-    let redisKey: string;
-    // check the room type
-    if (publicRoomType === ChatMessage.RoomType.GLOBAL) {
-      // global message user can send anytime
-      redisKey = redis_global_chat_messages();
-
-    }
-    else if (publicRoomType === ChatMessage.RoomType.LOBBY) {
-      if (lobbyPinId) {
-        const res = await this.redis.sismember(redis_lobby_global_details_lobby_lists(), lobbyPinId);
-
-        if (!res) {
-          throw new InternalServerErrorException("unknwon errror");
-        }
-
-        if (res === 0) {
-          throw new NotFoundException("lobby not found");
-
-        }
-
-        redisKey = redis_lobby_chat_messages(lobbyPinId)
+      if (oldestRoomMember) {
+        await this.setRole(chatRoomId, oldestRoomMember.userId, ChatRoomMemberRole.OWNER);
       }
       else {
-        throw new BadRequestException("lobby chat message should provide lobbyPinId")
+        await this.removeRoom(chatRoomId);
       }
-    }
-    else if (publicRoomType === ChatMessage.RoomType.IN_GAME) {
-      // NOT IMPLEMENT REMEMBER
-      throw new NotImplementedException("not implemented game room chat yet");
-    }
-    else {
-      this.logger.error({
-        message: "error from writePublicRoomMessage()",
-        error: "public room type is wrong"
-      })
-      throw new InternalServerErrorException("Internal wrong logic");
-    }
+      //else if (oldestRoomSpectator) {
 
-    const chatMessage: PublicChatMessage = {
-      message: message,
-      messageType: ChatMessageType.SYSTEM_MESSAGE,
-      createdAt: new Date(),
-      senderUserId: ""
+      //  await this.setRole(chatRoomId, oldestRoomSpectator.userId, ChatRoomMemberRole.OWNER);
+      //}
+
+      return res;
     }
-    // write on redis should define the redis can order message by
-    await this.redis.multi()
-      .lpush(redisKey, JSON.stringify(chatMessage))
-      .ltrim(redisKey, 0, 199)
-      .exec()
-
-    return chatMessage
-
   }
 
+  async setRole(chatRoomId: string, userId: string, role: ChatRoomMemberRole)
+  : Promise<ChatRoomMemberDto> {
+
+    const isTemp = await this.isChatRoomTemporary(chatRoomId);
+
+    if (isTemp === true) {
+      return this.chatRedisService.setRole(chatRoomId, userId, role);
+    }
+
+    const [updated] = await this.db
+      .update(chat_room_members)
+      .set({
+        role: role
+      })
+      .where(
+        and(
+          eq(chat_room_members.chatRoomId, chatRoomId),
+          eq(chat_room_members.userId, userId)
+        )
+      )
+      .returning();
+
+    if (!updated) {
+      throw errorWithCode(
+        HttpStatus.NOT_FOUND,
+        "room member not found"
+      );
+    }
+
+    return updated;
+  }
+
+  async removeRoom(chatRoomId: string): Promise<ChatRoomDto> {
+
+    const isTemp = await this.isChatRoomTemporary(chatRoomId);
+    
+    if (isTemp === true) {
+      return this.chatRedisService.removeRoom(chatRoomId);
+    }
+
+    const [result] = await this.db
+      .delete(chat_rooms)
+      .where(
+        eq(chat_rooms.id, chatRoomId)
+      )
+      .returning();
+
+    if (!result) {
+      throw errorWithCode(HttpStatus.NOT_FOUND, "room to remove is not found");
+    }
+    return result;
+  }
+
+  async getMessages(chatRoomId:string, limit :number = 50)
+  : Promise<ChatMessageDto[]>
+   {
+    if (limit <= 0) {
+      throw logError(
+        this.logger,
+        "error from getMessages()",
+        "limit must not less than 1",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+
+    const isTemporary = await this.isChatRoomTemporary(chatRoomId);
+
+    if (isTemporary === true) {
+      const result = await this.chatRedisService.getMessages(
+        chatRoomId,
+        limit
+      );
+
+      return result;
+    }
+    else {
+
+      const result = await this.db.query.chat_messages.findMany({
+        where: {
+          chatRoomId: chatRoomId
+        },
+        orderBy: {
+          createdAt: "desc"
+        },
+        limit: limit
+      });
+
+      const formattedResult: ChatMessageDto[] = [];
+
+      for (const message of result) {
+        formattedResult.push({
+          createdAt: message.createdAt,
+          userId: message.userId,
+          type: message.type,
+          messageText: message.messageText
+        });
+      }
+
+      return formattedResult;
+    }
+  }
+
+  async writeMessage(
+    chatRoomId: string,
+    message: string,
+    senderUserId?: string
+  ) {
+    const isTemporary = await this.isChatRoomTemporary(chatRoomId);
+
+    const payload: ChatMessageDto = {
+      userId: senderUserId ?? null,
+      type: senderUserId ? ChatMessageType.USER_MESSAGE : ChatMessageType.SYSTEM_MESSAGE,
+      messageText: message,
+      createdAt: new Date()
+    };
+
+    if (isTemporary) {
+
+      await this.chatRedisService.writeMessage(
+        chatRoomId,
+        payload
+      );
+    }
+    else {
+
+      const [result] = await this.db
+        .insert(chat_messages)
+        .values({
+          userId: payload.userId,
+          chatRoomId: chatRoomId,
+          messageText: payload.messageText,
+          type: payload.type,
+          createdAt: payload.createdAt
+        })
+        .returning();
+
+    }
+    return payload;
+  }
+
+  async directMessageRoom(user1: string, user2: string) 
+  : Promise<ChatRoomDto> {
+
+    const m1 = alias(chat_room_members, "m1");
+    const m2 = alias(chat_room_members, "m2");
+
+    const [existingRoom] = await this.db
+      .select()
+      .from(chat_rooms)
+      .innerJoin(m1, eq(chat_rooms.id, m1.chatRoomId))
+      .innerJoin(m2, eq(chat_rooms.id, m2.chatRoomId))
+      .where(
+        and(
+          eq(m1.userId, user1),
+          eq(m2.userId, user2),
+          eq(chat_rooms.visibilityType, ChatRoomVisibilityType.DIRECT_MESSAGE)
+        )
+      )
+      .limit(1);
+
+    if (existingRoom) {
+      return existingRoom.chat_rooms
+    }
+
+    const [newRoom] = await this.db
+      .insert(chat_rooms)
+      .values({
+        visibilityType: ChatRoomVisibilityType.DIRECT_MESSAGE
+      })
+      .returning();
+
+    const [insert1] = await this.db
+      .insert(chat_room_members)
+      .values({
+        chatRoomId: newRoom.id,
+        userId: user1,
+        role: ChatRoomMemberRole.MEMBER,
+      })
+      .returning();
+
+    const [insert2] = await this.db
+      .insert(chat_room_members)
+      .values({
+        chatRoomId: newRoom.id,
+        userId: user2,
+        role: ChatRoomMemberRole.MEMBER,
+      })
+      .returning();
+  
+    return (newRoom);
+  }
+
+  async inviteUserToChatRoom(
+    inviteDto: InviteUserToChatRoomZodDto,
+    hostUserId: string
+  ): Promise<ChatRoomMemberDto> {
+
+    const roomDetails = await this.findOne(inviteDto.chatRoomId);
+    if (roomDetails.isTemporary === true) {
+      return this.chatRedisService.inviteUserToChatRoom(inviteDto, hostUserId);
+    }
+
+    const [hostDetails, newUserDetails] = await Promise.all([
+      this.isUserInRoom(inviteDto.chatRoomId, hostUserId).catch((error: any) => {
+        if (error instanceof Error) {
+          const cause = error.cause as {code?: HttpStatus}
+          if (cause?.code === HttpStatus.NOT_FOUND) {
+            return null;
+          }
+        }
+        throw error;
+      }),
+      this.isUserInRoom(inviteDto.chatRoomId, inviteDto.targetUserId).catch((error: any) => {
+        if (error instanceof Error) {
+          const cause = error.cause as {code?: HttpStatus}
+          if (cause?.code === HttpStatus.NOT_FOUND) {
+            return null;
+          }
+        }
+        throw error;
+      }),
+    ]);
+
+    if (newUserDetails !== null) {
+      throw errorWithCode(
+        HttpStatus.CONFLICT,
+        "the user you invited already in this chat room"
+      );
+    }
+
+    if (hostDetails === null) {
+      throw errorWithCode(
+        HttpStatus.NOT_FOUND,
+        "host user member not found"
+      )
+    }
+
+
+    if (roomDetails.visibilityType === ChatRoomVisibilityType.DIRECT_MESSAGE) {
+      throw errorWithCode(
+        HttpStatus.FORBIDDEN,
+        "cannot invite user to direct message chat room",
+      )
+    }
+
+    if (roomDetails.visibilityType === ChatRoomVisibilityType.PRIVATE) {
+      // private chat room only the owner can invite others
+      if (hostDetails.role !== ChatRoomMemberRole.OWNER) {
+        throw errorWithCode(
+          HttpStatus.FORBIDDEN,
+          "only owner allowed to invite to private chat room"
+        )
+      }
+    }
+    else {
+
+      // if spectator in public chat room can only invite
+      // another user as spectator
+      if (hostDetails.role === ChatRoomMemberRole.SPECTATOR) {
+        if (inviteDto.role !== ChatRoomMemberRole.SPECTATOR) {
+          throw errorWithCode(
+            HttpStatus.FORBIDDEN,
+            "spectator in public chat room can only invite another user as spectator"
+          );
+        }
+      }
+    }
+
+    return this.joinRoom(inviteDto.targetUserId, inviteDto.chatRoomId, inviteDto.role)
+  }
+
+  async kickUser(hostUserId: string, toKickUserId: string, chatRoomId: string) {
+
+    const hostDetails = await this.isUserInRoom(chatRoomId, hostUserId)
+
+    if (hostDetails.role !== ChatRoomMemberRole.OWNER) {
+      throw errorWithCode(
+        HttpStatus.FORBIDDEN,
+        "user must be host of this chat room to kick another user"
+      )
+    }
+
+    return this.leaveRoom(toKickUserId, chatRoomId);
+  }
 }

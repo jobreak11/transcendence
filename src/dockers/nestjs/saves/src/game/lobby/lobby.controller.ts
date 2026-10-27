@@ -4,11 +4,15 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth/jwt-auth.guard.js';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { LobbyGuard } from './lobby.guard.js';
 import { ZodValidationPipe } from '../../pipes/ZodValidationPipe.js';
-import { CreateLobbyDto, CreateLobbySchema } from './dto/create-lobby.dto.js';
-import { JoinLobbyDto, JoinLobbySchema } from './dto/join-lobby.dto.js';
-import { UpdateLobbyDto, UpdateLobbySchema } from './dto/update-lobby.dto.js';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { LobbyCreate } from '../../redis/lobby-redis/schemas/lobby-create.redis.schema.js';
+import { JoinLobbyDto } from './dto/join-lobby.dto.js';
+import { joinLobbySchema } from './schemas/join-lobby.schema.js';
+import z from 'zod';
+import { lobbyUpdateSchema } from '../../redis/lobby-redis/schemas/lobby-update.redis.schema.js';
+import { httpControllerCatch } from '../../utility/httpControllerCatch.js';
 
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard, LobbyGuard, ThrottlerGuard)
 @Controller('game/lobby')
 export class LobbyController {
@@ -25,10 +29,16 @@ export class LobbyController {
   @Post('create')
   createLobbyRoom(
     @Req() req:any,
-    @Body(new ZodValidationPipe(CreateLobbySchema)) body: CreateLobbyDto
+    @Body(new ZodValidationPipe(LobbyCreate.schema.input)) body: LobbyCreate.InputDto
   ) {
 
-    return this.lobbyService.createLobby(req.user.id, body);
+    try {
+      return this.lobbyService.createLobby(req.user.id, body);
+    } catch (error: any) {
+      throw httpControllerCatch(error);
+
+    }
+
   }
 
   @ApiOperation({
@@ -39,10 +49,14 @@ export class LobbyController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async joinLobbyRoom(
     @Req() req:any,
-    @Body(new ZodValidationPipe(JoinLobbySchema)) body: JoinLobbyDto
+    @Body(new ZodValidationPipe(joinLobbySchema)) body: JoinLobbyDto
   ) {
 
-    await this.lobbyService.joinLobby(body.lobbyPinId, req.user.id, body.isSpectator, body.password);
+    try {
+      await this.lobbyService.joinLobby(body.lobbyPinId, req.user.id, body.isSpectator, body.password);
+    } catch (error: any) {
+      throw httpControllerCatch(error);
+    }
   }
 
   @ApiOperation({
@@ -51,9 +65,13 @@ export class LobbyController {
   })
   @Delete('leave')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async leaveLobbyRoom(@Req() req:any) {
+  async leaveLobbyRoom(@Req() req:any, @Query('lobbyPinId') lobbyPinId: string) {
 
-    await this.lobbyService.leaveLobbyUser(req.user.id);
+    try {
+      await this.lobbyService.leaveLobbyUser(req.user.id, lobbyPinId);
+    } catch (error: any) {
+      throw httpControllerCatch(error);
+    }
   }
 
   @ApiOperation({
@@ -64,7 +82,11 @@ export class LobbyController {
   getAllLobbyRoom(@Req() req:any) {
   // get all available lobby room
 
-    return this.lobbyService.findAll();
+    try {
+      return this.lobbyService.findAll();
+    } catch (error: any) {
+      throw httpControllerCatch(error);
+    }
 
   }
 
@@ -75,8 +97,12 @@ export class LobbyController {
   @Patch('update')
   updateGameSettings(
     @Req() req:any,
-    @Body(new ZodValidationPipe(UpdateLobbySchema)) body: UpdateLobbyDto
+    @Body(new ZodValidationPipe(lobbyUpdateSchema)) body: z.infer<typeof lobbyUpdateSchema>
   ) {
-    return this.lobbyService.update(req.user.id, body);
+    try {
+      return this.lobbyService.update(req.user.id, body);
+    } catch (error: any) {
+      throw httpControllerCatch(error);
+    }
   }
 }

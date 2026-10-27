@@ -5,7 +5,6 @@ import { titles } from '../../drizzle/schema/titles.schema.js';
 import { user_titles } from '../../drizzle/schema/user_titles.schema.js';
 import { and, asc, desc, eq } from 'drizzle-orm';
 import { CreateNewTitleZodDto, GetUserTitleDto, TitleDto, UpdateTitleZodDto, UserTitleDto } from './title.dto.js';
-import { CACHING_TITLE_SERVICE1_EXPIRE_TIME } from '../../constant.js';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { dbRelations } from '../../drizzle/schema/schema.js';
 import { DRIZZLE } from '../../drizzle/drizzle.module.js';

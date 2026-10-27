@@ -1,61 +1,40 @@
 import { z } from 'zod'
-import { ChatMessageType } from '../../../../drizzle/schema/chat_messages.schema.js';
+import { chatMessagesDatabaseSchema, ChatMessageType } from '../../../../drizzle/schema/chat_messages/chat_messages.schema.js';
 
 export namespace ChatMessage {
 
-  export enum RoomType {
-    GLOBAL = "GLOBAL",
-    LOBBY = "LOBBY",
-    IN_GAME = "IN_GAME",
-    SPECIFIC_ROOM = "SPECIFIC_ROOM"
-  }
+  //const baseMessageSchema = z.object({
+  //  //roomType: z.enum(RoomType).default(RoomType.GLOBAL),
+  //  //messageType: z.enum(ChatMessageType).default(ChatMessageType.SYSTEM_MESSAGE),
+  //  roomType: z.enum(RoomType),
+  //  messageType: z.enum(ChatMessageType),
+  //  chatRoomId: z.uuid().nullable(),
+  //  senderUserId: z.uuid().nullable(),
+  //  message: z.string().trim().min(1).max(5000)
+  //})
 
   const baseMessageSchema = z.object({
-    roomType: z.enum(RoomType).default(RoomType.GLOBAL),
-    messageType: z.enum(ChatMessageType).default(ChatMessageType.SYSTEM_MESSAGE),
-    chatRoomId: z.uuid().optional(),
-    senderUserId: z.uuid().optional(),
-    message: z.string().trim().min(1).max(5000)
+    ...chatMessagesDatabaseSchema.select.omit({
+      id: true
+    }).shape,
+    chatRoomId: chatMessagesDatabaseSchema.select.shape.chatRoomId.nullable(),
   })
 
-
-
-  export const newMessageFromClientSchema = baseMessageSchema.omit({
-    senderUserId: true,
-    messageType: true
-  }).refine((data) => {
-    if (data.roomType === RoomType.SPECIFIC_ROOM) {
-      return data.chatRoomId !== undefined
-    }
-    return data.chatRoomId === undefined
+  const insertMessageSchemaBase = z.object({
+    ...baseMessageSchema.omit({
+      createdAt: true,
+    }).shape,
+    chatRoomId: baseMessageSchema.shape.chatRoomId.default(null),
+    type: baseMessageSchema.shape.type.default(ChatMessageType.SYSTEM_MESSAGE),
+    userId: baseMessageSchema.shape.userId.default(null)
   })
 
-  export type NewMessageFromClientZodDto = z.infer<typeof newMessageFromClientSchema>;
-
-  export const messageSchema = baseMessageSchema.extend({
-
+  const  insertMessageSchema = z.object({
+    ...insertMessageSchemaBase.shape
   }).superRefine((data, ctx) => {
-    if (data.roomType === RoomType.SPECIFIC_ROOM) {
-      if (data.chatRoomId === undefined ) {
-        ctx.addIssue({
-          code: "custom",
-          message: "needs chatRoomId to send message to specific room",
-          path: ['chatRoomId', 'roomType']
-        });
-      }
-    }
-    else {
-      if (data.chatRoomId !== undefined ) {
-        ctx.addIssue({
-          code: "custom",
-          message: "this chat room type doesn't have chatRoomId",
-          path: ['chatRoomId', 'roomType']
-        });
-      }
-    }
 
-    if (data.messageType === ChatMessageType.USER_MESSAGE) {
-      if (data.senderUserId === undefined) {
+    if (data.type === ChatMessageType.USER_MESSAGE) {
+      if (data.userId === null) {
         ctx.addIssue({
           code: "custom",
           message: "user message needs to attach senderUserId with payload",
@@ -64,7 +43,7 @@ export namespace ChatMessage {
       }
 
     } else {
-      if (data.senderUserId !== undefined) {
+      if (data.userId !== null) {
         ctx.addIssue({
           code: "custom",
           message: "system message doesn't have senderUserId",
@@ -72,9 +51,22 @@ export namespace ChatMessage {
         });
       }
     }
-  });
 
-  export type MessageZodDto = z.infer<typeof messageSchema>;
+  })
+
+  export const newMessageFromClientSchema = z.object({
+    ...insertMessageSchemaBase.omit({
+      userId: true,
+      type: true
+    }).shape,
+  })
+
+  export type NewMessageInputFromClientZodDto = z.input<typeof newMessageFromClientSchema>;
+  export type NewMessageFromClientZodDto = z.infer<typeof newMessageFromClientSchema>;
+
+  export const insertSchema = insertMessageSchema
+
+  export type MessageInsertZodDto = z.input<typeof insertSchema>;
 
   export const responseSchema = baseMessageSchema.required();
 

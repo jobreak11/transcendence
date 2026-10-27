@@ -16,17 +16,21 @@ import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { THROTTLER_AUTH_LOGIN_LIMIT, THROTTLER_AUTH_LOGIN_TTL, THROTTLER_AUTH_SIGNOUT_LIMIT, THROTTLER_AUTH_SIGNOUT_TTL, THROTTLER_AUTH_SIGNUP_LIMIT, THROTTLER_AUTH_SIGNUP_TTL } from '../constant.js';
 import { UserThrottlerGuard } from './guards/user-throttler/user-throttler.guard.js';
 import { ZodValidationPipe } from '../pipes/ZodValidationPipe.js';
+import { UserRedisService } from '../redis/user-redis/user-redis.service.js';
 
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userRedisService: UserRedisService,
+  ) {}
 
 
   @HttpCode(HttpStatus.OK)
   @Get('check')
   @UseGuards(JwtAuthGuard, UserThrottlerGuard)
-  authCheck() {
+  async authCheck(@Req() req: any) {
 
   }
 

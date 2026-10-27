@@ -7,6 +7,7 @@ import type { ConfigType } from '@nestjs/config';
 import * as argon2 from 'argon2'
 import { CurrentUser } from './types/current-user.js';
 import { CreateUserDto } from '../user/dto/create-user.dto.js';
+import { UserRedisService } from '../redis/user-redis/user-redis.service.js';
 
 @Injectable()
 export class AuthService {
