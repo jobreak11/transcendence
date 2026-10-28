@@ -21,6 +21,7 @@ import { logError } from "../../utility/logError.js";
 import { logErrorRedisError, logErrorRedisPipeLine } from "../utility/redis-logError.js";
 import { lobbyUpdateSchema } from "./schemas/lobby-update.redis.schema.js";
 import { parse } from "node:path";
+import { GameRedisService } from "../game-redis/game-redis.service.js";
 
 @Injectable()
 export class LobbyRedisService implements OnModuleInit {
@@ -30,33 +31,34 @@ export class LobbyRedisService implements OnModuleInit {
   constructor(
     @Inject(REDIS_CLIENT) private readonly redis: RedisClient,
     private readonly userRedisService: UserRedisService,
-    private readonly chatService: ChatService
+    private readonly chatService: ChatService,
+    private readonly gameRedisService: GameRedisService
   ) {
 
   }
 
   async onModuleInit() {
-    await this.redis.defineCommand('lobbyRoomCreate', {
-      numberOfKeys: 1,
-      readOnly: false,
-      lua: `
-        local allLobbyListsKey = KEYS[1]
+    //await this.redis.defineCommand('lobbyRoomCreate', {
+    //  numberOfKeys: 1,
+    //  readOnly: false,
+    //  lua: `
+    //    local allLobbyListsKey = KEYS[1]
 
 
-        local lobbyRoomMax = tonumber(ARGV[1])
-        local newLobbyPinId = ARGV[2]
+    //    local lobbyRoomMax = tonumber(ARGV[1])
+    //    local newLobbyPinId = ARGV[2]
 
-        if redis.call('SCARD', allLobbyListsKey) >= lobbyRoomMax then
-          return 1
-        end
+    //    if redis.call('SCARD', allLobbyListsKey) >= lobbyRoomMax then
+    //      return 1
+    //    end
 
-        if redis.call('SADD', allLobbyListsKey, newLobbyPinId) ~= 1 then
-          return 2
-        end
+    //    if redis.call('SADD', allLobbyListsKey, newLobbyPinId) ~= 1 then
+    //      return 2
+    //    end
 
-        return 0
-      `
-    })
+    //    return 0
+    //  `
+    //})
 
 // #########################################################################
 
@@ -253,7 +255,7 @@ export class LobbyRedisService implements OnModuleInit {
         `
       }
     );
-    
+
   }
 
   generateNewLobbyPinId(): string {
@@ -289,6 +291,7 @@ export class LobbyRedisService implements OnModuleInit {
     return {
       details: {
         chatRoomId: records.lobbyDetails.chatRoomId,
+        gameRoomId: records.lobbyDetails.gameRoomId ? records.lobbyDetails.gameRoomId : null,
         createdAt: new Date(records.lobbyDetails.createdAt),
         createdByUserId: records.lobbyDetails.createdByUserId,
         hostUserId: records.lobbyDetails.hostUserId,
@@ -394,10 +397,10 @@ export class LobbyRedisService implements OnModuleInit {
         break ;
       }
 
-      redisReturnValue = await this.redis.lobbyRoomCreate(
+      redisReturnValue = await this.redis.setWithLimitAdd(
         redis_lobby_global_details_lobby_lists(),
+        newLobbyPinId,
         LOBBY_ROOM_MAX,
-        newLobbyPinId
       )
 
       if (redisReturnValue !== 2) {
@@ -706,7 +709,6 @@ export class LobbyRedisService implements OnModuleInit {
   async lobbyUserLeave(userId: string, lobbyPinId: string) {
     const lobbyData = await this.getLobbyFull(lobbyPinId);
 
-
     const res = await this.redis.lobbyRoomLeave(
       redis_lobby_player_member_list(lobbyPinId),
       redis_lobby_spectator_member_list(lobbyPinId),
@@ -1006,16 +1008,98 @@ export class LobbyRedisService implements OnModuleInit {
     return fullLobby;
   }
 
-  async startGameRoom(userId: string) {
+  async toggleReady(userId: string, lobbyPinId: string) {
+    const [
+      lobbyMemberList,
+      lobbyData,
+      isUserInLobby,
+    ] = await Promise.all([
+      this.getLobbyMemberList(lobbyPinId),
+      this.getLobbyFull(lobbyPinId),
+      this.userRedisService.isUserInLobby(userId, lobbyPinId)
+    ])
+
+    if (lobbyData.details.roomStatus !== LobbyRoomStatus.WAITING) {
+      throw errorWithCode(
+        HttpStatus.FORBIDDEN,
+        "lobby must be in waiting status to be able to press ready"
+      );
+    }
+
+    if (isUserInLobby === false) {
+      throw errorWithCode(
+        HttpStatus.FORBIDDEN,
+        "must be in the lobby to press ready button"
+      );
+    }
+
+    if (lobbyMemberList.playerList.includes(userId) === false) {
+      throw errorWithCode(
+        HttpStatus.FORBIDDEN,
+        "user must be player to press ready"
+      );
+    }
+
+    if (lobbyMemberList.readyPlayerList.includes(userId)) {
+      await this.redis.srem(redis_lobby_ready_player_list(lobbyPinId), userId);
+
+      return false
+    }
+    else {
+      await this.redis.sadd(redis_lobby_ready_player_list(lobbyPinId), userId);
+
+      return true;
+    }
+  }
+
+  async startGameRoom(lobbyPinId: string) {
 
     // NOTE: must perform as atomic on lua script on redis
 
     // 1. retrieve the lobby data from redis
     //
+    const [
+      lobbyData,
+      lobbyMemberList
+    ] = await Promise.all([
+      this.getLobbyFull(lobbyPinId),
+      this.getLobbyMemberList(lobbyPinId)
+    ]);
 
     // checks
     // 1. check if the lobby is on WAITNG state
+    if (lobbyData.details.roomStatus !== LobbyRoomStatus.WAITING) {
+      throw errorWithCode(HttpStatus.FORBIDDEN, "the lobby must be in waiting state to start a game")
+    }
     // 2. check that all player user in the room is ready
+    if (
+      lobbyMemberList.playerList.length === lobbyMemberList.readyPlayerList.length
+      || (lobbyMemberList.playerList.includes(lobbyData.details.hostUserId) === true
+        && lobbyMemberList.readyPlayerList.length + 1 >= lobbyMemberList.playerList.length)
+    ) {
+
+      await this.setLobbyRoomStatus(lobbyPinId,
+        LobbyRoomStatus.UNAVAILABLE
+      );
+
+      const res = await this.gameRedisService.gameRoomCreate({
+        lobbyData: await this.getLobbyFull(lobbyPinId),
+        lobbyMemberList: lobbyMemberList
+      });
+
+
+      // gonna set the game room id of the lobby room to be linkable
+      await this.redis.hset(redis_lobby_details(lobbyPinId), "gameRoomId", res.gameRoomId);
+
+      await this.setLobbyRoomStatus(lobbyPinId, LobbyRoomStatus.PLAYING);
+      return this.getLobbyFull(lobbyPinId);
+    }
+    else {
+      throw errorWithCode(
+        HttpStatus.FORBIDDEN,
+        "all player must ready to start a poker game"
+      )
+    }
 
     // then
     // 1. create payload data ready for create game room

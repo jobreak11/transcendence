@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useMainSocket } from '../../_context/useMainSocket';
+import { ChatMessageDto } from '../../../../types/dto';
 
 export interface ChatRoom {
   id: string;
@@ -83,7 +84,7 @@ export function ChatBoxComponent() {
       const res = await fetch(`/api/chat/message?chatRoomId=${roomId}`);
       if (!res.ok) return [];
 
-      const data = await res.json();
+      const data = (await res.json()) as ChatMessageDto[];
       if (!Array.isArray(data)) return [];
 
       const targetRoom = currentRooms.find((r) => r.id === roomId);

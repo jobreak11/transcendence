@@ -11,13 +11,17 @@ import { joinLobbySchema } from './schemas/join-lobby.schema.js';
 import z from 'zod';
 import { lobbyUpdateSchema } from '../../redis/lobby-redis/schemas/lobby-update.redis.schema.js';
 import { httpControllerCatch } from '../../utility/httpControllerCatch.js';
+import { GetLobbyPublicDto } from './dto/get-lobby-public.dto.js';
+import { UserRedisService } from '../../redis/user-redis/user-redis.service.js';
+import { IsStrongPassword } from 'class-validator';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, LobbyGuard, ThrottlerGuard)
 @Controller('game/lobby')
 export class LobbyController {
   constructor(
-    private readonly lobbyService: LobbyService
+    private readonly lobbyService: LobbyService,
+    private readonly userRedisService: UserRedisService
   ) {
   }
 
@@ -46,14 +50,13 @@ export class LobbyController {
     description: "user must not in any room"
   })
   @Post('join')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async joinLobbyRoom(
+  joinLobbyRoom(
     @Req() req:any,
     @Body(new ZodValidationPipe(joinLobbySchema)) body: JoinLobbyDto
   ) {
 
     try {
-      await this.lobbyService.joinLobby(body.lobbyPinId, req.user.id, body.isSpectator, body.password);
+      return this.lobbyService.joinLobby(body.lobbyPinId, req.user.id, body.isSpectator, body.password);
     } catch (error: any) {
       throw httpControllerCatch(error);
     }
@@ -79,15 +82,37 @@ export class LobbyController {
     description: "get all details of the lobby room"
   })
   @Get('allRooms')
-  getAllLobbyRoom(@Req() req:any) {
+  async getAllLobbyRoom(@Req() req:any): Promise<GetLobbyPublicDto[]> {
   // get all available lobby room
 
     try {
-      return this.lobbyService.findAll();
+      const [
+        allLobby
+      ] = await Promise.all([
+        this.lobbyService.findAll()
+      ])
+
+      const formatted: GetLobbyPublicDto[] = allLobby.map((lobby): GetLobbyPublicDto => {
+
+        const {password, ...publicGeneralSettings} = lobby.generalSettings;
+        const {chatRoomId, ...publicDetails} = lobby.details;
+
+        return {
+          details: publicDetails,
+          gameSettings: lobby.gameSettings,
+          generalSettings: publicGeneralSettings
+        };
+      })
+
+      return formatted;
     } catch (error: any) {
       throw httpControllerCatch(error);
     }
+  }
 
+  @Get('my-lobby')
+  getMyLobby(@Req() req: any) {
+    return this.lobbyService.allLobbyUser(req.user.id);
   }
 
   @ApiOperation({
