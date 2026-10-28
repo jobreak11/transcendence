@@ -21,7 +21,8 @@ const baseLobbyDetailsSchema = z.object({
   roomStatus: z.enum(LobbyRoomStatus),
   currentPlayerCount: z.int(),
   currentSpectatorCount: z.int(),
-  chatRoomId: z.uuid()
+  chatRoomId: z.uuid(),
+  gameRoomId: z.uuid().nullable()
 })
 
 const fullLobbyDetailsSchema = z.object({
@@ -34,6 +35,7 @@ const insertLobbyDetailsSchema = z.object({
   roomStatus: baseLobbyDetailsSchema.shape.roomStatus.default(LobbyRoomStatus.WAITING),
   currentPlayerCount: baseLobbyDetailsSchema.shape.currentPlayerCount.default(0),
   currentSpectatorCount: baseLobbyDetailsSchema.shape.currentSpectatorCount.default(0),
+  gameRoomId: baseLobbyDetailsSchema.shape.gameRoomId.default(null),
   hostUserId: baseLobbyDetailsSchema.shape.hostUserId.optional(),
 }).transform((data) => {
   const newHostUserId = data.hostUserId ?? data.createdByUserId

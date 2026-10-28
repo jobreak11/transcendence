@@ -4,11 +4,11 @@ import { CHAT_REDIS_MESSAGE_LIMIT } from './chat-redis/chat-redis.constants.ts';
 
 declare module 'ioredis' {
   interface Redis {
-    lobbyRoomCreate(
-      allLobbyListsKey: string,
-      LobbyRoomMax: number,
-      newLobbyPinId: string,
-    ): Promise<number>;
+    //lobbyRoomCreate(
+    //  allLobbyListsKey: string,
+    //  LobbyRoomMax: number,
+    //  newLobbyPinId: string,
+    //): Promise<number>;
 
     lobbyRoomJoin(
       userLobbyListKey: string,

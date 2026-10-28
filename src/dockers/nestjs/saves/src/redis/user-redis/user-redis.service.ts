@@ -48,9 +48,9 @@ export class UserRedisService implements OnModuleInit {
     )
 
     if (res === 0) {
-      return false;
+      return true;
     }
-    return true;
+    return false;
   }
 
   async addNewGameRoom(userId: string, gameRoomId: string) {
@@ -61,9 +61,9 @@ export class UserRedisService implements OnModuleInit {
     )
 
     if (res === 0) {
-      return false;
+      return true;
     }
-    return true;
+    return false;
   }
 
   // get amount of lobby the user is currently in

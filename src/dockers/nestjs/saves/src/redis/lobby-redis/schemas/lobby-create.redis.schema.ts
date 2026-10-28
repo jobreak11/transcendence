@@ -12,7 +12,7 @@ const inputlobbyCreateSchema = z.object({
 
 export namespace LobbyCreate {
 
-  export type InputDto = z.input<typeof inputlobbyCreateSchema>
+  export type InputDto = z.input<typeof inputlobbyCreateSchema>;
 
   export const schema = {
     input: inputlobbyCreateSchema

@@ -73,11 +73,14 @@ export class RedisService implements OnModuleInit {
 
         local currLen = redis.call('SCARD', setKey)
         if currLen >= limit then
-          return 0
+          return 1
         end
 
-        redis.call('SADD', setKey, newElement)
-        return 1
+        if redis.call('SADD', setKey, newElement) ~= 1 then
+          return 2
+        end
+
+        return 0
       `
     })
 

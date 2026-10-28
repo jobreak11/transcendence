@@ -1041,12 +1041,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a17e7e-80ed-7495-95be-0795296607b6
+             * @example 01a181e2-4933-7121-b100-a06fa9dff74b
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a17e7e-80ef-7085-b3e0-3cef467c7bdc
+             * @example 01a181e2-4935-73b0-adcd-a2d72136ffb0
              */
             chatRoomId: string;
             /**

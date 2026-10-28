@@ -145,6 +145,27 @@ export class LobbyService implements OnModuleInit {
     return this.lobbyRedisService.getAllLobby();
   }
 
+  // find all the lobby of this user 
+  async allLobbyUser(userId: string) {
+
+    const lobbyList = await this.userRedisService.getUserLobbyList(userId);
+
+    if (lobbyList.length === 0) {
+      throw errorWithCode(
+        HttpStatus.NOT_FOUND,
+        "user not in any lobby"
+      )
+    }
+
+    const promises = lobbyList.map((id) => {
+      return this.findOne(id).catch(() => null);
+    })
+
+    const res = await Promise.all(promises);
+
+    return (res.filter((value) => value !== null));
+  }
+
   update(lobbyPinId: string, updateInputDto: z.input<typeof lobbyUpdateSchema>): Promise<LobbyDto> {
     return this.lobbyRedisService.updateLobby(lobbyPinId, updateInputDto);
   }
