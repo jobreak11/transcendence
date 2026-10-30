@@ -14,7 +14,11 @@ import { userProfileSchema } from "../../drizzle/schema/user_profiles/user_profi
 //}
 
 export const getUserProfileSchema = z.object({
-  ...userSchema.insert.omit({id: true, password: true, hashedRefreshToken: true}).required().shape,
+  ...userSchema.insert.omit({
+    //id: true,
+    password: true,
+    hashedRefreshToken: true
+  }).required().shape,
   titleName: z.string().nullable(),
   user_profile: z.object({
     ...userProfileSchema.insert.omit({userId: true}).required().shape

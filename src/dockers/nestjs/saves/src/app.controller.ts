@@ -7,7 +7,7 @@ import { Public } from './auth/decorators/public.decorators.js';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
+  @Get('hello')
   @ApiOperation({
     summary: 'Basic Hello world test',
     description: 'the most basic simple get to the backend service'
