@@ -3,7 +3,7 @@ import { ConflictException, HttpException, InternalServerErrorException, NotFoun
 
 export function httpControllerCatch(error: any) {
     if (error instanceof HttpException) {
-      throw error;
+      return error;
     }
 
     if (error?.cause?.code) {

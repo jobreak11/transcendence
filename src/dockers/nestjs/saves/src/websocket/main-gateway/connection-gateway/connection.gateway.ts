@@ -8,7 +8,7 @@ import { ConnectionGatewayService } from "./connection-gateway.service.js";
 
 
 @WebSocketGateway({
-  transports: ['websocket'],
+  transports: ['polling', 'websocket'],
   namespace: '/'
 })
 export class ConnectionGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect{

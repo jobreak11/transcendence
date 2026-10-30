@@ -4,12 +4,33 @@ function event_main_chat_namespace() {
   return `${event_main_namespace()}:chat`
 }
 
-export const event_main_chat = {
+export const event_main_chat_message = {
   to_server() {
-    return `${event_main_chat_namespace()}:to_server`
+    return `${event_main_chat_namespace()}:message:to_server`
   },
   to_client() {
-    return `${event_main_chat_namespace()}:to_client`
+    return `${event_main_chat_namespace()}:message:to_client`
   }
+}
+
+// join the websocket chat room to receive realtime notification
+export const event_main_chat_join = {
+
+  to_server() {
+    return `${event_main_chat_namespace()}:join:to_server`
+  },
+  to_client() {
+    return `${event_main_chat_namespace()}:join:to_client`
+  }
+}
+
+export const event_main_chat_leave = {
+  to_server() {
+    return `${event_main_chat_namespace()}:leave:to_server`
+  },
+  to_client() {
+    return `${event_main_chat_namespace()}:leave:to_client`
+  }
+
 }
 

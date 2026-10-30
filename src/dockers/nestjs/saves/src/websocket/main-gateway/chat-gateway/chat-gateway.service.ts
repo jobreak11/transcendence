@@ -6,7 +6,6 @@ import { WsException } from '@nestjs/websockets';
 import { InstanceLinksHost } from '@nestjs/core/injector/instance-links-host.js';
 import { ChatMessageType } from '../../../drizzle/schema/chat_messages/chat_messages.schema.js';
 import { room_main_chat_lobby, room_main_chat_specific } from '../rooms/chat.room.js';
-import { event_main_chat } from '../events/chat.event.js';
 import { resourceLimits } from 'worker_threads';
 import { ChatMessage } from './dtos/chat-message.dto.js';
 import { room_main_private_user } from '../rooms/user.room.js';
@@ -15,6 +14,7 @@ import  type { RedisClient } from '../../../redis/redis.provider.js';
 import { redis_lobby_global_details_lobby_lists } from '../../../redis/lobby-redis/namespaces/lobby.namespace.js';
 import { errorWithCode } from '../../../utility/errorWithCode.js';
 import { ChatPublicRedisService } from '../../../redis/chat-redis/chat-public-redis/chat-public-redis.service.js';
+import { event_main_chat_message } from '../events/chat.event.js';
 
 @Injectable()
 export class ChatGatewayService {
@@ -54,7 +54,7 @@ export class ChatGatewayService {
         }
 
         this.server?.to(room_main_chat_specific(result.data.chatRoomId))
-          .emit(event_main_chat.to_client(), response);
+          .emit(event_main_chat_message.to_client(), response);
         return response;
       }
       else {
@@ -73,7 +73,7 @@ export class ChatGatewayService {
           createdAt: res.createdAt
         }
 
-        this.server?.emit(event_main_chat.to_client(), response);
+        this.server?.emit(event_main_chat_message.to_client(), response);
 
         return response;
       }

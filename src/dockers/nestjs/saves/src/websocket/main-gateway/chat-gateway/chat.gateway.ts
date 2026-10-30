@@ -1,10 +1,12 @@
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { ChatGatewayService } from "./chat-gateway.service.js";
-import { event_main_chat } from "../events/chat.event.js";
 import { Server, Socket } from "socket.io";
 import { WsZodValidationPipe } from "../../pipes/wsZodValidationPipe.js";
 import { ChatMessageType } from "../../../drizzle/schema/chat_messages/chat_messages.schema.js";
 import { ChatMessage } from "./dtos/chat-message.dto.js";
+import { Logger } from "@nestjs/common";
+import { event_main_chat_join, event_main_chat_message } from "../events/chat.event.js";
+import { ChatJoinSocketRoom } from "./schemas/chat-join-socket-room.schema.js";
 
 @WebSocketGateway({
   transports: ['websocket'],
@@ -15,6 +17,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @WebSocketServer()
   server: Server;
 
+  private readonly logger = new Logger(ChatGateway.name);
+
   constructor(
     private readonly chatGatewayService: ChatGatewayService,
   ) {
@@ -24,6 +28,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   afterInit(server: Server) {
     this.chatGatewayService.setServer(server);
     
+    this.logger.log("initialized ChatGateway");
   }
 
   handleConnection(client: any, ...args: any[]) {
@@ -33,19 +38,28 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     
   }
 
-  @SubscribeMessage(event_main_chat.to_server())
-  messageFromClient(
+  @SubscribeMessage(event_main_chat_message.to_server())
+  async messageFromClient(
     @ConnectedSocket() client: Socket,
     @MessageBody(new WsZodValidationPipe(ChatMessage.newMessageFromClientSchema)) body: ChatMessage.NewMessageFromClientZodDto
   ) {
-    this.chatGatewayService.newChatMessage({
+    this.logger.debug("message received");
+
+    await this.chatGatewayService.newChatMessage({
       messageText: body.messageText,
       chatRoomId: body.chatRoomId,
       type: ChatMessageType.USER_MESSAGE,
       userId: client.data.user
 
     });
+  }
 
+  @SubscribeMessage(event_main_chat_join.to_server())
+  joinMessageChannel(
+    @ConnectedSocket() client: Socket,
+    @MessageBody(new WsZodValidationPipe(ChatJoinSocketRoom.schema)) body:ChatJoinSocketRoom.Dto
+
+  ) {
     
 
   }
