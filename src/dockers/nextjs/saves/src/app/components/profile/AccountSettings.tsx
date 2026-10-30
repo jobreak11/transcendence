@@ -7,7 +7,7 @@ import {
 
 import type {
   ChangeEvent,
-  SubmitEvent,
+  ComponentProps,
 } from "react";
 
 import ProfileImage from "./ProfileImage";
@@ -17,6 +17,8 @@ import {
   updateMyProfile,
   uploadProfilePicture,
   type PronounType,
+  // type UpdateUserProfileRequest,
+  type UserProfileUpdateFields,
   type UserProfileResponse,
 } from "../../../lib/profile-api";
 
@@ -33,6 +35,14 @@ type ProfileDraft = {
   pronoun: PronounType | "";
   signature: string;
 };
+
+/*
+ * Derive the submit event type directly from
+ * React's <form> component.
+ */
+type FormSubmitHandler = NonNullable<
+  ComponentProps<"form">["onSubmit"]
+>;
 
 function createDraft(
   profile: UserProfileResponse,
@@ -67,73 +77,167 @@ export default function AccountSettings({
   const [isUploading, setIsUploading] =
     useState(false);
 
+  const isBusy =
+    isSaving || isUploading;
+
   /*
-   * When the parent receives updated profile data,
-   * reset the draft with the latest values.
+   * When ProfilePage receives new information from
+   * the API, copy those values into the editable draft.
    */
   useEffect(() => {
     setDraft(createDraft(profile));
   }, [profile]);
 
-  async function handleSubmit(
-    event: SubmitEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault();
+  const handleSubmit: FormSubmitHandler =
+    async (event) => {
+      event.preventDefault();
 
-    setIsSaving(true);
-    setMessage("");
+      if (isBusy) {
+        return;
+      }
 
-    try {
-      const updatedProfile =
-        await updateMyProfile({
-          displayName:
-            draft.displayName.trim() || null,
+      const displayName =
+        draft.displayName.trim();
 
-          pronoun:
-            draft.pronoun || null,
+      const signature =
+        draft.signature.trim();
 
-          signature:
-            draft.signature.trim() || null,
-        });
+      if (displayName.length > 100) {
+        setMessage(
+          "Display name cannot exceed 100 characters.",
+        );
 
-      onSaved(updatedProfile);
-      setMessage("Changes saved.");
-    } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "Unable to save changes.",
-      );
-    } finally {
-      setIsSaving(false);
-    }
-  }
+        return;
+      }
+
+      if (signature.length > 100) {
+        setMessage(
+          "Signature cannot exceed 100 characters.",
+        );
+
+        return;
+      }
+
+      /*
+       * Compare the draft with the original profile.
+       * Only send properties that actually changed.
+       */
+      const originalDraft =
+        createDraft(profile);
+
+      const requestBody:
+        UserProfileUpdateFields = {};
+
+      if (
+        displayName !==
+        originalDraft.displayName.trim()
+      ) {
+        requestBody.displayName =
+          displayName || null;
+      }
+
+      if (
+        draft.pronoun !==
+        originalDraft.pronoun
+      ) {
+        requestBody.pronoun =
+          draft.pronoun || null;
+      }
+
+      if (
+        signature !==
+        originalDraft.signature.trim()
+      ) {
+        requestBody.signature =
+          signature || null;
+      }
+
+      if (
+        Object.keys(requestBody).length === 0
+      ) {
+        setMessage("No changes to save.");
+        return;
+      }
+
+      setIsSaving(true);
+      setMessage("");
+
+      try {
+        /*
+         * In development, check the browser console
+         * to confirm exactly what is being sent.
+         */
+        if (
+          process.env.NODE_ENV ===
+          "development"
+        ) {
+          console.log(
+            "Profile update request:",
+            requestBody,
+          );
+        }
+
+        const updatedProfile =
+          await updateMyProfile(
+            requestBody,
+          );
+
+        onSaved(updatedProfile);
+
+        setMessage(
+          "Changes saved successfully.",
+        );
+      } catch (error) {
+        console.error(
+          "Profile update failed:",
+          error,
+        );
+
+        setMessage(
+          error instanceof Error
+            ? error.message
+            : "Unable to save changes.",
+        );
+      } finally {
+        setIsSaving(false);
+      }
+    };
 
   async function handleImageChange(
     event: ChangeEvent<HTMLInputElement>,
   ) {
-    const file = event.target.files?.[0];
+    const input = event.currentTarget;
+    const file = input.files?.[0];
 
-    if (!file) {
+    if (!file || isBusy) {
       return;
     }
 
-    if (!file.type.startsWith("image/")) {
+    const acceptedImageTypes = [
+      "image/png",
+      "image/jpeg",
+    ];
+
+    if (
+      !acceptedImageTypes.includes(file.type)
+    ) {
       setMessage(
-        "Please select a valid image file.",
+        "Please select a PNG, JPEG or JPG image.",
       );
 
-      event.target.value = "";
+      input.value = "";
       return;
     }
 
-    // Optional frontend limit: 5 MB.
-    if (file.size > 5 * 1024 * 1024) {
+    const maximumFileSize =
+      5 * 1024 * 1024;
+
+    if (file.size > maximumFileSize) {
       setMessage(
         "Profile picture must be smaller than 5 MB.",
       );
 
-      event.target.value = "";
+      input.value = "";
       return;
     }
 
@@ -147,9 +251,14 @@ export default function AccountSettings({
       onSaved(updatedProfile);
 
       setMessage(
-        "Profile picture updated.",
+        "Profile picture updated successfully.",
       );
     } catch (error) {
+      console.error(
+        "Profile picture upload failed:",
+        error,
+      );
+
       setMessage(
         error instanceof Error
           ? error.message
@@ -158,8 +267,11 @@ export default function AccountSettings({
     } finally {
       setIsUploading(false);
 
-      // Allows the same image to be selected again.
-      event.target.value = "";
+      /*
+       * Allow the user to select the same file
+       * again after a failed upload.
+       */
+      input.value = "";
     }
   }
 
@@ -181,6 +293,7 @@ export default function AccountSettings({
             htmlFor="profile-picture"
             className="profile-image-upload-button"
             title="Change profile picture"
+            aria-disabled={isBusy}
           >
             <span aria-hidden="true">
               {isUploading ? "…" : "⚙"}
@@ -195,9 +308,9 @@ export default function AccountSettings({
             <input
               id="profile-picture"
               type="file"
-              accept="image/png,image/jpeg,image/webp"
+              accept=".jpg,.jpeg,.png,image/jpeg,image/png"
               className="sr-only"
-              disabled={isUploading}
+              disabled={isBusy}
               onChange={handleImageChange}
             />
           </label>
@@ -212,16 +325,19 @@ export default function AccountSettings({
             <label>
               Display Name:{" "}
               <input
+                type="text"
                 value={draft.displayName}
                 maxLength={100}
-                disabled={isSaving}
-                onChange={(event) =>
-                  setDraft({
-                    ...draft,
+                disabled={isBusy}
+                onChange={(event) => {
+                  setDraft((current) => ({
+                    ...current,
                     displayName:
                       event.target.value,
-                  })
-                }
+                  }));
+
+                  setMessage("");
+                }}
               />
             </label>
 
@@ -229,16 +345,18 @@ export default function AccountSettings({
               Pronoun:{" "}
               <select
                 value={draft.pronoun}
-                disabled={isSaving}
-                onChange={(event) =>
-                  setDraft({
-                    ...draft,
+                disabled={isBusy}
+                onChange={(event) => {
+                  setDraft((current) => ({
+                    ...current,
                     pronoun:
                       event.target.value as
                         | PronounType
                         | "",
-                  })
-                }
+                  }));
+
+                  setMessage("");
+                }}
               >
                 <option value="">
                   Select pronoun
@@ -277,30 +395,39 @@ export default function AccountSettings({
           <label className="signature-field">
             Signature:{" "}
             <input
+              type="text"
               value={draft.signature}
               maxLength={100}
-              disabled={isSaving}
-              onChange={(event) =>
-                setDraft({
-                  ...draft,
+              disabled={isBusy}
+              onChange={(event) => {
+                setDraft((current) => ({
+                  ...current,
                   signature:
                     event.target.value,
-                })
-              }
+                }));
+
+                setMessage("");
+              }}
             />
           </label>
 
           <div className="save-row">
-            <span aria-live="polite">
+            <span
+              aria-live="polite"
+              role={
+                message.includes("Unable") ||
+                message.includes("failed")
+                  ? "alert"
+                  : "status"
+              }
+            >
               {message}
             </span>
 
             <button
               type="submit"
               className="red-button"
-              disabled={
-                isSaving || isUploading
-              }
+              disabled={isBusy}
             >
               {isSaving
                 ? "Saving..."
