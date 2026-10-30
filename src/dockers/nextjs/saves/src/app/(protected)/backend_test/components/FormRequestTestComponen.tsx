@@ -70,13 +70,14 @@ export function FormRequestTestComponent({
 
 
     try {
+
+      const hasData = Object.keys(formData).length > 0;
+
       const res = await fetch(requestUrl, {
         method: method,
         
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: Object.entries(formData).length > 0 ? JSON.stringify(formData) : null,
+        headers: hasData ? { "Content-Type": "application/json" }: undefined,
+        body: hasData ? JSON.stringify(formData) : null,
       });
 
       setStatus(res.status);
