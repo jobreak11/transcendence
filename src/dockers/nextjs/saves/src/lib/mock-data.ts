@@ -18,7 +18,7 @@ export const rooms: Room[] = [
   {
     id: "room-test-1",
     host: "Test-1",
-    catchphrase: "เร่เข้ามา",
+    catchphrase: "欢迎观临",
     isPrivate: false,
     players: 1,
     maxPlayers: 8,
@@ -28,7 +28,7 @@ export const rooms: Room[] = [
   {
     id: "room-test-2",
     host: "Test-2",
-    catchphrase: "เร่เข้ามา",
+    catchphrase: "你好，泰国",
     isPrivate: true,
     players: 1,
     maxPlayers: 8,
@@ -49,3 +49,24 @@ export const rankings = [
   "Test-6",
   "Test-1",
 ] as const;
+
+export const mockMainProfileData = {
+  joinedAt: "January 2026",
+  level: "Poker Rookie",
+  status: "Online",
+  matchesPlayed: "12",
+  roundsWon: "4",
+  winRate: "33%",
+};
+
+export const mockPlayerStatisticsData = {
+  joinedAt: "January 2026",
+  level: "Poker Rookie",
+  likes: "8",
+  matchesPlayed: "12",
+  roundsWon: "4",
+  winRate: "33%",
+  highestGain: "1,500",
+  highestLoss: "700",
+  highestBank: "5,000",
+};

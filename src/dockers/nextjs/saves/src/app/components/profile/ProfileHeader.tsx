@@ -1,21 +1,33 @@
-import Link from "next/link";
-import type { Profile, ProfileTab } from "../../../lib/types";
+"use client";
 
-const tabs: Array<{ id: ProfileTab; label: string }> = [
+import Link from "next/link";
+
+import type { UserProfileResponse } from "../../../lib/profile-api";
+import type { ProfileTab } from "../../../lib/types";
+
+const tabs: Array<{
+  id: ProfileTab;
+  label: string;
+}> = [
   { id: "main", label: "Main Profile" },
   { id: "statistics", label: "Player Statistics" },
   { id: "history", label: "Match History" },
   { id: "settings", label: "Account Settings" },
 ];
 
+
 type ProfileHeaderProps = {
-  profile: Profile;
+  profile: UserProfileResponse;
   activeTab: ProfileTab;
-  onTabChange: (tab: ProfileTab) => void;
+  onTabChange: (
+    tab: ProfileTab,
+  ) => void;
 };
+
 
 export default function ProfileHeader({
   profile,
+  // activeTitleName,
   activeTab,
   onTabChange,
 }: ProfileHeaderProps) {
@@ -23,29 +35,102 @@ export default function ProfileHeader({
     <header className="headerbar">
       <div className="deheader profile-header-row">
         <div className="usertitle">
-          <div className="goldfont username">{profile.username}</div>
-          <div className="goldfont user-title">{profile.title}</div>
+          <div className="goldfont username">
+            {profile.user_profile.displayName ?? profile.email}
+          </div>
+
+          <div className="goldfont user-title">
+            {profile.titleName ?? "No active title"}
+          </div>
         </div>
-        <Link href="/game" className="red-button play-button">
+
+        <Link
+          href="/game"
+          className="red-button play-button"
+        >
           Play
         </Link>
-        <Link href="#" className="logout-link">
+
+        <Link href="/logout" className="logout-link">
           Logout
         </Link>
       </div>
 
-      <nav className="bartab" aria-label="Profile sections">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            className={`tabcolumn ${activeTab === tab.id ? "active" : ""}`}
-            onClick={() => onTabChange(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <nav
+        className="bartab"
+        aria-label="Profile sections"
+      >
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              className={`tabcolumn ${
+                isActive ? "active" : ""
+              }`}
+              aria-current={isActive ? "page" : undefined}
+              onClick={() => onTabChange(tab.id)}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </nav>
     </header>
   );
 }
+
+
+// import Link from "next/link";
+// import type { Profile, ProfileTab } from "../../../lib/types";
+
+// const tabs: Array<{ id: ProfileTab; label: string }> = [
+//   { id: "main", label: "Main Profile" },
+//   { id: "statistics", label: "Player Statistics" },
+//   { id: "history", label: "Match History" },
+//   { id: "settings", label: "Account Settings" },
+// ];
+
+// type ProfileHeaderProps = {
+//   profile: Profile;
+//   activeTab: ProfileTab;
+//   onTabChange: (tab: ProfileTab) => void;
+// };
+
+// export default function ProfileHeader({
+//   profile,
+//   activeTab,
+//   onTabChange,
+// }: ProfileHeaderProps) {
+//   return (
+//     <header className="headerbar">
+//       <div className="deheader profile-header-row">
+//         <div className="usertitle">
+//           <div className="goldfont username">{profile.username}</div>
+//           <div className="goldfont user-title">{profile.title}</div>
+//         </div>
+//         <Link href="/game" className="red-button play-button">
+//           Play
+//         </Link>
+//         <Link href="#" className="logout-link">
+//           Logout
+//         </Link>
+//       </div>
+
+//       <nav className="bartab" aria-label="Profile sections">
+//         {tabs.map((tab) => (
+//           <button
+//             key={tab.id}
+//             type="button"
+//             className={`tabcolumn ${activeTab === tab.id ? "active" : ""}`}
+//             onClick={() => onTabChange(tab.id)}
+//           >
+//             {tab.label}
+//           </button>
+//         ))}
+//       </nav>
+//     </header>
+//   );
+// }
