@@ -4,7 +4,7 @@ import { Server } from "socket.io";
 import { MainGatewayService } from "./main-gateway.service.js";
 
 @WebSocketGateway({
-  transports: ['websocket'],
+  transports: ['polling', 'websocket'],
   namespace: '/'
 })
 export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {

@@ -1,0 +1,1801 @@
+.
+├── Makefile
+├── README.md
+├── old_example_test-web_v0
+│   ├── README.md
+│   ├── certs
+│   │   ├── generate-certs.ps1
+│   │   └── generate-certs.sh
+│   ├── docker-compose.yml
+│   ├── nginx
+│   │   └── default.conf
+│   └── web
+│       ├── Dockerfile
+│       ├── package.json
+│       ├── public
+│       │   ├── app.js
+│       │   ├── index.html
+│       │   └── style.css
+│       ├── public_backup
+│       │   ├── app.js
+│       │   ├── index.html
+│       │   └── style.css
+│       └── server.js
+├── request_script
+│   ├── auth_me.sh
+│   ├── delete.sh
+│   ├── put.sh
+│   ├── test_auth.sh
+│   ├── test_creat.sh
+│   └── test_user-profile-jwt.sh
+├── src
+│   ├── docker-compose.yml
+│   ├── dockers
+│   │   ├── adminer
+│   │   │   └── Dockerfile
+│   │   ├── dozzle
+│   │   │   └── Dockerfile
+│   │   ├── nestjs
+│   │   │   ├── Dockerfile
+│   │   │   ├── data
+│   │   │   │   ├── AGENTS.md
+│   │   │   │   ├── README.md
+│   │   │   │   ├── dist
+│   │   │   │   │   ├── app.controller.d.ts
+│   │   │   │   │   ├── app.controller.js
+│   │   │   │   │   ├── app.controller.js.map
+│   │   │   │   │   ├── app.module.d.ts
+│   │   │   │   │   ├── app.module.js
+│   │   │   │   │   ├── app.module.js.map
+│   │   │   │   │   ├── app.service.d.ts
+│   │   │   │   │   ├── app.service.js
+│   │   │   │   │   ├── app.service.js.map
+│   │   │   │   │   ├── auth
+│   │   │   │   │   │   ├── auth.controller.d.ts
+│   │   │   │   │   │   ├── auth.controller.js
+│   │   │   │   │   │   ├── auth.controller.js.map
+│   │   │   │   │   │   ├── auth.module.d.ts
+│   │   │   │   │   │   ├── auth.module.js
+│   │   │   │   │   │   ├── auth.module.js.map
+│   │   │   │   │   │   ├── auth.service.d.ts
+│   │   │   │   │   │   ├── auth.service.js
+│   │   │   │   │   │   ├── auth.service.js.map
+│   │   │   │   │   │   ├── config
+│   │   │   │   │   │   │   ├── fortyTwo-oauth.config.d.ts
+│   │   │   │   │   │   │   ├── fortyTwo-oauth.config.js
+│   │   │   │   │   │   │   ├── fortyTwo-oauth.config.js.map
+│   │   │   │   │   │   │   ├── google-oauth.config.d.ts
+│   │   │   │   │   │   │   ├── google-oauth.config.js
+│   │   │   │   │   │   │   ├── google-oauth.config.js.map
+│   │   │   │   │   │   │   ├── jwt.config.d.ts
+│   │   │   │   │   │   │   ├── jwt.config.js
+│   │   │   │   │   │   │   ├── jwt.config.js.map
+│   │   │   │   │   │   │   ├── refresh-jwt.config.d.ts
+│   │   │   │   │   │   │   ├── refresh-jwt.config.js
+│   │   │   │   │   │   │   └── refresh-jwt.config.js.map
+│   │   │   │   │   │   ├── decorators
+│   │   │   │   │   │   │   ├── public.decorators.d.ts
+│   │   │   │   │   │   │   ├── public.decorators.js
+│   │   │   │   │   │   │   ├── public.decorators.js.map
+│   │   │   │   │   │   │   ├── roles.decorators.d.ts
+│   │   │   │   │   │   │   ├── roles.decorators.js
+│   │   │   │   │   │   │   └── roles.decorators.js.map
+│   │   │   │   │   │   ├── dto
+│   │   │   │   │   │   │   ├── login.dto.d.ts
+│   │   │   │   │   │   │   ├── login.dto.js
+│   │   │   │   │   │   │   ├── login.dto.js.map
+│   │   │   │   │   │   │   ├── refresh-token.dto.d.ts
+│   │   │   │   │   │   │   ├── refresh-token.dto.js
+│   │   │   │   │   │   │   └── refresh-token.dto.js.map
+│   │   │   │   │   │   ├── enums
+│   │   │   │   │   │   │   ├── role.enum.d.ts
+│   │   │   │   │   │   │   ├── role.enum.js
+│   │   │   │   │   │   │   └── role.enum.js.map
+│   │   │   │   │   │   ├── guards
+│   │   │   │   │   │   │   ├── fortytwo-auth
+│   │   │   │   │   │   │   │   ├── fortytwo-auth.guard.d.ts
+│   │   │   │   │   │   │   │   ├── fortytwo-auth.guard.js
+│   │   │   │   │   │   │   │   └── fortytwo-auth.guard.js.map
+│   │   │   │   │   │   │   ├── google-auth
+│   │   │   │   │   │   │   │   ├── google-auth.guard.d.ts
+│   │   │   │   │   │   │   │   ├── google-auth.guard.js
+│   │   │   │   │   │   │   │   └── google-auth.guard.js.map
+│   │   │   │   │   │   │   ├── jwt-auth
+│   │   │   │   │   │   │   │   ├── jwt-auth.guard.d.ts
+│   │   │   │   │   │   │   │   ├── jwt-auth.guard.js
+│   │   │   │   │   │   │   │   └── jwt-auth.guard.js.map
+│   │   │   │   │   │   │   ├── local-auth
+│   │   │   │   │   │   │   │   ├── local-auth.guard.d.ts
+│   │   │   │   │   │   │   │   ├── local-auth.guard.js
+│   │   │   │   │   │   │   │   └── local-auth.guard.js.map
+│   │   │   │   │   │   │   ├── refresh-auth
+│   │   │   │   │   │   │   │   ├── refresh-auth.guard.d.ts
+│   │   │   │   │   │   │   │   ├── refresh-auth.guard.js
+│   │   │   │   │   │   │   │   └── refresh-auth.guard.js.map
+│   │   │   │   │   │   │   ├── roles
+│   │   │   │   │   │   │   │   ├── roles.guard.d.ts
+│   │   │   │   │   │   │   │   ├── roles.guard.js
+│   │   │   │   │   │   │   │   └── roles.guard.js.map
+│   │   │   │   │   │   │   └── user-throttler
+│   │   │   │   │   │   │       ├── user-throttler.guard.d.ts
+│   │   │   │   │   │   │       ├── user-throttler.guard.js
+│   │   │   │   │   │   │       └── user-throttler.guard.js.map
+│   │   │   │   │   │   └── strategies
+│   │   │   │   │   │       ├── fortyTwo.strategy.d.ts
+│   │   │   │   │   │       ├── fortyTwo.strategy.js
+│   │   │   │   │   │       ├── fortyTwo.strategy.js.map
+│   │   │   │   │   │       ├── google.strategy.d.ts
+│   │   │   │   │   │       ├── google.strategy.js
+│   │   │   │   │   │       ├── google.strategy.js.map
+│   │   │   │   │   │       ├── jwt.strategy.d.ts
+│   │   │   │   │   │       ├── jwt.strategy.js
+│   │   │   │   │   │       ├── jwt.strategy.js.map
+│   │   │   │   │   │       ├── local.strategy.d.ts
+│   │   │   │   │   │       ├── local.strategy.js
+│   │   │   │   │   │       ├── local.strategy.js.map
+│   │   │   │   │   │       ├── refresh.strategy.d.ts
+│   │   │   │   │   │       ├── refresh.strategy.js
+│   │   │   │   │   │       └── refresh.strategy.js.map
+│   │   │   │   │   ├── chat
+│   │   │   │   │   │   ├── chat.controller.d.ts
+│   │   │   │   │   │   ├── chat.controller.js
+│   │   │   │   │   │   ├── chat.controller.js.map
+│   │   │   │   │   │   ├── chat.module.d.ts
+│   │   │   │   │   │   ├── chat.module.js
+│   │   │   │   │   │   ├── chat.module.js.map
+│   │   │   │   │   │   ├── chat.service.d.ts
+│   │   │   │   │   │   ├── chat.service.js
+│   │   │   │   │   │   ├── chat.service.js.map
+│   │   │   │   │   │   ├── dtos
+│   │   │   │   │   │   │   ├── all-chat-rooms-messages.dto.d.ts
+│   │   │   │   │   │   │   ├── all-chat-rooms-messages.dto.js
+│   │   │   │   │   │   │   ├── all-chat-rooms-messages.dto.js.map
+│   │   │   │   │   │   │   ├── chat-message.dto.d.ts
+│   │   │   │   │   │   │   ├── chat-message.dto.js
+│   │   │   │   │   │   │   ├── chat-message.dto.js.map
+│   │   │   │   │   │   │   ├── chat-room-create.dto.d.ts
+│   │   │   │   │   │   │   ├── chat-room-create.dto.js
+│   │   │   │   │   │   │   ├── chat-room-create.dto.js.map
+│   │   │   │   │   │   │   ├── chat.dto.d.ts
+│   │   │   │   │   │   │   ├── chat.dto.js
+│   │   │   │   │   │   │   ├── chat.dto.js.map
+│   │   │   │   │   │   │   ├── find-all-chat-rooms.dto.d.ts
+│   │   │   │   │   │   │   ├── find-all-chat-rooms.dto.js
+│   │   │   │   │   │   │   ├── find-all-chat-rooms.dto.js.map
+│   │   │   │   │   │   │   ├── get-chat-room.dto.d.ts
+│   │   │   │   │   │   │   ├── get-chat-room.dto.js
+│   │   │   │   │   │   │   ├── get-chat-room.dto.js.map
+│   │   │   │   │   │   │   ├── public-chat.dto.d.ts
+│   │   │   │   │   │   │   ├── public-chat.dto.js
+│   │   │   │   │   │   │   └── public-chat.dto.js.map
+│   │   │   │   │   │   ├── public-chat
+│   │   │   │   │   │   │   ├── public-chat.controller.d.ts
+│   │   │   │   │   │   │   ├── public-chat.controller.js
+│   │   │   │   │   │   │   ├── public-chat.controller.js.map
+│   │   │   │   │   │   │   ├── public-chat.module.d.ts
+│   │   │   │   │   │   │   ├── public-chat.module.js
+│   │   │   │   │   │   │   ├── public-chat.module.js.map
+│   │   │   │   │   │   │   ├── public-chat.service.d.ts
+│   │   │   │   │   │   │   ├── public-chat.service.js
+│   │   │   │   │   │   │   └── public-chat.service.js.map
+│   │   │   │   │   │   └── schemas
+│   │   │   │   │   │       ├── chat-message.schema.d.ts
+│   │   │   │   │   │       ├── chat-message.schema.js
+│   │   │   │   │   │       ├── chat-message.schema.js.map
+│   │   │   │   │   │       ├── chat-room-create.schema.d.ts
+│   │   │   │   │   │       ├── chat-room-create.schema.js
+│   │   │   │   │   │       ├── chat-room-create.schema.js.map
+│   │   │   │   │   │       ├── get-chat-room-schema.d.ts
+│   │   │   │   │   │       ├── get-chat-room-schema.js
+│   │   │   │   │   │       └── get-chat-room-schema.js.map
+│   │   │   │   │   ├── constant.d.ts
+│   │   │   │   │   ├── constant.js
+│   │   │   │   │   ├── constant.js.map
+│   │   │   │   │   ├── drizzle
+│   │   │   │   │   │   ├── drizzle.module.d.ts
+│   │   │   │   │   │   ├── drizzle.module.js
+│   │   │   │   │   │   ├── drizzle.module.js.map
+│   │   │   │   │   │   ├── schema
+│   │   │   │   │   │   │   ├── chat_messages
+│   │   │   │   │   │   │   │   ├── chat_message.dto.d.ts
+│   │   │   │   │   │   │   │   ├── chat_message.dto.js
+│   │   │   │   │   │   │   │   ├── chat_message.dto.js.map
+│   │   │   │   │   │   │   │   ├── chat_messages.schema.d.ts
+│   │   │   │   │   │   │   │   ├── chat_messages.schema.js
+│   │   │   │   │   │   │   │   └── chat_messages.schema.js.map
+│   │   │   │   │   │   │   ├── chat_room_members
+│   │   │   │   │   │   │   │   ├── chat_room_member.dto.d.ts
+│   │   │   │   │   │   │   │   ├── chat_room_member.dto.js
+│   │   │   │   │   │   │   │   ├── chat_room_member.dto.js.map
+│   │   │   │   │   │   │   │   ├── chat_room_members.schema.d.ts
+│   │   │   │   │   │   │   │   ├── chat_room_members.schema.js
+│   │   │   │   │   │   │   │   └── chat_room_members.schema.js.map
+│   │   │   │   │   │   │   ├── chat_rooms
+│   │   │   │   │   │   │   │   ├── chat_room.dto.d.ts
+│   │   │   │   │   │   │   │   ├── chat_room.dto.js
+│   │   │   │   │   │   │   │   ├── chat_room.dto.js.map
+│   │   │   │   │   │   │   │   ├── chat_rooms.schema.d.ts
+│   │   │   │   │   │   │   │   ├── chat_rooms.schema.js
+│   │   │   │   │   │   │   │   └── chat_rooms.schema.js.map
+│   │   │   │   │   │   │   ├── friendships.schema.d.ts
+│   │   │   │   │   │   │   ├── friendships.schema.js
+│   │   │   │   │   │   │   ├── friendships.schema.js.map
+│   │   │   │   │   │   │   ├── schema.d.ts
+│   │   │   │   │   │   │   ├── schema.js
+│   │   │   │   │   │   │   ├── schema.js.map
+│   │   │   │   │   │   │   ├── titles.schema.d.ts
+│   │   │   │   │   │   │   ├── titles.schema.js
+│   │   │   │   │   │   │   ├── titles.schema.js.map
+│   │   │   │   │   │   │   ├── user_profiles
+│   │   │   │   │   │   │   │   ├── user-profile.dto.d.ts
+│   │   │   │   │   │   │   │   ├── user-profile.dto.js
+│   │   │   │   │   │   │   │   ├── user-profile.dto.js.map
+│   │   │   │   │   │   │   │   ├── user_profiles.schema.d.ts
+│   │   │   │   │   │   │   │   ├── user_profiles.schema.js
+│   │   │   │   │   │   │   │   └── user_profiles.schema.js.map
+│   │   │   │   │   │   │   ├── user_titles.schema.d.ts
+│   │   │   │   │   │   │   ├── user_titles.schema.js
+│   │   │   │   │   │   │   ├── user_titles.schema.js.map
+│   │   │   │   │   │   │   └── users
+│   │   │   │   │   │   │       ├── user.dto.d.ts
+│   │   │   │   │   │   │       ├── user.dto.js
+│   │   │   │   │   │   │       ├── user.dto.js.map
+│   │   │   │   │   │   │       ├── users.schema.d.ts
+│   │   │   │   │   │   │       ├── users.schema.js
+│   │   │   │   │   │   │       └── users.schema.js.map
+│   │   │   │   │   │   ├── seed.d.ts
+│   │   │   │   │   │   ├── seed.js
+│   │   │   │   │   │   └── seed.js.map
+│   │   │   │   │   ├── friend
+│   │   │   │   │   │   ├── dto
+│   │   │   │   │   │   │   ├── find-all-friendships.dto.d.ts
+│   │   │   │   │   │   │   ├── find-all-friendships.dto.js
+│   │   │   │   │   │   │   ├── find-all-friendships.dto.js.map
+│   │   │   │   │   │   │   ├── friend.dto.d.ts
+│   │   │   │   │   │   │   ├── friend.dto.js
+│   │   │   │   │   │   │   └── friend.dto.js.map
+│   │   │   │   │   │   ├── friend.controller.d.ts
+│   │   │   │   │   │   ├── friend.controller.js
+│   │   │   │   │   │   ├── friend.controller.js.map
+│   │   │   │   │   │   ├── friend.module.d.ts
+│   │   │   │   │   │   ├── friend.module.js
+│   │   │   │   │   │   ├── friend.module.js.map
+│   │   │   │   │   │   ├── friend.service.d.ts
+│   │   │   │   │   │   ├── friend.service.js
+│   │   │   │   │   │   └── friend.service.js.map
+│   │   │   │   │   ├── game
+│   │   │   │   │   │   ├── game.module.d.ts
+│   │   │   │   │   │   ├── game.module.js
+│   │   │   │   │   │   ├── game.module.js.map
+│   │   │   │   │   │   ├── lobby
+│   │   │   │   │   │   │   ├── dto
+│   │   │   │   │   │   │   │   ├── create-lobby.dto.d.ts
+│   │   │   │   │   │   │   │   ├── create-lobby.dto.js
+│   │   │   │   │   │   │   │   ├── create-lobby.dto.js.map
+│   │   │   │   │   │   │   │   ├── get-lobby-member-list.dto.d.ts
+│   │   │   │   │   │   │   │   ├── get-lobby-member-list.dto.js
+│   │   │   │   │   │   │   │   ├── get-lobby-member-list.dto.js.map
+│   │   │   │   │   │   │   │   ├── get-lobby-public.dto.d.ts
+│   │   │   │   │   │   │   │   ├── get-lobby-public.dto.js
+│   │   │   │   │   │   │   │   ├── get-lobby-public.dto.js.map
+│   │   │   │   │   │   │   │   ├── join-lobby.dto.d.ts
+│   │   │   │   │   │   │   │   ├── join-lobby.dto.js
+│   │   │   │   │   │   │   │   └── join-lobby.dto.js.map
+│   │   │   │   │   │   │   ├── lobby.constants.d.ts
+│   │   │   │   │   │   │   ├── lobby.constants.js
+│   │   │   │   │   │   │   ├── lobby.constants.js.map
+│   │   │   │   │   │   │   ├── lobby.controller.d.ts
+│   │   │   │   │   │   │   ├── lobby.controller.js
+│   │   │   │   │   │   │   ├── lobby.controller.js.map
+│   │   │   │   │   │   │   ├── lobby.guard.d.ts
+│   │   │   │   │   │   │   ├── lobby.guard.js
+│   │   │   │   │   │   │   ├── lobby.guard.js.map
+│   │   │   │   │   │   │   ├── lobby.module.d.ts
+│   │   │   │   │   │   │   ├── lobby.module.js
+│   │   │   │   │   │   │   ├── lobby.module.js.map
+│   │   │   │   │   │   │   ├── lobby.service.d.ts
+│   │   │   │   │   │   │   ├── lobby.service.js
+│   │   │   │   │   │   │   ├── lobby.service.js.map
+│   │   │   │   │   │   │   └── schemas
+│   │   │   │   │   │   │       ├── join-lobby.schema.d.ts
+│   │   │   │   │   │   │       ├── join-lobby.schema.js
+│   │   │   │   │   │   │       └── join-lobby.schema.js.map
+│   │   │   │   │   │   ├── server
+│   │   │   │   │   │   │   ├── showdown.d.ts
+│   │   │   │   │   │   │   ├── showdown.js
+│   │   │   │   │   │   │   └── showdown.js.map
+│   │   │   │   │   │   └── tools
+│   │   │   │   │   │       ├── shuffle.d.ts
+│   │   │   │   │   │       ├── shuffle.js
+│   │   │   │   │   │       └── shuffle.js.map
+│   │   │   │   │   ├── main.d.ts
+│   │   │   │   │   ├── main.js
+│   │   │   │   │   ├── main.js.map
+│   │   │   │   │   ├── pipes
+│   │   │   │   │   │   ├── ZodValidationPipe.d.ts
+│   │   │   │   │   │   ├── ZodValidationPipe.js
+│   │   │   │   │   │   └── ZodValidationPipe.js.map
+│   │   │   │   │   ├── redis
+│   │   │   │   │   │   ├── caching
+│   │   │   │   │   │   │   ├── caching.module.d.ts
+│   │   │   │   │   │   │   ├── caching.module.js
+│   │   │   │   │   │   │   ├── caching.module.js.map
+│   │   │   │   │   │   │   ├── friendships-caching
+│   │   │   │   │   │   │   │   ├── friendships-caching.constants.d.ts
+│   │   │   │   │   │   │   │   ├── friendships-caching.constants.js
+│   │   │   │   │   │   │   │   ├── friendships-caching.constants.js.map
+│   │   │   │   │   │   │   │   ├── friendships-caching.module.d.ts
+│   │   │   │   │   │   │   │   ├── friendships-caching.module.js
+│   │   │   │   │   │   │   │   ├── friendships-caching.module.js.map
+│   │   │   │   │   │   │   │   ├── friendships-caching.service.d.ts
+│   │   │   │   │   │   │   │   ├── friendships-caching.service.js
+│   │   │   │   │   │   │   │   ├── friendships-caching.service.js.map
+│   │   │   │   │   │   │   │   └── namespaces
+│   │   │   │   │   │   │   │       ├── cache-friendship.namespace.d.ts
+│   │   │   │   │   │   │   │       ├── cache-friendship.namespace.js
+│   │   │   │   │   │   │   │       └── cache-friendship.namespace.js.map
+│   │   │   │   │   │   │   ├── namespaces
+│   │   │   │   │   │   │   │   ├── cache.namespace.d.ts
+│   │   │   │   │   │   │   │   ├── cache.namespace.js
+│   │   │   │   │   │   │   │   └── cache.namespace.js.map
+│   │   │   │   │   │   │   └── user-caching
+│   │   │   │   │   │   │       ├── namespaces
+│   │   │   │   │   │   │       │   ├── cache-user.namespace.d.ts
+│   │   │   │   │   │   │       │   ├── cache-user.namespace.js
+│   │   │   │   │   │   │       │   └── cache-user.namespace.js.map
+│   │   │   │   │   │   │       ├── schemas
+│   │   │   │   │   │   │       │   ├── user.redis.schema.d.ts
+│   │   │   │   │   │   │       │   ├── user.redis.schema.js
+│   │   │   │   │   │   │       │   └── user.redis.schema.js.map
+│   │   │   │   │   │   │       ├── user-caching.constants.d.ts
+│   │   │   │   │   │   │       ├── user-caching.constants.js
+│   │   │   │   │   │   │       ├── user-caching.constants.js.map
+│   │   │   │   │   │   │       ├── user-caching.module.d.ts
+│   │   │   │   │   │   │       ├── user-caching.module.js
+│   │   │   │   │   │   │       ├── user-caching.module.js.map
+│   │   │   │   │   │   │       ├── user-caching.service.d.ts
+│   │   │   │   │   │   │       ├── user-caching.service.js
+│   │   │   │   │   │   │       └── user-caching.service.js.map
+│   │   │   │   │   │   ├── chat-redis
+│   │   │   │   │   │   │   ├── chat-lobby-redis
+│   │   │   │   │   │   │   │   ├── chat-lobby-redis.constants.d.ts
+│   │   │   │   │   │   │   │   ├── chat-lobby-redis.constants.js
+│   │   │   │   │   │   │   │   ├── chat-lobby-redis.constants.js.map
+│   │   │   │   │   │   │   │   ├── chat-lobby-redis.module.d.ts
+│   │   │   │   │   │   │   │   ├── chat-lobby-redis.module.js
+│   │   │   │   │   │   │   │   ├── chat-lobby-redis.module.js.map
+│   │   │   │   │   │   │   │   ├── chat-lobby-redis.service.d.ts
+│   │   │   │   │   │   │   │   ├── chat-lobby-redis.service.js
+│   │   │   │   │   │   │   │   ├── chat-lobby-redis.service.js.map
+│   │   │   │   │   │   │   │   └── namespaces
+│   │   │   │   │   │   │   │       ├── chat-lobby-redis.namespaces.d.ts
+│   │   │   │   │   │   │   │       ├── chat-lobby-redis.namespaces.js
+│   │   │   │   │   │   │   │       └── chat-lobby-redis.namespaces.js.map
+│   │   │   │   │   │   │   ├── chat-public-redis
+│   │   │   │   │   │   │   │   ├── chat-public-redis.constants.d.ts
+│   │   │   │   │   │   │   │   ├── chat-public-redis.constants.js
+│   │   │   │   │   │   │   │   ├── chat-public-redis.constants.js.map
+│   │   │   │   │   │   │   │   ├── chat-public-redis.module.d.ts
+│   │   │   │   │   │   │   │   ├── chat-public-redis.module.js
+│   │   │   │   │   │   │   │   ├── chat-public-redis.module.js.map
+│   │   │   │   │   │   │   │   ├── chat-public-redis.service.d.ts
+│   │   │   │   │   │   │   │   ├── chat-public-redis.service.js
+│   │   │   │   │   │   │   │   ├── chat-public-redis.service.js.map
+│   │   │   │   │   │   │   │   └── namespaces
+│   │   │   │   │   │   │   │       ├── chat-public-redis.namespaces.d.ts
+│   │   │   │   │   │   │   │       ├── chat-public-redis.namespaces.js
+│   │   │   │   │   │   │   │       └── chat-public-redis.namespaces.js.map
+│   │   │   │   │   │   │   ├── chat-redis.constants.d.ts
+│   │   │   │   │   │   │   ├── chat-redis.constants.js
+│   │   │   │   │   │   │   ├── chat-redis.constants.js.map
+│   │   │   │   │   │   │   ├── chat-redis.module.d.ts
+│   │   │   │   │   │   │   ├── chat-redis.module.js
+│   │   │   │   │   │   │   ├── chat-redis.module.js.map
+│   │   │   │   │   │   │   ├── chat-redis.service.d.ts
+│   │   │   │   │   │   │   ├── chat-redis.service.js
+│   │   │   │   │   │   │   ├── chat-redis.service.js.map
+│   │   │   │   │   │   │   └── namespaces
+│   │   │   │   │   │   │       ├── chat-redis.namespace.d.ts
+│   │   │   │   │   │   │       ├── chat-redis.namespace.js
+│   │   │   │   │   │   │       └── chat-redis.namespace.js.map
+│   │   │   │   │   │   ├── game-redis
+│   │   │   │   │   │   │   ├── game-redis.constants.d.ts
+│   │   │   │   │   │   │   ├── game-redis.constants.js
+│   │   │   │   │   │   │   ├── game-redis.constants.js.map
+│   │   │   │   │   │   │   ├── game-redis.module.d.ts
+│   │   │   │   │   │   │   ├── game-redis.module.js
+│   │   │   │   │   │   │   ├── game-redis.module.js.map
+│   │   │   │   │   │   │   ├── game-redis.service.d.ts
+│   │   │   │   │   │   │   ├── game-redis.service.js
+│   │   │   │   │   │   │   ├── game-redis.service.js.map
+│   │   │   │   │   │   │   ├── namespaces
+│   │   │   │   │   │   │   │   ├── game-redis.namespace.d.ts
+│   │   │   │   │   │   │   │   ├── game-redis.namespace.js
+│   │   │   │   │   │   │   │   └── game-redis.namespace.js.map
+│   │   │   │   │   │   │   └── schemas
+│   │   │   │   │   │   │       ├── game-redis.schema.d.ts
+│   │   │   │   │   │   │       ├── game-redis.schema.js
+│   │   │   │   │   │   │       └── game-redis.schema.js.map
+│   │   │   │   │   │   ├── global-redis
+│   │   │   │   │   │   │   ├── global-redis.module.d.ts
+│   │   │   │   │   │   │   ├── global-redis.module.js
+│   │   │   │   │   │   │   ├── global-redis.module.js.map
+│   │   │   │   │   │   │   ├── global-redis.service.d.ts
+│   │   │   │   │   │   │   ├── global-redis.service.js
+│   │   │   │   │   │   │   ├── global-redis.service.js.map
+│   │   │   │   │   │   │   └── namespaces
+│   │   │   │   │   │   │       ├── global-chat.namespace.d.ts
+│   │   │   │   │   │   │       ├── global-chat.namespace.js
+│   │   │   │   │   │   │       ├── global-chat.namespace.js.map
+│   │   │   │   │   │   │       ├── global.namespace.d.ts
+│   │   │   │   │   │   │       ├── global.namespace.js
+│   │   │   │   │   │   │       └── global.namespace.js.map
+│   │   │   │   │   │   ├── lobby-redis
+│   │   │   │   │   │   │   ├── dtos
+│   │   │   │   │   │   │   │   ├── lobby-details.dto.d.ts
+│   │   │   │   │   │   │   │   ├── lobby-details.dto.js
+│   │   │   │   │   │   │   │   ├── lobby-details.dto.js.map
+│   │   │   │   │   │   │   │   ├── lobby-gameSettings.dto.d.ts
+│   │   │   │   │   │   │   │   ├── lobby-gameSettings.dto.js
+│   │   │   │   │   │   │   │   ├── lobby-gameSettings.dto.js.map
+│   │   │   │   │   │   │   │   ├── lobby-generalSettings.dto.d.ts
+│   │   │   │   │   │   │   │   ├── lobby-generalSettings.dto.js
+│   │   │   │   │   │   │   │   ├── lobby-generalSettings.dto.js.map
+│   │   │   │   │   │   │   │   ├── lobby-member.dto.d.ts
+│   │   │   │   │   │   │   │   ├── lobby-member.dto.js
+│   │   │   │   │   │   │   │   ├── lobby-member.dto.js.map
+│   │   │   │   │   │   │   │   ├── lobby-records.dto.d.ts
+│   │   │   │   │   │   │   │   ├── lobby-records.dto.js
+│   │   │   │   │   │   │   │   ├── lobby-records.dto.js.map
+│   │   │   │   │   │   │   │   ├── lobby-update.dto.d.ts
+│   │   │   │   │   │   │   │   ├── lobby-update.dto.js
+│   │   │   │   │   │   │   │   ├── lobby-update.dto.js.map
+│   │   │   │   │   │   │   │   ├── lobby.dto.d.ts
+│   │   │   │   │   │   │   │   ├── lobby.dto.js
+│   │   │   │   │   │   │   │   └── lobby.dto.js.map
+│   │   │   │   │   │   │   ├── lobby-redis.module.d.ts
+│   │   │   │   │   │   │   ├── lobby-redis.module.js
+│   │   │   │   │   │   │   ├── lobby-redis.module.js.map
+│   │   │   │   │   │   │   ├── lobby-redis.service.d.ts
+│   │   │   │   │   │   │   ├── lobby-redis.service.js
+│   │   │   │   │   │   │   ├── lobby-redis.service.js.map
+│   │   │   │   │   │   │   ├── namespaces
+│   │   │   │   │   │   │   │   ├── lobby.namespace.d.ts
+│   │   │   │   │   │   │   │   ├── lobby.namespace.js
+│   │   │   │   │   │   │   │   └── lobby.namespace.js.map
+│   │   │   │   │   │   │   └── schemas
+│   │   │   │   │   │   │       ├── lobby-create.redis.schema.d.ts
+│   │   │   │   │   │   │       ├── lobby-create.redis.schema.js
+│   │   │   │   │   │   │       ├── lobby-create.redis.schema.js.map
+│   │   │   │   │   │   │       ├── lobby-details.redis.schema.d.ts
+│   │   │   │   │   │   │       ├── lobby-details.redis.schema.js
+│   │   │   │   │   │   │       ├── lobby-details.redis.schema.js.map
+│   │   │   │   │   │   │       ├── lobby-gameSettings.redis.schema.d.ts
+│   │   │   │   │   │   │       ├── lobby-gameSettings.redis.schema.js
+│   │   │   │   │   │   │       ├── lobby-gameSettings.redis.schema.js.map
+│   │   │   │   │   │   │       ├── lobby-generalSettings.redis.schema.d.ts
+│   │   │   │   │   │   │       ├── lobby-generalSettings.redis.schema.js
+│   │   │   │   │   │   │       ├── lobby-generalSettings.redis.schema.js.map
+│   │   │   │   │   │   │       ├── lobby-update.redis.schema.d.ts
+│   │   │   │   │   │   │       ├── lobby-update.redis.schema.js
+│   │   │   │   │   │   │       ├── lobby-update.redis.schema.js.map
+│   │   │   │   │   │   │       ├── lobby.redis.schema.d.ts
+│   │   │   │   │   │   │       ├── lobby.redis.schema.js
+│   │   │   │   │   │   │       └── lobby.redis.schema.js.map
+│   │   │   │   │   │   ├── redis.module.d.ts
+│   │   │   │   │   │   ├── redis.module.js
+│   │   │   │   │   │   ├── redis.module.js.map
+│   │   │   │   │   │   ├── redis.provider.d.ts
+│   │   │   │   │   │   ├── redis.provider.js
+│   │   │   │   │   │   ├── redis.provider.js.map
+│   │   │   │   │   │   ├── redis.service.d.ts
+│   │   │   │   │   │   ├── redis.service.js
+│   │   │   │   │   │   ├── redis.service.js.map
+│   │   │   │   │   │   ├── schemas
+│   │   │   │   │   │   │   └── user
+│   │   │   │   │   │   │       ├── user.redis.schema.d.ts
+│   │   │   │   │   │   │       ├── user.redis.schema.js
+│   │   │   │   │   │   │       └── user.redis.schema.js.map
+│   │   │   │   │   │   ├── user-redis
+│   │   │   │   │   │   │   ├── namespaces
+│   │   │   │   │   │   │   │   ├── user.namespace.d.ts
+│   │   │   │   │   │   │   │   ├── user.namespace.js
+│   │   │   │   │   │   │   │   └── user.namespace.js.map
+│   │   │   │   │   │   │   ├── user-redis.constants.d.ts
+│   │   │   │   │   │   │   ├── user-redis.constants.js
+│   │   │   │   │   │   │   ├── user-redis.constants.js.map
+│   │   │   │   │   │   │   ├── user-redis.module.d.ts
+│   │   │   │   │   │   │   ├── user-redis.module.js
+│   │   │   │   │   │   │   ├── user-redis.module.js.map
+│   │   │   │   │   │   │   ├── user-redis.service.d.ts
+│   │   │   │   │   │   │   ├── user-redis.service.js
+│   │   │   │   │   │   │   └── user-redis.service.js.map
+│   │   │   │   │   │   └── utility
+│   │   │   │   │   │       ├── redis-logError.d.ts
+│   │   │   │   │   │       ├── redis-logError.js
+│   │   │   │   │   │       └── redis-logError.js.map
+│   │   │   │   │   ├── user
+│   │   │   │   │   │   ├── dto
+│   │   │   │   │   │   │   ├── create-user.dto.d.ts
+│   │   │   │   │   │   │   ├── create-user.dto.js
+│   │   │   │   │   │   │   ├── create-user.dto.js.map
+│   │   │   │   │   │   │   ├── get-user-profile.dto.d.ts
+│   │   │   │   │   │   │   ├── get-user-profile.dto.js
+│   │   │   │   │   │   │   ├── get-user-profile.dto.js.map
+│   │   │   │   │   │   │   ├── update-user.dto.d.ts
+│   │   │   │   │   │   │   ├── update-user.dto.js
+│   │   │   │   │   │   │   ├── update-user.dto.js.map
+│   │   │   │   │   │   │   ├── user-and-profile.dto.d.ts
+│   │   │   │   │   │   │   ├── user-and-profile.dto.js
+│   │   │   │   │   │   │   └── user-and-profile.dto.js.map
+│   │   │   │   │   │   ├── title
+│   │   │   │   │   │   │   ├── title.constants.d.ts
+│   │   │   │   │   │   │   ├── title.constants.js
+│   │   │   │   │   │   │   ├── title.constants.js.map
+│   │   │   │   │   │   │   ├── title.controller.d.ts
+│   │   │   │   │   │   │   ├── title.controller.js
+│   │   │   │   │   │   │   ├── title.controller.js.map
+│   │   │   │   │   │   │   ├── title.dto.d.ts
+│   │   │   │   │   │   │   ├── title.dto.js
+│   │   │   │   │   │   │   ├── title.dto.js.map
+│   │   │   │   │   │   │   ├── title.module.d.ts
+│   │   │   │   │   │   │   ├── title.module.js
+│   │   │   │   │   │   │   ├── title.module.js.map
+│   │   │   │   │   │   │   ├── title.service.d.ts
+│   │   │   │   │   │   │   ├── title.service.js
+│   │   │   │   │   │   │   └── title.service.js.map
+│   │   │   │   │   │   ├── user.controller.d.ts
+│   │   │   │   │   │   ├── user.controller.js
+│   │   │   │   │   │   ├── user.controller.js.map
+│   │   │   │   │   │   ├── user.module.d.ts
+│   │   │   │   │   │   ├── user.module.js
+│   │   │   │   │   │   ├── user.module.js.map
+│   │   │   │   │   │   ├── user.service.d.ts
+│   │   │   │   │   │   ├── user.service.js
+│   │   │   │   │   │   └── user.service.js.map
+│   │   │   │   │   ├── utility
+│   │   │   │   │   │   ├── errorWithCode.d.ts
+│   │   │   │   │   │   ├── errorWithCode.js
+│   │   │   │   │   │   ├── errorWithCode.js.map
+│   │   │   │   │   │   ├── httpControllerCatch.d.ts
+│   │   │   │   │   │   ├── httpControllerCatch.js
+│   │   │   │   │   │   ├── httpControllerCatch.js.map
+│   │   │   │   │   │   ├── logError.d.ts
+│   │   │   │   │   │   ├── logError.js
+│   │   │   │   │   │   └── logError.js.map
+│   │   │   │   │   └── websocket
+│   │   │   │   │       ├── game-gateway
+│   │   │   │   │       │   ├── game-connection-gateway
+│   │   │   │   │       │   │   ├── game-connection-gateway.d.ts
+│   │   │   │   │       │   │   ├── game-connection-gateway.js
+│   │   │   │   │       │   │   ├── game-connection-gateway.js.map
+│   │   │   │   │       │   │   ├── game-connection-gateway.module.d.ts
+│   │   │   │   │       │   │   ├── game-connection-gateway.module.js
+│   │   │   │   │       │   │   ├── game-connection-gateway.module.js.map
+│   │   │   │   │       │   │   ├── game-connection-gateway.service.d.ts
+│   │   │   │   │       │   │   ├── game-connection-gateway.service.js
+│   │   │   │   │       │   │   └── game-connection-gateway.service.js.map
+│   │   │   │   │       │   ├── game-gameway.service.d.ts
+│   │   │   │   │       │   ├── game-gameway.service.js
+│   │   │   │   │       │   ├── game-gameway.service.js.map
+│   │   │   │   │       │   ├── game-gateway.d.ts
+│   │   │   │   │       │   ├── game-gateway.js
+│   │   │   │   │       │   ├── game-gateway.js.map
+│   │   │   │   │       │   ├── game-gateway.module.d.ts
+│   │   │   │   │       │   ├── game-gateway.module.js
+│   │   │   │   │       │   └── game-gateway.module.js.map
+│   │   │   │   │       ├── guards
+│   │   │   │   │       │   ├── ws-throttler.guard.d.ts
+│   │   │   │   │       │   ├── ws-throttler.guard.js
+│   │   │   │   │       │   └── ws-throttler.guard.js.map
+│   │   │   │   │       ├── main-gateway
+│   │   │   │   │       │   ├── chat-gateway
+│   │   │   │   │       │   │   ├── chat-gateway.module.d.ts
+│   │   │   │   │       │   │   ├── chat-gateway.module.js
+│   │   │   │   │       │   │   ├── chat-gateway.module.js.map
+│   │   │   │   │       │   │   ├── chat-gateway.service.d.ts
+│   │   │   │   │       │   │   ├── chat-gateway.service.js
+│   │   │   │   │       │   │   ├── chat-gateway.service.js.map
+│   │   │   │   │       │   │   ├── chat.gateway.d.ts
+│   │   │   │   │       │   │   ├── chat.gateway.js
+│   │   │   │   │       │   │   ├── chat.gateway.js.map
+│   │   │   │   │       │   │   └── dtos
+│   │   │   │   │       │   │       ├── chat-message.dto.d.ts
+│   │   │   │   │       │   │       ├── chat-message.dto.js
+│   │   │   │   │       │   │       └── chat-message.dto.js.map
+│   │   │   │   │       │   ├── connection-gateway
+│   │   │   │   │       │   │   ├── connection-gateway.module.d.ts
+│   │   │   │   │       │   │   ├── connection-gateway.module.js
+│   │   │   │   │       │   │   ├── connection-gateway.module.js.map
+│   │   │   │   │       │   │   ├── connection-gateway.service.d.ts
+│   │   │   │   │       │   │   ├── connection-gateway.service.js
+│   │   │   │   │       │   │   ├── connection-gateway.service.js.map
+│   │   │   │   │       │   │   ├── connection.gateway.d.ts
+│   │   │   │   │       │   │   ├── connection.gateway.js
+│   │   │   │   │       │   │   └── connection.gateway.js.map
+│   │   │   │   │       │   ├── events
+│   │   │   │   │       │   │   ├── chat.event.d.ts
+│   │   │   │   │       │   │   ├── chat.event.js
+│   │   │   │   │       │   │   ├── chat.event.js.map
+│   │   │   │   │       │   │   ├── main.event.d.ts
+│   │   │   │   │       │   │   ├── main.event.js
+│   │   │   │   │       │   │   └── main.event.js.map
+│   │   │   │   │       │   ├── lobby-gateway
+│   │   │   │   │       │   │   ├── lobby-gateway.module.d.ts
+│   │   │   │   │       │   │   ├── lobby-gateway.module.js
+│   │   │   │   │       │   │   ├── lobby-gateway.module.js.map
+│   │   │   │   │       │   │   ├── lobby-gateway.service.d.ts
+│   │   │   │   │       │   │   ├── lobby-gateway.service.js
+│   │   │   │   │       │   │   ├── lobby-gateway.service.js.map
+│   │   │   │   │       │   │   ├── lobby.gateway.d.ts
+│   │   │   │   │       │   │   ├── lobby.gateway.js
+│   │   │   │   │       │   │   └── lobby.gateway.js.map
+│   │   │   │   │       │   ├── main-gateway.module.d.ts
+│   │   │   │   │       │   ├── main-gateway.module.js
+│   │   │   │   │       │   ├── main-gateway.module.js.map
+│   │   │   │   │       │   ├── main-gateway.service.d.ts
+│   │   │   │   │       │   ├── main-gateway.service.js
+│   │   │   │   │       │   ├── main-gateway.service.js.map
+│   │   │   │   │       │   ├── main.gateway.d.ts
+│   │   │   │   │       │   ├── main.gateway.js
+│   │   │   │   │       │   ├── main.gateway.js.map
+│   │   │   │   │       │   └── rooms
+│   │   │   │   │       │       ├── chat.room.d.ts
+│   │   │   │   │       │       ├── chat.room.js
+│   │   │   │   │       │       ├── chat.room.js.map
+│   │   │   │   │       │       ├── main.room.d.ts
+│   │   │   │   │       │       ├── main.room.js
+│   │   │   │   │       │       ├── main.room.js.map
+│   │   │   │   │       │       ├── user.room.d.ts
+│   │   │   │   │       │       ├── user.room.js
+│   │   │   │   │       │       └── user.room.js.map
+│   │   │   │   │       ├── pipes
+│   │   │   │   │       │   ├── wsZodValidationPipe.d.ts
+│   │   │   │   │       │   ├── wsZodValidationPipe.js
+│   │   │   │   │       │   └── wsZodValidationPipe.js.map
+│   │   │   │   │       ├── websocket.module.d.ts
+│   │   │   │   │       ├── websocket.module.js
+│   │   │   │   │       └── websocket.module.js.map
+│   │   │   │   ├── drizzle.config.ts
+│   │   │   │   ├── nest-cli.json
+│   │   │   │   ├── node_modules
+│   │   │   │   │   ├── @fastify
+│   │   │   │   │   │   ├── multipart -> ../.pnpm/@fastify+multipart@10.1.6/node_modules/@fastify/multipart
+│   │   │   │   │   │   └── static -> ../.pnpm/@fastify+static@10.1.8/node_modules/@fastify/static
+│   │   │   │   │   ├── @nestjs
+│   │   │   │   │   │   ├── cli -> ../.pnpm/@nestjs+cli@12.0.11_@types+node@24.19.2_prettier@3.9.10/node_modules/@nestjs/cli
+│   │   │   │   │   │   ├── common -> ../.pnpm/@nestjs+common@12.3.2_class-transformer@0.5.1_class-validator@0.15.1_reflect-metadata@0_4547461f09f411d4079cca9904c2213f/node_modules/@nestjs/common
+│   │   │   │   │   │   ├── config -> ../.pnpm/@nestjs+config@12.0.1_@nestjs+common@12.3.2_class-transformer@0.5.1_class-validator@0.1_b1de4cd6abf6216d764977b4354158d6/node_modules/@nestjs/config
+│   │   │   │   │   │   ├── core -> ../.pnpm/@nestjs+core@12.3.2_@nestjs+common@12.3.2_class-transformer@0.5.1_class-validator@0.15._5fa858e405b1031d734bf76e9c3910f6/node_modules/@nestjs/core
+│   │   │   │   │   │   ├── jwt -> ../.pnpm/@nestjs+jwt@12.0.3_@nestjs+common@12.3.2_class-transformer@0.5.1_class-validator@0.15.1_772dbaa18b702f701bd47322dffc87e0/node_modules/@nestjs/jwt
+│   │   │   │   │   │   ├── mau -> ../.pnpm/@nestjs+mau@0.2.9/node_modules/@nestjs/mau
+│   │   │   │   │   │   ├── passport -> ../.pnpm/@nestjs+passport@12.0.0_@nestjs+common@12.3.2_class-transformer@0.5.1_class-validator@0_563f25643f0ba82a91060b7993fa8c32/node_modules/@nestjs/passport
+│   │   │   │   │   │   ├── platform-express -> ../.pnpm/@nestjs+platform-express@12.3.2_@nestjs+common@12.3.2_class-transformer@0.5.1_class-val_6193affdb125fd2891f27a8e7ee34e36/node_modules/@nestjs/platform-express
+│   │   │   │   │   │   ├── platform-fastify -> ../.pnpm/@nestjs+platform-fastify@12.3.2_@fastify+multipart@10.1.6_@fastify+static@10.1.8_@nestj_bc58e6322ae063edd4261c274eebea82/node_modules/@nestjs/platform-fastify
+│   │   │   │   │   │   ├── platform-socket.io -> ../.pnpm/@nestjs+platform-socket.io@12.3.2_@nestjs+common@12.3.2_class-transformer@0.5.1_class-v_4702530c26b6d4cceeba7c5759f61da5/node_modules/@nestjs/platform-socket.io
+│   │   │   │   │   │   ├── schematics -> ../.pnpm/@nestjs+schematics@12.0.11_@typescript+typescript6@6.0.2_chokidar@5.0.0_prettier@3.9.10/node_modules/@nestjs/schematics
+│   │   │   │   │   │   ├── swagger -> ../.pnpm/@nestjs+swagger@12.0.5_@fastify+static@10.1.8_@nestjs+common@12.3.2_class-transformer@0_74e4266d18378fcf4959f8ae17a810dd/node_modules/@nestjs/swagger
+│   │   │   │   │   │   ├── testing -> ../.pnpm/@nestjs+testing@12.3.2_@nestjs+common@12.3.2_class-transformer@0.5.1_class-validator@0._0a9b5d0ada70745db7c887a65e670cde/node_modules/@nestjs/testing
+│   │   │   │   │   │   ├── throttler -> ../.pnpm/@nestjs+throttler@6.7.1_@nestjs+common@12.3.2_class-transformer@0.5.1_class-validator@0_9b7faab61c36133167cc70ce7b71fba2/node_modules/@nestjs/throttler
+│   │   │   │   │   │   └── websockets -> ../.pnpm/@nestjs+websockets@12.3.2_@nestjs+common@12.3.2_class-transformer@0.5.1_class-validator_6f6285850499c3a14450234f553f2124/node_modules/@nestjs/websockets
+│   │   │   │   │   ├── @types
+│   │   │   │   │   │   ├── express -> ../.pnpm/@types+express@5.0.6/node_modules/@types/express
+│   │   │   │   │   │   ├── ms -> ../.pnpm/@types+ms@2.1.0/node_modules/@types/ms
+│   │   │   │   │   │   ├── multer -> ../.pnpm/@types+multer@2.3.0/node_modules/@types/multer
+│   │   │   │   │   │   ├── node -> ../.pnpm/@types+node@24.19.2/node_modules/@types/node
+│   │   │   │   │   │   ├── passport -> ../.pnpm/@types+passport@1.0.17/node_modules/@types/passport
+│   │   │   │   │   │   ├── passport-google-oauth20 -> ../.pnpm/@types+passport-google-oauth20@2.0.17/node_modules/@types/passport-google-oauth20
+│   │   │   │   │   │   ├── passport-jwt -> ../.pnpm/@types+passport-jwt@4.0.1/node_modules/@types/passport-jwt
+│   │   │   │   │   │   ├── passport-local -> ../.pnpm/@types+passport-local@1.0.38/node_modules/@types/passport-local
+│   │   │   │   │   │   ├── passport-oauth2 -> ../.pnpm/@types+passport-oauth2@1.8.0/node_modules/@types/passport-oauth2
+│   │   │   │   │   │   ├── pg -> ../.pnpm/@types+pg@8.23.1/node_modules/@types/pg
+│   │   │   │   │   │   ├── redis-mock -> ../.pnpm/@types+redis-mock@0.17.3/node_modules/@types/redis-mock
+│   │   │   │   │   │   └── supertest -> ../.pnpm/@types+supertest@7.2.1/node_modules/@types/supertest
+│   │   │   │   │   ├── @vitest
+│   │   │   │   │   │   └── coverage-v8 -> ../.pnpm/@vitest+coverage-v8@4.1.12_vitest@4.1.12/node_modules/@vitest/coverage-v8
+│   │   │   │   │   ├── argon2 -> .pnpm/argon2@0.45.1/node_modules/argon2
+│   │   │   │   │   ├── class-transformer -> .pnpm/class-transformer@0.5.1/node_modules/class-transformer
+│   │   │   │   │   ├── class-validator -> .pnpm/class-validator@0.15.1/node_modules/class-validator
+│   │   │   │   │   ├── dotenv -> .pnpm/dotenv@18.0.9/node_modules/dotenv
+│   │   │   │   │   ├── drizzle-kit -> .pnpm/drizzle-kit@1.0.0-rc.5_drizzle-orm@1.0.0-rc.5_@types+pg@8.23.1_pg@8.23.1_zod@4.6.7_/node_modules/drizzle-kit
+│   │   │   │   │   ├── drizzle-orm -> .pnpm/drizzle-orm@1.0.0-rc.5_@types+pg@8.23.1_pg@8.23.1_zod@4.6.7/node_modules/drizzle-orm
+│   │   │   │   │   ├── fastify -> .pnpm/fastify@5.12.5/node_modules/fastify
+│   │   │   │   │   ├── ioredis -> .pnpm/ioredis@6.0.0_supports-color@7.2.0/node_modules/ioredis
+│   │   │   │   │   ├── multer -> .pnpm/multer@2.5.0/node_modules/multer
+│   │   │   │   │   ├── oxlint -> .pnpm/oxlint@1.90.0_oxlint-tsgolint@7.0.2005/node_modules/oxlint
+│   │   │   │   │   ├── oxlint-tsgolint -> .pnpm/oxlint-tsgolint@7.0.2005/node_modules/oxlint-tsgolint
+│   │   │   │   │   ├── passport -> .pnpm/passport@0.7.0/node_modules/passport
+│   │   │   │   │   ├── passport-google-oauth20 -> .pnpm/passport-google-oauth20@2.0.0/node_modules/passport-google-oauth20
+│   │   │   │   │   ├── passport-jwt -> .pnpm/passport-jwt@4.0.1/node_modules/passport-jwt
+│   │   │   │   │   ├── passport-local -> .pnpm/passport-local@1.0.0/node_modules/passport-local
+│   │   │   │   │   ├── passport-oauth2 -> .pnpm/passport-oauth2@1.8.0/node_modules/passport-oauth2
+│   │   │   │   │   ├── pg -> .pnpm/pg@8.23.1/node_modules/pg
+│   │   │   │   │   ├── prettier -> .pnpm/prettier@3.9.10/node_modules/prettier
+│   │   │   │   │   ├── redis-mock -> .pnpm/redis-mock@0.56.3/node_modules/redis-mock
+│   │   │   │   │   ├── reflect-metadata -> .pnpm/reflect-metadata@0.2.2/node_modules/reflect-metadata
+│   │   │   │   │   ├── rxjs -> .pnpm/rxjs@7.8.2/node_modules/rxjs
+│   │   │   │   │   ├── socket.io -> .pnpm/socket.io@4.8.4_supports-color@7.2.0/node_modules/socket.io
+│   │   │   │   │   ├── source-map-support -> .pnpm/source-map-support@0.5.21/node_modules/source-map-support
+│   │   │   │   │   ├── supertest -> .pnpm/supertest@7.3.1_supports-color@7.2.0/node_modules/supertest
+│   │   │   │   │   ├── typescript -> .pnpm/@typescript+typescript6@6.0.2/node_modules/@typescript/typescript6
+│   │   │   │   │   ├── uuid -> .pnpm/uuid@14.0.3/node_modules/uuid
+│   │   │   │   │   ├── vite -> .pnpm/vite@8.3.5_@types+node@24.19.2/node_modules/vite
+│   │   │   │   │   ├── vitest -> .pnpm/vitest@4.1.12_@types+node@24.19.2_@vitest+coverage-v8@4.1.12_vite@8.3.5_@types+node@24.19.2_/node_modules/vitest
+│   │   │   │   │   └── zod -> .pnpm/zod@4.6.7/node_modules/zod
+│   │   │   │   ├── package.json
+│   │   │   │   ├── pnpm-lock.yaml
+│   │   │   │   ├── pnpm-workspace.yaml
+│   │   │   │   ├── src
+│   │   │   │   │   ├── app.controller.spec.ts
+│   │   │   │   │   ├── app.controller.ts
+│   │   │   │   │   ├── app.module.ts
+│   │   │   │   │   ├── app.service.ts
+│   │   │   │   │   ├── auth
+│   │   │   │   │   │   ├── auth.controller.ts
+│   │   │   │   │   │   ├── auth.module.ts
+│   │   │   │   │   │   ├── auth.service.ts
+│   │   │   │   │   │   ├── config
+│   │   │   │   │   │   │   ├── fortyTwo-oauth.config.ts
+│   │   │   │   │   │   │   ├── google-oauth.config.ts
+│   │   │   │   │   │   │   ├── jwt.config.ts
+│   │   │   │   │   │   │   └── refresh-jwt.config.ts
+│   │   │   │   │   │   ├── decorators
+│   │   │   │   │   │   │   ├── public.decorators.ts
+│   │   │   │   │   │   │   └── roles.decorators.ts
+│   │   │   │   │   │   ├── dto
+│   │   │   │   │   │   │   ├── login.dto.ts
+│   │   │   │   │   │   │   └── refresh-token.dto.ts
+│   │   │   │   │   │   ├── enums
+│   │   │   │   │   │   │   └── role.enum.ts
+│   │   │   │   │   │   ├── guards
+│   │   │   │   │   │   │   ├── fortytwo-auth
+│   │   │   │   │   │   │   │   ├── fortytwo-auth.guard.spec.ts
+│   │   │   │   │   │   │   │   └── fortytwo-auth.guard.ts
+│   │   │   │   │   │   │   ├── google-auth
+│   │   │   │   │   │   │   │   ├── google-auth.guard.spec.ts
+│   │   │   │   │   │   │   │   └── google-auth.guard.ts
+│   │   │   │   │   │   │   ├── jwt-auth
+│   │   │   │   │   │   │   │   ├── jwt-auth.guard.spec.ts
+│   │   │   │   │   │   │   │   └── jwt-auth.guard.ts
+│   │   │   │   │   │   │   ├── local-auth
+│   │   │   │   │   │   │   │   ├── local-auth.guard.spec.ts
+│   │   │   │   │   │   │   │   └── local-auth.guard.ts
+│   │   │   │   │   │   │   ├── refresh-auth
+│   │   │   │   │   │   │   │   ├── refresh-auth.guard.spec.ts
+│   │   │   │   │   │   │   │   └── refresh-auth.guard.ts
+│   │   │   │   │   │   │   ├── roles
+│   │   │   │   │   │   │   │   └── roles.guard.ts
+│   │   │   │   │   │   │   └── user-throttler
+│   │   │   │   │   │   │       ├── user-throttler.guard.spec.ts
+│   │   │   │   │   │   │       └── user-throttler.guard.ts
+│   │   │   │   │   │   ├── strategies
+│   │   │   │   │   │   │   ├── fortyTwo.strategy.ts
+│   │   │   │   │   │   │   ├── google.strategy.ts
+│   │   │   │   │   │   │   ├── jwt.strategy.ts
+│   │   │   │   │   │   │   ├── local.strategy.ts
+│   │   │   │   │   │   │   └── refresh.strategy.ts
+│   │   │   │   │   │   └── types
+│   │   │   │   │   │       ├── auth-jwtFastifyRequest.d.ts
+│   │   │   │   │   │       ├── auth-jwtPayload.d.ts
+│   │   │   │   │   │       └── current-user.d.ts
+│   │   │   │   │   ├── chat
+│   │   │   │   │   │   ├── chat.controller.spec.ts
+│   │   │   │   │   │   ├── chat.controller.ts
+│   │   │   │   │   │   ├── chat.module.ts
+│   │   │   │   │   │   ├── chat.service.spec.ts
+│   │   │   │   │   │   ├── chat.service.ts
+│   │   │   │   │   │   ├── dtos
+│   │   │   │   │   │   │   ├── all-chat-rooms-messages.dto.ts
+│   │   │   │   │   │   │   ├── chat-message.dto.ts
+│   │   │   │   │   │   │   ├── chat-room-create.dto.ts
+│   │   │   │   │   │   │   ├── chat.dto.ts
+│   │   │   │   │   │   │   ├── find-all-chat-rooms.dto.ts
+│   │   │   │   │   │   │   ├── get-chat-room.dto.ts
+│   │   │   │   │   │   │   └── public-chat.dto.ts
+│   │   │   │   │   │   ├── public-chat
+│   │   │   │   │   │   │   ├── public-chat.controller.ts
+│   │   │   │   │   │   │   ├── public-chat.module.ts
+│   │   │   │   │   │   │   └── public-chat.service.ts
+│   │   │   │   │   │   └── schemas
+│   │   │   │   │   │       ├── chat-message.schema.ts
+│   │   │   │   │   │       ├── chat-room-create.schema.ts
+│   │   │   │   │   │       └── get-chat-room-schema.ts
+│   │   │   │   │   ├── constant.ts
+│   │   │   │   │   ├── drizzle
+│   │   │   │   │   │   ├── drizzle.module.ts
+│   │   │   │   │   │   ├── schema
+│   │   │   │   │   │   │   ├── chat_messages
+│   │   │   │   │   │   │   │   ├── chat_message.dto.ts
+│   │   │   │   │   │   │   │   └── chat_messages.schema.ts
+│   │   │   │   │   │   │   ├── chat_room_members
+│   │   │   │   │   │   │   │   ├── chat_room_member.dto.ts
+│   │   │   │   │   │   │   │   └── chat_room_members.schema.ts
+│   │   │   │   │   │   │   ├── chat_rooms
+│   │   │   │   │   │   │   │   ├── chat_room.dto.ts
+│   │   │   │   │   │   │   │   └── chat_rooms.schema.ts
+│   │   │   │   │   │   │   ├── friendships.schema.ts
+│   │   │   │   │   │   │   ├── schema.ts
+│   │   │   │   │   │   │   ├── titles.schema.ts
+│   │   │   │   │   │   │   ├── user_profiles
+│   │   │   │   │   │   │   │   ├── user-profile.dto.ts
+│   │   │   │   │   │   │   │   └── user_profiles.schema.ts
+│   │   │   │   │   │   │   ├── user_titles.schema.ts
+│   │   │   │   │   │   │   └── users
+│   │   │   │   │   │   │       ├── user.dto.ts
+│   │   │   │   │   │   │       └── users.schema.ts
+│   │   │   │   │   │   ├── seed.ts
+│   │   │   │   │   │   └── types
+│   │   │   │   │   │       └── drizzle.d.ts
+│   │   │   │   │   ├── friend
+│   │   │   │   │   │   ├── dto
+│   │   │   │   │   │   │   ├── find-all-friendships.dto.ts
+│   │   │   │   │   │   │   └── friend.dto.ts
+│   │   │   │   │   │   ├── friend.controller.spec.ts
+│   │   │   │   │   │   ├── friend.controller.ts
+│   │   │   │   │   │   ├── friend.module.ts
+│   │   │   │   │   │   ├── friend.service.spec.ts
+│   │   │   │   │   │   └── friend.service.ts
+│   │   │   │   │   ├── game
+│   │   │   │   │   │   ├── game.module.ts
+│   │   │   │   │   │   ├── lobby
+│   │   │   │   │   │   │   ├── dto
+│   │   │   │   │   │   │   │   ├── create-lobby.dto.ts
+│   │   │   │   │   │   │   │   ├── get-lobby-member-list.dto.ts
+│   │   │   │   │   │   │   │   ├── get-lobby-public.dto.ts
+│   │   │   │   │   │   │   │   └── join-lobby.dto.ts
+│   │   │   │   │   │   │   ├── lobby.constants.ts
+│   │   │   │   │   │   │   ├── lobby.controller.spec.ts
+│   │   │   │   │   │   │   ├── lobby.controller.ts
+│   │   │   │   │   │   │   ├── lobby.guard.spec.ts
+│   │   │   │   │   │   │   ├── lobby.guard.ts
+│   │   │   │   │   │   │   ├── lobby.module.ts
+│   │   │   │   │   │   │   ├── lobby.service.spec.ts
+│   │   │   │   │   │   │   ├── lobby.service.ts
+│   │   │   │   │   │   │   └── schemas
+│   │   │   │   │   │   │       └── join-lobby.schema.ts
+│   │   │   │   │   │   ├── server
+│   │   │   │   │   │   │   └── showdown.ts
+│   │   │   │   │   │   └── tools
+│   │   │   │   │   │       └── shuffle.ts
+│   │   │   │   │   ├── main.ts
+│   │   │   │   │   ├── pipes
+│   │   │   │   │   │   └── ZodValidationPipe.ts
+│   │   │   │   │   ├── redis
+│   │   │   │   │   │   ├── caching
+│   │   │   │   │   │   │   ├── caching.module.ts
+│   │   │   │   │   │   │   ├── friendships-caching
+│   │   │   │   │   │   │   │   ├── friendships-caching.constants.ts
+│   │   │   │   │   │   │   │   ├── friendships-caching.module.ts
+│   │   │   │   │   │   │   │   ├── friendships-caching.service.ts
+│   │   │   │   │   │   │   │   ├── namespaces
+│   │   │   │   │   │   │   │   │   └── cache-friendship.namespace.ts
+│   │   │   │   │   │   │   │   └── schemas
+│   │   │   │   │   │   │   ├── namespaces
+│   │   │   │   │   │   │   │   └── cache.namespace.ts
+│   │   │   │   │   │   │   └── user-caching
+│   │   │   │   │   │   │       ├── namespaces
+│   │   │   │   │   │   │       │   └── cache-user.namespace.ts
+│   │   │   │   │   │   │       ├── schemas
+│   │   │   │   │   │   │       │   └── user.redis.schema.ts
+│   │   │   │   │   │   │       ├── user-caching.constants.ts
+│   │   │   │   │   │   │       ├── user-caching.module.ts
+│   │   │   │   │   │   │       └── user-caching.service.ts
+│   │   │   │   │   │   ├── chat-redis
+│   │   │   │   │   │   │   ├── chat-game-redis
+│   │   │   │   │   │   │   ├── chat-lobby-redis
+│   │   │   │   │   │   │   │   ├── chat-lobby-redis.constants.ts
+│   │   │   │   │   │   │   │   ├── chat-lobby-redis.module.ts
+│   │   │   │   │   │   │   │   ├── chat-lobby-redis.service.ts
+│   │   │   │   │   │   │   │   └── namespaces
+│   │   │   │   │   │   │   │       └── chat-lobby-redis.namespaces.ts
+│   │   │   │   │   │   │   ├── chat-public-redis
+│   │   │   │   │   │   │   │   ├── chat-public-redis.constants.ts
+│   │   │   │   │   │   │   │   ├── chat-public-redis.module.ts
+│   │   │   │   │   │   │   │   ├── chat-public-redis.service.ts
+│   │   │   │   │   │   │   │   └── namespaces
+│   │   │   │   │   │   │   │       └── chat-public-redis.namespaces.ts
+│   │   │   │   │   │   │   ├── chat-redis.constants.ts
+│   │   │   │   │   │   │   ├── chat-redis.module.ts
+│   │   │   │   │   │   │   ├── chat-redis.service.ts
+│   │   │   │   │   │   │   ├── dtos
+│   │   │   │   │   │   │   ├── namespaces
+│   │   │   │   │   │   │   │   └── chat-redis.namespace.ts
+│   │   │   │   │   │   │   └── schemas
+│   │   │   │   │   │   ├── game-redis
+│   │   │   │   │   │   │   ├── game-redis.constants.ts
+│   │   │   │   │   │   │   ├── game-redis.module.ts
+│   │   │   │   │   │   │   ├── game-redis.service.ts
+│   │   │   │   │   │   │   ├── namespaces
+│   │   │   │   │   │   │   │   └── game-redis.namespace.ts
+│   │   │   │   │   │   │   └── schemas
+│   │   │   │   │   │   │       └── game-redis.schema.ts
+│   │   │   │   │   │   ├── global-redis
+│   │   │   │   │   │   │   ├── global-redis.module.ts
+│   │   │   │   │   │   │   ├── global-redis.service.ts
+│   │   │   │   │   │   │   ├── namespaces
+│   │   │   │   │   │   │   │   ├── global-chat.namespace.ts
+│   │   │   │   │   │   │   │   └── global.namespace.ts
+│   │   │   │   │   │   │   └── schemas
+│   │   │   │   │   │   ├── lobby-redis
+│   │   │   │   │   │   │   ├── dtos
+│   │   │   │   │   │   │   │   ├── lobby-details.dto.ts
+│   │   │   │   │   │   │   │   ├── lobby-gameSettings.dto.ts
+│   │   │   │   │   │   │   │   ├── lobby-generalSettings.dto.ts
+│   │   │   │   │   │   │   │   ├── lobby-member.dto.ts
+│   │   │   │   │   │   │   │   ├── lobby-records.dto.ts
+│   │   │   │   │   │   │   │   ├── lobby-update.dto.ts
+│   │   │   │   │   │   │   │   └── lobby.dto.ts
+│   │   │   │   │   │   │   ├── lobby-redis.module.ts
+│   │   │   │   │   │   │   ├── lobby-redis.service.ts
+│   │   │   │   │   │   │   ├── namespaces
+│   │   │   │   │   │   │   │   └── lobby.namespace.ts
+│   │   │   │   │   │   │   └── schemas
+│   │   │   │   │   │   │       ├── lobby-create.redis.schema.ts
+│   │   │   │   │   │   │       ├── lobby-details.redis.schema.ts
+│   │   │   │   │   │   │       ├── lobby-gameSettings.redis.schema.ts
+│   │   │   │   │   │   │       ├── lobby-generalSettings.redis.schema.ts
+│   │   │   │   │   │   │       ├── lobby-update.redis.schema.ts
+│   │   │   │   │   │   │       └── lobby.redis.schema.ts
+│   │   │   │   │   │   ├── redis.d.ts
+│   │   │   │   │   │   ├── redis.module.ts
+│   │   │   │   │   │   ├── redis.provider.ts
+│   │   │   │   │   │   ├── redis.service.spec.ts
+│   │   │   │   │   │   ├── redis.service.ts
+│   │   │   │   │   │   ├── schemas
+│   │   │   │   │   │   │   └── user
+│   │   │   │   │   │   │       └── user.redis.schema.ts
+│   │   │   │   │   │   ├── user-redis
+│   │   │   │   │   │   │   ├── namespaces
+│   │   │   │   │   │   │   │   └── user.namespace.ts
+│   │   │   │   │   │   │   ├── schemas
+│   │   │   │   │   │   │   ├── user-redis.constants.ts
+│   │   │   │   │   │   │   ├── user-redis.module.ts
+│   │   │   │   │   │   │   └── user-redis.service.ts
+│   │   │   │   │   │   └── utility
+│   │   │   │   │   │       └── redis-logError.ts
+│   │   │   │   │   ├── user
+│   │   │   │   │   │   ├── dto
+│   │   │   │   │   │   │   ├── create-user.dto.ts
+│   │   │   │   │   │   │   ├── get-user-profile.dto.ts
+│   │   │   │   │   │   │   ├── update-user.dto.ts
+│   │   │   │   │   │   │   └── user-and-profile.dto.ts
+│   │   │   │   │   │   ├── title
+│   │   │   │   │   │   │   ├── title.constants.ts
+│   │   │   │   │   │   │   ├── title.controller.spec.ts
+│   │   │   │   │   │   │   ├── title.controller.ts
+│   │   │   │   │   │   │   ├── title.dto.ts
+│   │   │   │   │   │   │   ├── title.module.ts
+│   │   │   │   │   │   │   ├── title.service.spec.ts
+│   │   │   │   │   │   │   └── title.service.ts
+│   │   │   │   │   │   ├── user.controller.spec.ts
+│   │   │   │   │   │   ├── user.controller.ts
+│   │   │   │   │   │   ├── user.module.ts
+│   │   │   │   │   │   ├── user.service.spec.ts
+│   │   │   │   │   │   └── user.service.ts
+│   │   │   │   │   ├── utility
+│   │   │   │   │   │   ├── errorWithCode.ts
+│   │   │   │   │   │   ├── httpControllerCatch.ts
+│   │   │   │   │   │   └── logError.ts
+│   │   │   │   │   └── websocket
+│   │   │   │   │       ├── game-gateway
+│   │   │   │   │       │   ├── events
+│   │   │   │   │       │   ├── game-connection-gateway
+│   │   │   │   │       │   │   ├── game-connection-gateway.module.ts
+│   │   │   │   │       │   │   ├── game-connection-gateway.service.ts
+│   │   │   │   │       │   │   └── game-connection-gateway.ts
+│   │   │   │   │       │   ├── game-gameway.service.ts
+│   │   │   │   │       │   ├── game-gateway.module.ts
+│   │   │   │   │       │   ├── game-gateway.ts
+│   │   │   │   │       │   └── rooms
+│   │   │   │   │       ├── guards
+│   │   │   │   │       │   └── ws-throttler.guard.ts
+│   │   │   │   │       ├── main-gateway
+│   │   │   │   │       │   ├── chat-gateway
+│   │   │   │   │       │   │   ├── chat-gateway.module.ts
+│   │   │   │   │       │   │   ├── chat-gateway.service.ts
+│   │   │   │   │       │   │   ├── chat.gateway.ts
+│   │   │   │   │       │   │   └── dtos
+│   │   │   │   │       │   │       └── chat-message.dto.ts
+│   │   │   │   │       │   ├── connection-gateway
+│   │   │   │   │       │   │   ├── connection-gateway.module.ts
+│   │   │   │   │       │   │   ├── connection-gateway.service.ts
+│   │   │   │   │       │   │   └── connection.gateway.ts
+│   │   │   │   │       │   ├── events
+│   │   │   │   │       │   │   ├── chat.event.ts
+│   │   │   │   │       │   │   └── main.event.ts
+│   │   │   │   │       │   ├── lobby-gateway
+│   │   │   │   │       │   │   ├── lobby-gateway.module.ts
+│   │   │   │   │       │   │   ├── lobby-gateway.service.ts
+│   │   │   │   │       │   │   └── lobby.gateway.ts
+│   │   │   │   │       │   ├── main-gateway.module.ts
+│   │   │   │   │       │   ├── main-gateway.service.ts
+│   │   │   │   │       │   ├── main.gateway.ts
+│   │   │   │   │       │   └── rooms
+│   │   │   │   │       │       ├── chat.room.ts
+│   │   │   │   │       │       ├── main.room.ts
+│   │   │   │   │       │       └── user.room.ts
+│   │   │   │   │       ├── pipes
+│   │   │   │   │       │   └── wsZodValidationPipe.ts
+│   │   │   │   │       └── websocket.module.ts
+│   │   │   │   ├── test
+│   │   │   │   │   └── app.e2e-spec.ts
+│   │   │   │   ├── tsconfig.build.json
+│   │   │   │   ├── tsconfig.build.tsbuildinfo
+│   │   │   │   ├── tsconfig.json
+│   │   │   │   ├── vitest.config.e2e.ts
+│   │   │   │   └── vitest.config.ts
+│   │   │   ├── entrypoint.sh
+│   │   │   ├── healthcheckscript.sh
+│   │   │   └── saves
+│   │   │       ├── drizzle.config.ts
+│   │   │       ├── nest-cli.json
+│   │   │       └── src
+│   │   │           ├── app.controller.spec.ts
+│   │   │           ├── app.controller.ts
+│   │   │           ├── app.module.ts
+│   │   │           ├── app.service.ts
+│   │   │           ├── auth
+│   │   │           │   ├── auth.controller.ts
+│   │   │           │   ├── auth.module.ts
+│   │   │           │   ├── auth.service.ts
+│   │   │           │   ├── config
+│   │   │           │   │   ├── fortyTwo-oauth.config.ts
+│   │   │           │   │   ├── google-oauth.config.ts
+│   │   │           │   │   ├── jwt.config.ts
+│   │   │           │   │   └── refresh-jwt.config.ts
+│   │   │           │   ├── decorators
+│   │   │           │   │   ├── public.decorators.ts
+│   │   │           │   │   └── roles.decorators.ts
+│   │   │           │   ├── dto
+│   │   │           │   │   ├── login.dto.ts
+│   │   │           │   │   └── refresh-token.dto.ts
+│   │   │           │   ├── enums
+│   │   │           │   │   └── role.enum.ts
+│   │   │           │   ├── guards
+│   │   │           │   │   ├── fortytwo-auth
+│   │   │           │   │   │   ├── fortytwo-auth.guard.spec.ts
+│   │   │           │   │   │   └── fortytwo-auth.guard.ts
+│   │   │           │   │   ├── google-auth
+│   │   │           │   │   │   ├── google-auth.guard.spec.ts
+│   │   │           │   │   │   └── google-auth.guard.ts
+│   │   │           │   │   ├── jwt-auth
+│   │   │           │   │   │   ├── jwt-auth.guard.spec.ts
+│   │   │           │   │   │   └── jwt-auth.guard.ts
+│   │   │           │   │   ├── local-auth
+│   │   │           │   │   │   ├── local-auth.guard.spec.ts
+│   │   │           │   │   │   └── local-auth.guard.ts
+│   │   │           │   │   ├── refresh-auth
+│   │   │           │   │   │   ├── refresh-auth.guard.spec.ts
+│   │   │           │   │   │   └── refresh-auth.guard.ts
+│   │   │           │   │   ├── roles
+│   │   │           │   │   │   └── roles.guard.ts
+│   │   │           │   │   └── user-throttler
+│   │   │           │   │       ├── user-throttler.guard.spec.ts
+│   │   │           │   │       └── user-throttler.guard.ts
+│   │   │           │   ├── strategies
+│   │   │           │   │   ├── fortyTwo.strategy.ts
+│   │   │           │   │   ├── google.strategy.ts
+│   │   │           │   │   ├── jwt.strategy.ts
+│   │   │           │   │   ├── local.strategy.ts
+│   │   │           │   │   └── refresh.strategy.ts
+│   │   │           │   └── types
+│   │   │           │       ├── auth-jwtFastifyRequest.d.ts
+│   │   │           │       ├── auth-jwtPayload.d.ts
+│   │   │           │       └── current-user.d.ts
+│   │   │           ├── chat
+│   │   │           │   ├── chat.controller.spec.ts
+│   │   │           │   ├── chat.controller.ts
+│   │   │           │   ├── chat.module.ts
+│   │   │           │   ├── chat.service.spec.ts
+│   │   │           │   ├── chat.service.ts
+│   │   │           │   ├── dtos
+│   │   │           │   │   ├── all-chat-rooms-messages.dto.ts
+│   │   │           │   │   ├── chat-message.dto.ts
+│   │   │           │   │   ├── chat-room-create.dto.ts
+│   │   │           │   │   ├── chat.dto.ts
+│   │   │           │   │   ├── find-all-chat-rooms.dto.ts
+│   │   │           │   │   ├── get-chat-room.dto.ts
+│   │   │           │   │   └── public-chat.dto.ts
+│   │   │           │   ├── public-chat
+│   │   │           │   │   ├── public-chat.controller.ts
+│   │   │           │   │   ├── public-chat.module.ts
+│   │   │           │   │   └── public-chat.service.ts
+│   │   │           │   └── schemas
+│   │   │           │       ├── chat-message.schema.ts
+│   │   │           │       ├── chat-room-create.schema.ts
+│   │   │           │       └── get-chat-room-schema.ts
+│   │   │           ├── constant.ts
+│   │   │           ├── drizzle
+│   │   │           │   ├── drizzle.module.ts
+│   │   │           │   ├── schema
+│   │   │           │   │   ├── chat_messages
+│   │   │           │   │   │   ├── chat_message.dto.ts
+│   │   │           │   │   │   └── chat_messages.schema.ts
+│   │   │           │   │   ├── chat_room_members
+│   │   │           │   │   │   ├── chat_room_member.dto.ts
+│   │   │           │   │   │   └── chat_room_members.schema.ts
+│   │   │           │   │   ├── chat_rooms
+│   │   │           │   │   │   ├── chat_room.dto.ts
+│   │   │           │   │   │   └── chat_rooms.schema.ts
+│   │   │           │   │   ├── friendships.schema.ts
+│   │   │           │   │   ├── schema.ts
+│   │   │           │   │   ├── titles.schema.ts
+│   │   │           │   │   ├── user_profiles
+│   │   │           │   │   │   ├── user-profile.dto.ts
+│   │   │           │   │   │   └── user_profiles.schema.ts
+│   │   │           │   │   ├── user_titles.schema.ts
+│   │   │           │   │   └── users
+│   │   │           │   │       ├── user.dto.ts
+│   │   │           │   │       └── users.schema.ts
+│   │   │           │   ├── seed.ts
+│   │   │           │   └── types
+│   │   │           │       └── drizzle.d.ts
+│   │   │           ├── friend
+│   │   │           │   ├── dto
+│   │   │           │   │   ├── find-all-friendships.dto.ts
+│   │   │           │   │   └── friend.dto.ts
+│   │   │           │   ├── friend.controller.spec.ts
+│   │   │           │   ├── friend.controller.ts
+│   │   │           │   ├── friend.module.ts
+│   │   │           │   ├── friend.service.spec.ts
+│   │   │           │   └── friend.service.ts
+│   │   │           ├── game
+│   │   │           │   ├── game.module.ts
+│   │   │           │   ├── lobby
+│   │   │           │   │   ├── dto
+│   │   │           │   │   │   ├── create-lobby.dto.ts
+│   │   │           │   │   │   ├── get-lobby-member-list.dto.ts
+│   │   │           │   │   │   ├── get-lobby-public.dto.ts
+│   │   │           │   │   │   └── join-lobby.dto.ts
+│   │   │           │   │   ├── lobby.constants.ts
+│   │   │           │   │   ├── lobby.controller.spec.ts
+│   │   │           │   │   ├── lobby.controller.ts
+│   │   │           │   │   ├── lobby.guard.spec.ts
+│   │   │           │   │   ├── lobby.guard.ts
+│   │   │           │   │   ├── lobby.module.ts
+│   │   │           │   │   ├── lobby.service.spec.ts
+│   │   │           │   │   ├── lobby.service.ts
+│   │   │           │   │   └── schemas
+│   │   │           │   │       └── join-lobby.schema.ts
+│   │   │           │   ├── server
+│   │   │           │   │   └── showdown.ts
+│   │   │           │   └── tools
+│   │   │           │       └── shuffle.ts
+│   │   │           ├── main.ts
+│   │   │           ├── pipes
+│   │   │           │   └── ZodValidationPipe.ts
+│   │   │           ├── redis
+│   │   │           │   ├── caching
+│   │   │           │   │   ├── caching.module.ts
+│   │   │           │   │   ├── friendships-caching
+│   │   │           │   │   │   ├── friendships-caching.constants.ts
+│   │   │           │   │   │   ├── friendships-caching.module.ts
+│   │   │           │   │   │   ├── friendships-caching.service.ts
+│   │   │           │   │   │   ├── namespaces
+│   │   │           │   │   │   │   └── cache-friendship.namespace.ts
+│   │   │           │   │   │   └── schemas
+│   │   │           │   │   ├── namespaces
+│   │   │           │   │   │   └── cache.namespace.ts
+│   │   │           │   │   └── user-caching
+│   │   │           │   │       ├── namespaces
+│   │   │           │   │       │   └── cache-user.namespace.ts
+│   │   │           │   │       ├── schemas
+│   │   │           │   │       │   └── user.redis.schema.ts
+│   │   │           │   │       ├── user-caching.constants.ts
+│   │   │           │   │       ├── user-caching.module.ts
+│   │   │           │   │       └── user-caching.service.ts
+│   │   │           │   ├── chat-redis
+│   │   │           │   │   ├── chat-game-redis
+│   │   │           │   │   ├── chat-lobby-redis
+│   │   │           │   │   │   ├── chat-lobby-redis.constants.ts
+│   │   │           │   │   │   ├── chat-lobby-redis.module.ts
+│   │   │           │   │   │   ├── chat-lobby-redis.service.ts
+│   │   │           │   │   │   └── namespaces
+│   │   │           │   │   │       └── chat-lobby-redis.namespaces.ts
+│   │   │           │   │   ├── chat-public-redis
+│   │   │           │   │   │   ├── chat-public-redis.constants.ts
+│   │   │           │   │   │   ├── chat-public-redis.module.ts
+│   │   │           │   │   │   ├── chat-public-redis.service.ts
+│   │   │           │   │   │   └── namespaces
+│   │   │           │   │   │       └── chat-public-redis.namespaces.ts
+│   │   │           │   │   ├── chat-redis.constants.ts
+│   │   │           │   │   ├── chat-redis.module.ts
+│   │   │           │   │   ├── chat-redis.service.ts
+│   │   │           │   │   ├── dtos
+│   │   │           │   │   ├── namespaces
+│   │   │           │   │   │   └── chat-redis.namespace.ts
+│   │   │           │   │   └── schemas
+│   │   │           │   ├── game-redis
+│   │   │           │   │   ├── game-redis.constants.ts
+│   │   │           │   │   ├── game-redis.module.ts
+│   │   │           │   │   ├── game-redis.service.ts
+│   │   │           │   │   ├── namespaces
+│   │   │           │   │   │   └── game-redis.namespace.ts
+│   │   │           │   │   └── schemas
+│   │   │           │   │       └── game-redis.schema.ts
+│   │   │           │   ├── global-redis
+│   │   │           │   │   ├── global-redis.module.ts
+│   │   │           │   │   ├── global-redis.service.ts
+│   │   │           │   │   ├── namespaces
+│   │   │           │   │   │   ├── global-chat.namespace.ts
+│   │   │           │   │   │   └── global.namespace.ts
+│   │   │           │   │   └── schemas
+│   │   │           │   ├── lobby-redis
+│   │   │           │   │   ├── dtos
+│   │   │           │   │   │   ├── lobby-details.dto.ts
+│   │   │           │   │   │   ├── lobby-gameSettings.dto.ts
+│   │   │           │   │   │   ├── lobby-generalSettings.dto.ts
+│   │   │           │   │   │   ├── lobby-member.dto.ts
+│   │   │           │   │   │   ├── lobby-records.dto.ts
+│   │   │           │   │   │   ├── lobby-update.dto.ts
+│   │   │           │   │   │   └── lobby.dto.ts
+│   │   │           │   │   ├── lobby-redis.module.ts
+│   │   │           │   │   ├── lobby-redis.service.ts
+│   │   │           │   │   ├── namespaces
+│   │   │           │   │   │   └── lobby.namespace.ts
+│   │   │           │   │   └── schemas
+│   │   │           │   │       ├── lobby-create.redis.schema.ts
+│   │   │           │   │       ├── lobby-details.redis.schema.ts
+│   │   │           │   │       ├── lobby-gameSettings.redis.schema.ts
+│   │   │           │   │       ├── lobby-generalSettings.redis.schema.ts
+│   │   │           │   │       ├── lobby-update.redis.schema.ts
+│   │   │           │   │       └── lobby.redis.schema.ts
+│   │   │           │   ├── redis.d.ts
+│   │   │           │   ├── redis.module.ts
+│   │   │           │   ├── redis.provider.ts
+│   │   │           │   ├── redis.service.spec.ts
+│   │   │           │   ├── redis.service.ts
+│   │   │           │   ├── schemas
+│   │   │           │   │   └── user
+│   │   │           │   │       └── user.redis.schema.ts
+│   │   │           │   ├── user-redis
+│   │   │           │   │   ├── namespaces
+│   │   │           │   │   │   └── user.namespace.ts
+│   │   │           │   │   ├── schemas
+│   │   │           │   │   ├── user-redis.constants.ts
+│   │   │           │   │   ├── user-redis.module.ts
+│   │   │           │   │   └── user-redis.service.ts
+│   │   │           │   └── utility
+│   │   │           │       └── redis-logError.ts
+│   │   │           ├── user
+│   │   │           │   ├── dto
+│   │   │           │   │   ├── create-user.dto.ts
+│   │   │           │   │   ├── get-user-profile.dto.ts
+│   │   │           │   │   ├── update-user.dto.ts
+│   │   │           │   │   └── user-and-profile.dto.ts
+│   │   │           │   ├── title
+│   │   │           │   │   ├── title.constants.ts
+│   │   │           │   │   ├── title.controller.spec.ts
+│   │   │           │   │   ├── title.controller.ts
+│   │   │           │   │   ├── title.dto.ts
+│   │   │           │   │   ├── title.module.ts
+│   │   │           │   │   ├── title.service.spec.ts
+│   │   │           │   │   └── title.service.ts
+│   │   │           │   ├── user.controller.spec.ts
+│   │   │           │   ├── user.controller.ts
+│   │   │           │   ├── user.module.ts
+│   │   │           │   ├── user.service.spec.ts
+│   │   │           │   └── user.service.ts
+│   │   │           ├── utility
+│   │   │           │   ├── errorWithCode.ts
+│   │   │           │   ├── httpControllerCatch.ts
+│   │   │           │   └── logError.ts
+│   │   │           └── websocket
+│   │   │               ├── game-gateway
+│   │   │               │   ├── events
+│   │   │               │   ├── game-connection-gateway
+│   │   │               │   │   ├── game-connection-gateway.module.ts
+│   │   │               │   │   ├── game-connection-gateway.service.ts
+│   │   │               │   │   └── game-connection-gateway.ts
+│   │   │               │   ├── game-gameway.service.ts
+│   │   │               │   ├── game-gateway.module.ts
+│   │   │               │   ├── game-gateway.ts
+│   │   │               │   └── rooms
+│   │   │               ├── guards
+│   │   │               │   └── ws-throttler.guard.ts
+│   │   │               ├── main-gateway
+│   │   │               │   ├── chat-gateway
+│   │   │               │   │   ├── chat-gateway.module.ts
+│   │   │               │   │   ├── chat-gateway.service.ts
+│   │   │               │   │   ├── chat.gateway.ts
+│   │   │               │   │   └── dtos
+│   │   │               │   │       └── chat-message.dto.ts
+│   │   │               │   ├── connection-gateway
+│   │   │               │   │   ├── connection-gateway.module.ts
+│   │   │               │   │   ├── connection-gateway.service.ts
+│   │   │               │   │   └── connection.gateway.ts
+│   │   │               │   ├── events
+│   │   │               │   │   ├── chat.event.ts
+│   │   │               │   │   └── main.event.ts
+│   │   │               │   ├── lobby-gateway
+│   │   │               │   │   ├── lobby-gateway.module.ts
+│   │   │               │   │   ├── lobby-gateway.service.ts
+│   │   │               │   │   └── lobby.gateway.ts
+│   │   │               │   ├── main-gateway.module.ts
+│   │   │               │   ├── main-gateway.service.ts
+│   │   │               │   ├── main.gateway.ts
+│   │   │               │   └── rooms
+│   │   │               │       ├── chat.room.ts
+│   │   │               │       ├── main.room.ts
+│   │   │               │       └── user.room.ts
+│   │   │               ├── pipes
+│   │   │               │   └── wsZodValidationPipe.ts
+│   │   │               └── websocket.module.ts
+│   │   ├── nextjs
+│   │   │   ├── Dockerfile
+│   │   │   ├── data
+│   │   │   │   ├── next-env.d.ts
+│   │   │   │   ├── next.config.js
+│   │   │   │   ├── node_modules
+│   │   │   │   │   ├── @react-three
+│   │   │   │   │   │   ├── drei -> ../.pnpm/@react-three+drei@10.7.9_@react-three+fiber@9.8.2_@types+react@19.3.0_react-dom@19.3.1__c64d72f60917850a26f000380257b43a/node_modules/@react-three/drei
+│   │   │   │   │   │   ├── fiber -> ../.pnpm/@react-three+fiber@9.8.2_@types+react@19.3.0_react-dom@19.3.1_react@19.3.1__react@19.3.1_three@0.186.1/node_modules/@react-three/fiber
+│   │   │   │   │   │   └── rapier -> ../.pnpm/@react-three+rapier@2.2.0_@react-three+fiber@9.8.2_@types+react@19.3.0_react-dom@19.3.1_b9f68f80bea43add82c4f0c3e46ab04c/node_modules/@react-three/rapier
+│   │   │   │   │   ├── @tailwindcss
+│   │   │   │   │   │   └── postcss -> ../.pnpm/@tailwindcss+postcss@4.3.3/node_modules/@tailwindcss/postcss
+│   │   │   │   │   ├── @types
+│   │   │   │   │   │   ├── node -> ../.pnpm/@types+node@26.6.5/node_modules/@types/node
+│   │   │   │   │   │   ├── react -> ../.pnpm/@types+react@19.3.0/node_modules/@types/react
+│   │   │   │   │   │   ├── react-dom -> ../.pnpm/@types+react-dom@19.3.0_@types+react@19.3.0/node_modules/@types/react-dom
+│   │   │   │   │   │   └── three -> ../.pnpm/@types+three@0.186.0/node_modules/@types/three
+│   │   │   │   │   ├── autoprefixer -> .pnpm/autoprefixer@10.6.2_postcss@8.5.32/node_modules/autoprefixer
+│   │   │   │   │   ├── clsx -> .pnpm/clsx@2.1.1/node_modules/clsx
+│   │   │   │   │   ├── leva -> .pnpm/leva@0.10.1_@types+react-dom@19.3.0_@types+react@19.3.0__@types+react@19.3.0_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/leva
+│   │   │   │   │   ├── motion -> .pnpm/motion@14.7.1_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/motion
+│   │   │   │   │   ├── next -> .pnpm/next@16.4.3_@types+node@26.6.5_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/next
+│   │   │   │   │   ├── openapi-typescript -> .pnpm/openapi-typescript@7.13.0_@typescript+typescript6@6.0.2/node_modules/openapi-typescript
+│   │   │   │   │   ├── postcss -> .pnpm/postcss@8.5.32/node_modules/postcss
+│   │   │   │   │   ├── react -> .pnpm/react@19.3.1/node_modules/react
+│   │   │   │   │   ├── react-dom -> .pnpm/react-dom@19.3.1_react@19.3.1/node_modules/react-dom
+│   │   │   │   │   ├── socket.io-client -> .pnpm/socket.io-client@4.8.4_supports-color@10.2.2/node_modules/socket.io-client
+│   │   │   │   │   ├── tailwindcss -> .pnpm/tailwindcss@4.3.3/node_modules/tailwindcss
+│   │   │   │   │   ├── three -> .pnpm/three@0.186.1/node_modules/three
+│   │   │   │   │   ├── typescript -> .pnpm/@typescript+typescript6@6.0.2/node_modules/@typescript/typescript6
+│   │   │   │   │   ├── use-sound -> .pnpm/use-sound@5.0.0_react@19.3.1/node_modules/use-sound
+│   │   │   │   │   └── zod -> .pnpm/zod@4.6.7/node_modules/zod
+│   │   │   │   ├── package.json
+│   │   │   │   ├── pnpm-lock.yaml
+│   │   │   │   ├── postcss.config.mjs
+│   │   │   │   ├── public
+│   │   │   │   │   ├── 669993.png
+│   │   │   │   │   ├── srussame
+│   │   │   │   │   │   ├── Web-Application-Architecture.png
+│   │   │   │   │   │   ├── Web-Application-Three-Tier-Architecture-2-660.png
+│   │   │   │   │   │   └── en.subject.pdf
+│   │   │   │   │   └── theme
+│   │   │   │   │       ├── fantasy_white_deck
+│   │   │   │   │       │   ├── W2C.png
+│   │   │   │   │       │   ├── W2D.png
+│   │   │   │   │       │   ├── W2H.png
+│   │   │   │   │       │   ├── W2S.png
+│   │   │   │   │       │   ├── W3C.png
+│   │   │   │   │       │   ├── W3D.png
+│   │   │   │   │       │   ├── W3H.png
+│   │   │   │   │       │   ├── W3S.png
+│   │   │   │   │       │   ├── W4C.png
+│   │   │   │   │       │   ├── W4D.png
+│   │   │   │   │       │   ├── W4H.png
+│   │   │   │   │       │   ├── W4S.png
+│   │   │   │   │       │   ├── W5C.png
+│   │   │   │   │       │   ├── W5D.png
+│   │   │   │   │       │   ├── W5H.png
+│   │   │   │   │       │   ├── W5S.png
+│   │   │   │   │       │   ├── W6C.png
+│   │   │   │   │       │   ├── W6D.png
+│   │   │   │   │       │   ├── W6H.png
+│   │   │   │   │       │   ├── W6S.png
+│   │   │   │   │       │   ├── WAC.png
+│   │   │   │   │       │   ├── WAD.png
+│   │   │   │   │       │   ├── WAH.png
+│   │   │   │   │       │   ├── WAS.png
+│   │   │   │   │       │   ├── WJC.png
+│   │   │   │   │       │   ├── WJD.png
+│   │   │   │   │       │   ├── WJH.png
+│   │   │   │   │       │   ├── WJS.png
+│   │   │   │   │       │   ├── WKC.png
+│   │   │   │   │       │   ├── WKD.png
+│   │   │   │   │       │   ├── WKH.png
+│   │   │   │   │       │   ├── WKS.png
+│   │   │   │   │       │   ├── WQC.png
+│   │   │   │   │       │   ├── WQD.png
+│   │   │   │   │       │   ├── WQH.png
+│   │   │   │   │       │   └── WQS.png
+│   │   │   │   │       └── standard
+│   │   │   │   │           ├── 10C.svg
+│   │   │   │   │           ├── 10D.svg
+│   │   │   │   │           ├── 10H.svg
+│   │   │   │   │           ├── 10S.svg
+│   │   │   │   │           ├── 2C.svg
+│   │   │   │   │           ├── 2D.svg
+│   │   │   │   │           ├── 2H.svg
+│   │   │   │   │           ├── 2S.svg
+│   │   │   │   │           ├── 3C.svg
+│   │   │   │   │           ├── 3D.svg
+│   │   │   │   │           ├── 3H.svg
+│   │   │   │   │           ├── 3S.svg
+│   │   │   │   │           ├── 4C.svg
+│   │   │   │   │           ├── 4D.svg
+│   │   │   │   │           ├── 4H.svg
+│   │   │   │   │           ├── 4S.svg
+│   │   │   │   │           ├── 5C.svg
+│   │   │   │   │           ├── 5D.svg
+│   │   │   │   │           ├── 5H.svg
+│   │   │   │   │           ├── 5S.svg
+│   │   │   │   │           ├── 6C.svg
+│   │   │   │   │           ├── 6D.svg
+│   │   │   │   │           ├── 6H.svg
+│   │   │   │   │           ├── 6S.svg
+│   │   │   │   │           ├── 7C.svg
+│   │   │   │   │           ├── 7D.svg
+│   │   │   │   │           ├── 7H.svg
+│   │   │   │   │           ├── 7S.svg
+│   │   │   │   │           ├── 8C.svg
+│   │   │   │   │           ├── 8D.svg
+│   │   │   │   │           ├── 8H.svg
+│   │   │   │   │           ├── 8S.svg
+│   │   │   │   │           ├── 9C.svg
+│   │   │   │   │           ├── 9D.svg
+│   │   │   │   │           ├── 9H.svg
+│   │   │   │   │           ├── 9S.svg
+│   │   │   │   │           ├── AC.svg
+│   │   │   │   │           ├── AD.svg
+│   │   │   │   │           ├── AH.svg
+│   │   │   │   │           ├── AS.svg
+│   │   │   │   │           ├── JC.svg
+│   │   │   │   │           ├── JD.svg
+│   │   │   │   │           ├── JH.svg
+│   │   │   │   │           ├── JOKER-1.svg
+│   │   │   │   │           ├── JOKER-2.svg
+│   │   │   │   │           ├── JOKER-3.svg
+│   │   │   │   │           ├── JS.svg
+│   │   │   │   │           ├── KC.svg
+│   │   │   │   │           ├── KD.svg
+│   │   │   │   │           ├── KH.svg
+│   │   │   │   │           ├── KS.svg
+│   │   │   │   │           ├── QC.svg
+│   │   │   │   │           ├── QD.svg
+│   │   │   │   │           ├── QH.svg
+│   │   │   │   │           └── QS.svg
+│   │   │   │   ├── src
+│   │   │   │   │   ├── app
+│   │   │   │   │   │   ├── (protected)
+│   │   │   │   │   │   │   ├── _context
+│   │   │   │   │   │   │   │   └── useMainSocket.tsx
+│   │   │   │   │   │   │   ├── backend_test
+│   │   │   │   │   │   │   │   ├── chat_test
+│   │   │   │   │   │   │   │   │   ├── PrivateNotificationSocket
+│   │   │   │   │   │   │   │   │   ├── WsConnectionId.tsx
+│   │   │   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   │   │   ├── components
+│   │   │   │   │   │   │   │   │   ├── ChatBoxComponent.tsx
+│   │   │   │   │   │   │   │   │   ├── FormRequestTestComponen.tsx
+│   │   │   │   │   │   │   │   │   └── NoBodyRequestTestComponent.tsx
+│   │   │   │   │   │   │   │   ├── friend_test
+│   │   │   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   │   │   ├── layout.tsx
+│   │   │   │   │   │   │   │   ├── page.tsx
+│   │   │   │   │   │   │   │   └── ws-test
+│   │   │   │   │   │   │   │       ├── WebsocketTestComponent.tsx
+│   │   │   │   │   │   │   │       └── page.tsx
+│   │   │   │   │   │   │   ├── dashboard
+│   │   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   │   ├── layout.tsx
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   ├── about
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   ├── api
+│   │   │   │   │   │   │   ├── auth
+│   │   │   │   │   │   │   │   ├── 42
+│   │   │   │   │   │   │   │   │   ├── callback
+│   │   │   │   │   │   │   │   │   │   └── route.ts
+│   │   │   │   │   │   │   │   │   └── login
+│   │   │   │   │   │   │   │   │       └── route.ts
+│   │   │   │   │   │   │   │   ├── check
+│   │   │   │   │   │   │   │   │   └── route.ts
+│   │   │   │   │   │   │   │   ├── google
+│   │   │   │   │   │   │   │   │   ├── callback
+│   │   │   │   │   │   │   │   │   │   └── route.ts
+│   │   │   │   │   │   │   │   │   └── login
+│   │   │   │   │   │   │   │   │       └── route.ts
+│   │   │   │   │   │   │   │   ├── login
+│   │   │   │   │   │   │   │   │   └── route.ts
+│   │   │   │   │   │   │   │   ├── refresh
+│   │   │   │   │   │   │   │   │   └── route.ts
+│   │   │   │   │   │   │   │   ├── signout
+│   │   │   │   │   │   │   │   │   └── route.ts
+│   │   │   │   │   │   │   │   └── signup
+│   │   │   │   │   │   │   │       └── route.ts
+│   │   │   │   │   │   │   ├── chat
+│   │   │   │   │   │   │   │   ├── dm
+│   │   │   │   │   │   │   │   │   └── route.ts
+│   │   │   │   │   │   │   │   ├── message
+│   │   │   │   │   │   │   │   │   └── route.ts
+│   │   │   │   │   │   │   │   └── route.ts
+│   │   │   │   │   │   │   ├── friend
+│   │   │   │   │   │   │   │   ├── accept
+│   │   │   │   │   │   │   │   │   └── route.ts
+│   │   │   │   │   │   │   │   ├── request
+│   │   │   │   │   │   │   │   │   └── route.ts
+│   │   │   │   │   │   │   │   └── route.ts
+│   │   │   │   │   │   │   ├── hello
+│   │   │   │   │   │   │   │   └── route.ts
+│   │   │   │   │   │   │   └── user
+│   │   │   │   │   │   │       └── profile
+│   │   │   │   │   │   │           ├── route.ts
+│   │   │   │   │   │   │           └── uploadProfilePic
+│   │   │   │   │   │   │               └── route.ts
+│   │   │   │   │   │   ├── auth
+│   │   │   │   │   │   │   ├── layout.tsx
+│   │   │   │   │   │   │   ├── signin
+│   │   │   │   │   │   │   │   ├── oauthButton.tsx
+│   │   │   │   │   │   │   │   ├── page.tsx
+│   │   │   │   │   │   │   │   └── signInForm.tsx
+│   │   │   │   │   │   │   └── signup
+│   │   │   │   │   │   │       ├── page.tsx
+│   │   │   │   │   │   │       ├── signupForm.tsx
+│   │   │   │   │   │   │       └── submitButton.tsx
+│   │   │   │   │   │   ├── game
+│   │   │   │   │   │   │   ├── components
+│   │   │   │   │   │   │   │   ├── ActionButtons.tsx
+│   │   │   │   │   │   │   │   ├── handInfo.tsx
+│   │   │   │   │   │   │   │   └── layout.tsx
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   ├── globals.css
+│   │   │   │   │   │   ├── layout.tsx
+│   │   │   │   │   │   └── signOutButton.tsx
+│   │   │   │   │   ├── lib
+│   │   │   │   │   │   ├── auth.ts
+│   │   │   │   │   │   ├── checkAccessTokenRedirect.ts
+│   │   │   │   │   │   ├── constants.ts
+│   │   │   │   │   │   ├── socket.ts
+│   │   │   │   │   │   └── type.ts
+│   │   │   │   │   ├── proxy.ts
+│   │   │   │   │   ├── public
+│   │   │   │   │   └── types
+│   │   │   │   │       ├── api.d.ts
+│   │   │   │   │       └── dto.ts
+│   │   │   │   └── tsconfig.json
+│   │   │   ├── entrypoint.sh
+│   │   │   ├── healthcheckscript.sh
+│   │   │   └── saves
+│   │   │       ├── public
+│   │   │       │   ├── 669993.png
+│   │   │       │   ├── srussame
+│   │   │       │   │   ├── Web-Application-Architecture.png
+│   │   │       │   │   ├── Web-Application-Three-Tier-Architecture-2-660.png
+│   │   │       │   │   └── en.subject.pdf
+│   │   │       │   └── theme
+│   │   │       │       ├── fantasy_white_deck
+│   │   │       │       │   ├── W2C.png
+│   │   │       │       │   ├── W2D.png
+│   │   │       │       │   ├── W2H.png
+│   │   │       │       │   ├── W2S.png
+│   │   │       │       │   ├── W3C.png
+│   │   │       │       │   ├── W3D.png
+│   │   │       │       │   ├── W3H.png
+│   │   │       │       │   ├── W3S.png
+│   │   │       │       │   ├── W4C.png
+│   │   │       │       │   ├── W4D.png
+│   │   │       │       │   ├── W4H.png
+│   │   │       │       │   ├── W4S.png
+│   │   │       │       │   ├── W5C.png
+│   │   │       │       │   ├── W5D.png
+│   │   │       │       │   ├── W5H.png
+│   │   │       │       │   ├── W5S.png
+│   │   │       │       │   ├── W6C.png
+│   │   │       │       │   ├── W6D.png
+│   │   │       │       │   ├── W6H.png
+│   │   │       │       │   ├── W6S.png
+│   │   │       │       │   ├── WAC.png
+│   │   │       │       │   ├── WAD.png
+│   │   │       │       │   ├── WAH.png
+│   │   │       │       │   ├── WAS.png
+│   │   │       │       │   ├── WJC.png
+│   │   │       │       │   ├── WJD.png
+│   │   │       │       │   ├── WJH.png
+│   │   │       │       │   ├── WJS.png
+│   │   │       │       │   ├── WKC.png
+│   │   │       │       │   ├── WKD.png
+│   │   │       │       │   ├── WKH.png
+│   │   │       │       │   ├── WKS.png
+│   │   │       │       │   ├── WQC.png
+│   │   │       │       │   ├── WQD.png
+│   │   │       │       │   ├── WQH.png
+│   │   │       │       │   └── WQS.png
+│   │   │       │       └── standard
+│   │   │       │           ├── 10C.svg
+│   │   │       │           ├── 10D.svg
+│   │   │       │           ├── 10H.svg
+│   │   │       │           ├── 10S.svg
+│   │   │       │           ├── 2C.svg
+│   │   │       │           ├── 2D.svg
+│   │   │       │           ├── 2H.svg
+│   │   │       │           ├── 2S.svg
+│   │   │       │           ├── 3C.svg
+│   │   │       │           ├── 3D.svg
+│   │   │       │           ├── 3H.svg
+│   │   │       │           ├── 3S.svg
+│   │   │       │           ├── 4C.svg
+│   │   │       │           ├── 4D.svg
+│   │   │       │           ├── 4H.svg
+│   │   │       │           ├── 4S.svg
+│   │   │       │           ├── 5C.svg
+│   │   │       │           ├── 5D.svg
+│   │   │       │           ├── 5H.svg
+│   │   │       │           ├── 5S.svg
+│   │   │       │           ├── 6C.svg
+│   │   │       │           ├── 6D.svg
+│   │   │       │           ├── 6H.svg
+│   │   │       │           ├── 6S.svg
+│   │   │       │           ├── 7C.svg
+│   │   │       │           ├── 7D.svg
+│   │   │       │           ├── 7H.svg
+│   │   │       │           ├── 7S.svg
+│   │   │       │           ├── 8C.svg
+│   │   │       │           ├── 8D.svg
+│   │   │       │           ├── 8H.svg
+│   │   │       │           ├── 8S.svg
+│   │   │       │           ├── 9C.svg
+│   │   │       │           ├── 9D.svg
+│   │   │       │           ├── 9H.svg
+│   │   │       │           ├── 9S.svg
+│   │   │       │           ├── AC.svg
+│   │   │       │           ├── AD.svg
+│   │   │       │           ├── AH.svg
+│   │   │       │           ├── AS.svg
+│   │   │       │           ├── JC.svg
+│   │   │       │           ├── JD.svg
+│   │   │       │           ├── JH.svg
+│   │   │       │           ├── JOKER-1.svg
+│   │   │       │           ├── JOKER-2.svg
+│   │   │       │           ├── JOKER-3.svg
+│   │   │       │           ├── JS.svg
+│   │   │       │           ├── KC.svg
+│   │   │       │           ├── KD.svg
+│   │   │       │           ├── KH.svg
+│   │   │       │           ├── KS.svg
+│   │   │       │           ├── QC.svg
+│   │   │       │           ├── QD.svg
+│   │   │       │           ├── QH.svg
+│   │   │       │           └── QS.svg
+│   │   │       └── src
+│   │   │           ├── app
+│   │   │           │   ├── (protected)
+│   │   │           │   │   ├── _context
+│   │   │           │   │   │   └── useMainSocket.tsx
+│   │   │           │   │   ├── backend_test
+│   │   │           │   │   │   ├── chat_test
+│   │   │           │   │   │   │   ├── PrivateNotificationSocket
+│   │   │           │   │   │   │   ├── WsConnectionId.tsx
+│   │   │           │   │   │   │   └── page.tsx
+│   │   │           │   │   │   ├── components
+│   │   │           │   │   │   │   ├── ChatBoxComponent.tsx
+│   │   │           │   │   │   │   ├── FormRequestTestComponen.tsx
+│   │   │           │   │   │   │   └── NoBodyRequestTestComponent.tsx
+│   │   │           │   │   │   ├── friend_test
+│   │   │           │   │   │   │   └── page.tsx
+│   │   │           │   │   │   ├── layout.tsx
+│   │   │           │   │   │   ├── page.tsx
+│   │   │           │   │   │   └── ws-test
+│   │   │           │   │   │       ├── WebsocketTestComponent.tsx
+│   │   │           │   │   │       └── page.tsx
+│   │   │           │   │   ├── dashboard
+│   │   │           │   │   │   └── page.tsx
+│   │   │           │   │   ├── layout.tsx
+│   │   │           │   │   └── page.tsx
+│   │   │           │   ├── about
+│   │   │           │   │   └── page.tsx
+│   │   │           │   ├── api
+│   │   │           │   │   ├── auth
+│   │   │           │   │   │   ├── 42
+│   │   │           │   │   │   │   ├── callback
+│   │   │           │   │   │   │   │   └── route.ts
+│   │   │           │   │   │   │   └── login
+│   │   │           │   │   │   │       └── route.ts
+│   │   │           │   │   │   ├── check
+│   │   │           │   │   │   │   └── route.ts
+│   │   │           │   │   │   ├── google
+│   │   │           │   │   │   │   ├── callback
+│   │   │           │   │   │   │   │   └── route.ts
+│   │   │           │   │   │   │   └── login
+│   │   │           │   │   │   │       └── route.ts
+│   │   │           │   │   │   ├── login
+│   │   │           │   │   │   │   └── route.ts
+│   │   │           │   │   │   ├── refresh
+│   │   │           │   │   │   │   └── route.ts
+│   │   │           │   │   │   ├── signout
+│   │   │           │   │   │   │   └── route.ts
+│   │   │           │   │   │   └── signup
+│   │   │           │   │   │       └── route.ts
+│   │   │           │   │   ├── chat
+│   │   │           │   │   │   ├── dm
+│   │   │           │   │   │   │   └── route.ts
+│   │   │           │   │   │   ├── message
+│   │   │           │   │   │   │   └── route.ts
+│   │   │           │   │   │   └── route.ts
+│   │   │           │   │   ├── friend
+│   │   │           │   │   │   ├── accept
+│   │   │           │   │   │   │   └── route.ts
+│   │   │           │   │   │   ├── request
+│   │   │           │   │   │   │   └── route.ts
+│   │   │           │   │   │   └── route.ts
+│   │   │           │   │   ├── hello
+│   │   │           │   │   │   └── route.ts
+│   │   │           │   │   └── user
+│   │   │           │   │       └── profile
+│   │   │           │   │           ├── route.ts
+│   │   │           │   │           └── uploadProfilePic
+│   │   │           │   │               └── route.ts
+│   │   │           │   ├── auth
+│   │   │           │   │   ├── layout.tsx
+│   │   │           │   │   ├── signin
+│   │   │           │   │   │   ├── oauthButton.tsx
+│   │   │           │   │   │   ├── page.tsx
+│   │   │           │   │   │   └── signInForm.tsx
+│   │   │           │   │   └── signup
+│   │   │           │   │       ├── page.tsx
+│   │   │           │   │       ├── signupForm.tsx
+│   │   │           │   │       └── submitButton.tsx
+│   │   │           │   ├── game
+│   │   │           │   │   ├── components
+│   │   │           │   │   │   ├── ActionButtons.tsx
+│   │   │           │   │   │   ├── handInfo.tsx
+│   │   │           │   │   │   └── layout.tsx
+│   │   │           │   │   └── page.tsx
+│   │   │           │   ├── globals.css
+│   │   │           │   ├── layout.tsx
+│   │   │           │   └── signOutButton.tsx
+│   │   │           ├── lib
+│   │   │           │   ├── auth.ts
+│   │   │           │   ├── checkAccessTokenRedirect.ts
+│   │   │           │   ├── constants.ts
+│   │   │           │   ├── socket.ts
+│   │   │           │   └── type.ts
+│   │   │           ├── proxy.ts
+│   │   │           ├── public
+│   │   │           └── types
+│   │   │               ├── api.d.ts
+│   │   │               └── dto.ts
+│   │   ├── nginx
+│   │   │   ├── 1-self-certificate-script.sh
+│   │   │   ├── Dockerfile
+│   │   │   └── default.conf
+│   │   ├── postgresql
+│   │   │   ├── Dockerfile
+│   │   │   └── entrypoint.sh
+│   │   ├── redis
+│   │   │   ├── Dockerfile
+│   │   │   ├── data
+│   │   │   │   └── dump.rdb
+│   │   │   ├── entrypoint.sh
+│   │   │   └── redis.conf
+│   │   └── redis-insight
+│   │       └── Dockerfile
+│   ├── secrets
+│   │   ├── db_password.txt
+│   │   ├── jwt_key.txt
+│   │   └── jwt_refresh_key.txt
+│   └── tools
+│       ├── check_environment_and_secrets.sh
+│       └── check_prerequisite.sh
+├── temp
+├── test.txt
+└── แปลsubject
+    ├── (Idea) Project Ideas and Examples.md
+    ├── (Optional)Bonus part.md
+    ├── 1.Team Organization.md
+    ├── 2.Mandatory.md
+    ├── 3.10 Modules of choice.md
+    ├── 3.1Web.md
+    ├── 3.2Accessibility and Internationalization.md
+    ├── 3.3 User Management.md
+    ├── 3.4 Artificial intelligence.md
+    ├── 3.5 Cybersecurity.md
+    ├── 3.6 Gaming and user experience.md
+    ├── 3.7 Devops.md
+    ├── 3.8 Data and Analytics.md
+    ├── 3.9 Blockchain.md
+    ├── 3.Module.md
+    └── 4. Making README.md
+
+470 directories, 1329 files

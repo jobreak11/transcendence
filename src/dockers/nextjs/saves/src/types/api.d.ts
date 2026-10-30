@@ -722,6 +722,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/game/lobby/my-lobby": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["LobbyController_getMyLobby"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/game/lobby/update": {
         parameters: {
             query?: never;
@@ -1041,12 +1057,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a181e2-4933-7121-b100-a06fa9dff74b
+             * @example 01a1864f-50aa-703c-ad04-ea7d4ec3c941
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a181e2-4935-73b0-adcd-a2d72136ffb0
+             * @example 01a1864f-50ac-737f-ab00-c33eff9bb713
              */
             chatRoomId: string;
             /**
@@ -1085,6 +1101,11 @@ export interface components {
             }[];
         };
         LobbyDetailsDto: {
+            /**
+             * @description game room id of the lobby
+             * @example 01a1864f-50af-7388-9f15-b9e0c29b351a
+             */
+            gameRoomId: string | null;
             /**
              * @description the pin id of the lobby room
              * @example 067821
@@ -1167,6 +1188,54 @@ export interface components {
             isSpectator: boolean;
             /** @description password of the lobby room if needed */
             password?: string;
+        };
+        LobbyDetailsPublicDto: {
+            /**
+             * @description game room id of the lobby
+             * @example 01a1864f-50af-7388-9f15-b9e0c29b351a
+             */
+            gameRoomId: string | null;
+            /**
+             * @description the pin id of the lobby room
+             * @example 067821
+             */
+            roomPinId: string;
+            /**
+             * Format: date-time
+             * @description the date the lobby room was created
+             */
+            createdAt: string;
+            /** @description the user that created this lobby room */
+            createdByUserId: string;
+            /** @description the host user of the lobby room */
+            hostUserId: string;
+            /**
+             * @description the current status of the lobby room
+             * @enum {string}
+             */
+            roomStatus: "UNAVAILABLE" | "WAITING" | "PLAYING";
+            /** @description the current player in the lobby room */
+            currentPlayerCount: number;
+            /** @description the current spectator count of the lobby room */
+            currentSpectatorCount?: number;
+        };
+        LobbyGeneralSettingsPublicDto: {
+            /**
+             * @description the catchphrase of the room
+             * @example hell newbie welcome
+             */
+            catchPhrase: string | null;
+            /**
+             * @description the lobby room type
+             * @example PUBLIC
+             * @enum {string}
+             */
+            roomType: "PUBLIC" | "PRIVATE";
+        };
+        GetLobbyPublicDto: {
+            details: components["schemas"]["LobbyDetailsPublicDto"];
+            gameSettings: components["schemas"]["LobbyGameSettingsDto"];
+            generalSettings: components["schemas"]["LobbyGeneralSettingsPublicDto"];
         };
     };
     responses: never;
@@ -2021,7 +2090,7 @@ export interface operations {
             };
         };
         responses: {
-            204: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2049,6 +2118,25 @@ export interface operations {
         };
     };
     LobbyController_getAllLobbyRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetLobbyPublicDto"][];
+                };
+            };
+        };
+    };
+    LobbyController_getMyLobby: {
         parameters: {
             query?: never;
             header?: never;
