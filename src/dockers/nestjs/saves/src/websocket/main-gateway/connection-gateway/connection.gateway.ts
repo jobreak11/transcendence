@@ -37,6 +37,7 @@ export class ConnectionGateway implements OnGatewayInit, OnGatewayConnection, On
 
         const accessToken = client.handshake.auth?.accessToken || bearerToken;
         if (!accessToken) {
+          this.logger.debug(`client ${client.id}: Auth failed`);
           return next(new Error('accessToken is required'));
         }
 

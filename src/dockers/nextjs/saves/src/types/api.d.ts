@@ -491,6 +491,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** create your own chat room */
         post: operations["ChatController_createChatRoom"];
         delete?: never;
         options?: never;
@@ -1054,15 +1055,40 @@ export interface components {
              */
             createdAt: string;
         };
+        CreateChatRoomZodDto: {
+            /**
+             * @description chat room type
+             * @example PRIVATE
+             * @enum {string}
+             */
+            type: "PUBLIC" | "PRIVATE";
+            /**
+             * @description the name of the chat room
+             * @example aftermatch meeting chat room
+             */
+            roomName?: string;
+        };
+        InviteUserToChatRoomZodDto: {
+            /** @description the chat room id */
+            chatRoomId: string;
+            /** @description the target user id to join the chat room */
+            targetUserId: string;
+            /**
+             * @description the role to invite to the chat room
+             * @default MEMBER
+             * @enum {string}
+             */
+            role: "MEMBER" | "SPECTATOR";
+        };
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a18c1b-ea14-71ca-ab62-22aabc4c0e66
+             * @example 01a19212-0261-77c4-8050-0391568c2678
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a18c1b-ea16-73f0-8c18-05b5877ce4ba
+             * @example 01a19212-0264-774d-9c3d-619d336fc86f
              */
             chatRoomId: string;
             /**
@@ -1076,6 +1102,12 @@ export interface components {
              * @enum {string}
              */
             role: "MEMBER" | "OWNER" | "SPECTATOR";
+        };
+        KickUserChatRoomZodDto: {
+            /** @description the chat room id */
+            chatRoomId: string;
+            /** @description the target user to kick from the chat room */
+            targetUserId: string;
         };
         FindAllFriendshipsDto: {
             sentRequests: {
@@ -1103,7 +1135,7 @@ export interface components {
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a18c1b-ea18-70d9-8e94-39475b0de9c0
+             * @example 01a19212-0282-73d2-8112-48fb5d2d3987
              */
             gameRoomId: string | null;
             /**
@@ -1192,7 +1224,7 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a18c1b-ea18-70d9-8e94-39475b0de9c0
+             * @example 01a19212-0282-73d2-8112-48fb5d2d3987
              */
             gameRoomId: string | null;
             /**
@@ -1873,7 +1905,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateChatRoomZodDto"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -1892,7 +1928,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InviteUserToChatRoomZodDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -1932,7 +1972,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KickUserChatRoomZodDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
