@@ -27,41 +27,40 @@ export class ConnectionGateway implements OnGatewayInit, OnGatewayConnection, On
 
   afterInit(server: Server) {
     this.connectionGatewayService.setServer(server);
-    this.logger.log('Websocket main Connection gateway');
+
+    server.use(async (client: Socket, next) => {
+      try {
+        const authHeader = client.handshake.headers?.authorization;
+        const bearerToken = authHeader?.startsWith('Bearer ')
+          ? authHeader.split(' ')[1]
+          : undefined;
+
+        const accessToken = client.handshake.auth?.accessToken || bearerToken;
+        if (!accessToken) {
+          return next(new Error('accessToken is required'));
+        }
+
+        const payload = await this.jwtService.verifyAsync(accessToken);
+
+        client.data.user = payload.sub;
+        next();
+      }
+      catch {
+        next(new Error("Unauthorized"));
+      }
+    });
+
+    this.logger.log('Websocket main Connection gateway initialized');
   }
 
   async handleConnection(client: Socket) {
     this.logger.debug(`Client connected: ${client.id}`);
+    this.logger.log(`Client authenticated: ${client.id} (User ID: ${client.data.user})`);
+    // client need to join thier own room for all notification that would have notify here
 
-    try {
-      const authHeader = client.handshake.headers?.authorization;
-      const bearerToken = authHeader?.startsWith('Bearer ')
-        ? authHeader.split(' ')[1]
-        : undefined;
-
-      const accessToken = client.handshake.auth?.accessToken || bearerToken;
-
-      if (!accessToken) {
-        this.logger.warn(`Connection rejected (missing accessToken): ${client.id}`);
-        client.disconnect(true);
-        return;
-      }
-
-      const payload = await this.jwtService.verifyAsync(accessToken);
-
-      client.data.user = payload.sub;
-
-      this.logger.log(`Client authenticated: ${client.id} (User ID: ${payload.sub})`);
-
-      // client need to join thier own room for all notification that would have notify here
-
-      // payload sub is the actual user id extracted from the jwtService
-      await this.connectionGatewayService.addClientId(client.id, client.data.user);
-      this.logger.debug(`client User ID: ${payload.sub} joined the main user private room`);
-    } catch (error) {
-      this.logger.warn(`Connection rejected (Invalid token): ${client.id}`, error);
-      client.disconnect(true);
-    }
+    // payload sub is the actual user id extracted from the jwtService
+    await this.connectionGatewayService.addClientId(client.id, client.data.user);
+    this.logger.debug(`client User ID: ${client.data.user} joined the main user private room`);
   }
 
   async handleDisconnect(client: Socket) {

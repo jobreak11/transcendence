@@ -33,6 +33,8 @@ export class ConnectionGatewayService {
       await this.userRedisService.removeMainClientSocket(userId, res[0]);
 
     }
+
+    this.server?.in(clientId).socketsJoin(room_main_private_user(userId));
     return ;
   }
 

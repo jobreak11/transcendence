@@ -1,12 +1,12 @@
 import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, InternalServerErrorException, ParseUUIDPipe, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth/jwt-auth.guard.js';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { ZodValidationPipe } from '../pipes/ZodValidationPipe.js';
 import { UserThrottlerGuard } from '../auth/guards/user-throttler/user-throttler.guard.js';
 import { Throttle } from '@nestjs/throttler';
 import { THROTTLER_CHAT_CONTROLLER_LIMIT, THROTTLER_CHAT_CONTROLLER_TTL } from '../constant.js';
-import { CreateChatRoomSchema, InviteUserToChatRoomSchema, KickUserChatRoomSchema } from './dtos/chat.dto.js';
-import type { CreateChatRoomZodDto, InviteUserToChatRoomZodDto, KickUserChatRoomZodDto } from './dtos/chat.dto.js';
+import { CreateChatRoomSchema, InviteUserToChatRoomSchema, InviteUserToChatRoomZodDto, KickUserChatRoomSchema, KickUserChatRoomZodDto } from './dtos/chat.dto.js';
+import { CreateChatRoomZodDto } from './dtos/chat.dto.js';
 import { ChatService } from './chat.service.js';
 import { ChatRoomVisibilityType } from '../drizzle/schema/chat_rooms/chat_rooms.schema.js';
 import { httpControllerCatch } from '../utility/httpControllerCatch.js';
@@ -76,6 +76,12 @@ export class ChatController {
   }
 
 
+  @ApiOperation({
+    summary: "create your own chat room",
+  })
+  @ApiBody({
+    type: CreateChatRoomZodDto
+  })
   @HttpCode(HttpStatus.CREATED)
   @Post('room/create')
   async createChatRoom(
@@ -98,6 +104,9 @@ export class ChatController {
   }
 
 
+  @ApiBody({
+    type: InviteUserToChatRoomZodDto
+  })
   @HttpCode(HttpStatus.OK)
   @Post('room/invite')
   async inviteToChatRoom(@Req() req:any, 
@@ -127,6 +136,9 @@ export class ChatController {
     return this.chatService.leaveRoom(req.user.id, chatRoomId);
   }
 
+  @ApiBody({
+    type: KickUserChatRoomZodDto
+  })
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @Post('room/kick')
