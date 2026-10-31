@@ -8,3 +8,4 @@ export type RefreshTokenSuccessDto = components['schemas']['RefreshTokenSuccessD
 export type ChatRoomDto = components['schemas']['ChatRoomDto'];
 export type ChatMessageDto = components['schemas']['ChatMessageDto'];
 
+export type UpdateUserDto = components['schemas']['UpdateUserDto'];

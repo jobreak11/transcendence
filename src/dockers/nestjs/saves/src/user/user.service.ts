@@ -6,7 +6,7 @@ import { UpdateUserDto, UpdateUserResponseDto, updateUserSchema } from './dto/up
 import * as argon2 from 'argon2';
 import * as path from 'path';
 import * as fs from 'fs/promises'
-import { SHARED_STORAGE_PATH, STORAGE_URL_PATH } from '../constant.js';
+import { BASEURL, SHARED_STORAGE_PATH, STORAGE_URL_PATH } from '../constant.js';
 import { users, userSchema } from '../drizzle/schema/users/users.schema.js';
 import { eq } from 'drizzle-orm';
 import { UserDto } from '../drizzle/schema/users/user.dto.js';
@@ -303,7 +303,12 @@ export class UserService {
     await fs.mkdir(uploadDir, {recursive: true});
     await fs.writeFile(destinationPath, fileBuffer);
 
-    const newAvatarURL = path.join(STORAGE_URL_PATH, `${id}/profile.jpg`);
+    // FIXED. joined the BASEURL e.g. https://localhost:4333 now it is a valid url
+    // and will pass the payload validation
+    const newAvatarURL = path.join(BASEURL, STORAGE_URL_PATH, `${id}/profile.jpg`);
+
+    // # would store only /storage/${id}/profile.jpg which result in invalid URL in schema
+    //const newAvatarURL = path.join( STORAGE_URL_PATH, `${id}/profile.jpg`);
 
     return this.update(id, {user_profile: {avatarUrl: newAvatarURL}})
     

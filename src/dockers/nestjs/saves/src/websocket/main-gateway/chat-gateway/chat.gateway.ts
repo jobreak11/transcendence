@@ -5,8 +5,7 @@ import { WsZodValidationPipe } from "../../pipes/wsZodValidationPipe.js";
 import { ChatMessageType } from "../../../drizzle/schema/chat_messages/chat_messages.schema.js";
 import { ChatMessage } from "./dtos/chat-message.dto.js";
 import { Logger } from "@nestjs/common";
-import { event_main_chat_join, event_main_chat_message } from "../events/chat.event.js";
-import { ChatJoinSocketRoom } from "./schemas/chat-join-socket-room.schema.js";
+import { event_main_chat_message } from "../events/chat.event.js";
 
 @WebSocketGateway({
   transports: ['websocket'],
@@ -31,10 +30,17 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.logger.log("initialized ChatGateway");
   }
 
-  handleConnection(client: any, ...args: any[]) {
+  async handleConnection(client: Socket) {
+
+    // handle connection 
+    // chat gateway would auto matically connect this client
+    // socket to all available chat room
+
+    await this.chatGatewayService.clientSocketJoinAllChatRoom(client);
+    this.logger.debug(`test: ${event_main_chat_message.to_server()}`);
   }
 
-  handleDisconnect(client: any, reason?: string) {
+  handleDisconnect(client: any) {
     
   }
 
@@ -52,16 +58,6 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       userId: client.data.user
 
     });
-  }
-
-  @SubscribeMessage(event_main_chat_join.to_server())
-  joinMessageChannel(
-    @ConnectedSocket() client: Socket,
-    @MessageBody(new WsZodValidationPipe(ChatJoinSocketRoom.schema)) body:ChatJoinSocketRoom.Dto
-
-  ) {
-    
-
   }
 
 }

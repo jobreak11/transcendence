@@ -1,4 +1,7 @@
 
+
+export const BASEURL = 'https://localhost:4333'
+
 export const SHARED_STORAGE_PATH = '/transcend_storage';
 export const STORAGE_URL_PATH = '/storage';
 

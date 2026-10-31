@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, HttpException, HttpStatus, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, forwardRef, HttpException, HttpStatus, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from "@nestjs/common";
 import z from "zod";
 import { chatRoomCreateSchema } from "./schemas/chat-room-create.schema.js";
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
@@ -23,6 +23,7 @@ import { chat_messages, ChatMessageType } from "../drizzle/schema/chat_messages/
 import { alias } from "drizzle-orm/pg-core";
 import { InviteUserToChatRoomSchema, InviteUserToChatRoomZodDto } from "./dtos/chat.dto.js";
 import { TokenError } from "passport-oauth2";
+import { ChatGatewayService } from "../websocket/main-gateway/chat-gateway/chat-gateway.service.js";
 
 @Injectable()
 export class ChatService {
@@ -31,7 +32,8 @@ export class ChatService {
 
   constructor(
     @Inject(DRIZZLE) private readonly db: NodePgDatabase<typeof dbRelations>,
-    private readonly chatRedisService: ChatRedisService
+    @Inject(forwardRef(() => ChatGatewayService)) private readonly chatGatewayService: ChatGatewayService,
+    private readonly chatRedisService: ChatRedisService,
   ) {
 
   }
@@ -200,11 +202,15 @@ export class ChatService {
 
     const isTemp = await this.isChatRoomTemporary(chatRoomId);
     if (isTemp === true) {
-      return this.chatRedisService.joinRoom(
+      const res = await this.chatRedisService.joinRoom(
         toJoinUserId,
         chatRoomId,
         role
       )
+
+      this.chatGatewayService.joinChatSession(toJoinUserId, chatRoomId);
+
+      return res;
     }
 
     try {
@@ -216,6 +222,8 @@ export class ChatService {
           role: role
         })
         .returning();
+
+      this.chatGatewayService.joinChatSession(toJoinUserId, chatRoomId);
 
       return result;
     }
@@ -360,6 +368,8 @@ export class ChatService {
         toLeaveUserId, chatRoomId
       )
 
+      this.chatGatewayService.leaveChatSession(toLeaveUserId, chatRoomId);
+
       return data;
 
     } else {
@@ -421,6 +431,8 @@ export class ChatService {
 
       //  await this.setRole(chatRoomId, oldestRoomSpectator.userId, ChatRoomMemberRole.OWNER);
       //}
+
+      this.chatGatewayService.leaveChatSession(toLeaveUserId, chatRoomId);
 
       return res;
     }

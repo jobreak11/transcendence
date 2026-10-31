@@ -1,7 +1,7 @@
 import { cookies } from "next/headers"
 import React from "react"
 import { redirect } from "next/navigation";
-import { MainSocketProvider } from "../_context/useMainSocket";
+import { MainSocketProvider, useMainSocket } from "../_context/useMainSocket";
 import { RefreshTokenSuccessDto } from "../../../types/dto";
 import { ACCESS_TOKEN_COOKIE_EXPIRE_TIME, BACKEND_URL, REFRESH_TOKEN_COOKIE_EXPIRE_TIME } from "../../../lib/constants";
 
@@ -65,7 +65,7 @@ export default  async function layout({
   return (
     <main>
         <MainSocketProvider accessToken={accessToken}>
-        {children}
+            {children}
         </MainSocketProvider>
     </main>
   )

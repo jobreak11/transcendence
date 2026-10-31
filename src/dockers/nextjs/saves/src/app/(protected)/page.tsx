@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { signOut } from "../../lib/auth";
 import Link from "next/link";
+import { useMainSocket } from "./_context/useMainSocket";
 
 function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const [isVisible, setIsVisible] = useState(false);
