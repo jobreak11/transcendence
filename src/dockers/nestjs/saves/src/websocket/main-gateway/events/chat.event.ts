@@ -18,9 +18,9 @@ export const event_main_chat_message = {
 // join the websocket chat room to receive realtime notification
 export const event_main_chat_event_notify = {
 
-  to_server() {
-    return `${event_main_chat_namespace()}:event_notify:to_server`
-  },
+  //to_server() {
+  //  return `${event_main_chat_namespace()}:event_notify:to_server`
+  //},
   to_client() {
     return `${event_main_chat_namespace()}:event_notify:to_client`
   }

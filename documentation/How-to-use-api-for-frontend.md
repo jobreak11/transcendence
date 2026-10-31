@@ -17,7 +17,7 @@
 
 ![schemaName2](./materials/tutorial2.png)
 
-4. in nestjs directory, go into data/src/types/dto.ts and then add new dto that you need. having the name as same as the documentation made it easiler and clearer to understand
+4. in nextjs directory, go into data/src/types/dto.ts and then add new dto that you need. having the name as same as the documentation made it easiler and clearer to understand
 
 ```typescript
 import type { components } from "./api.js";
