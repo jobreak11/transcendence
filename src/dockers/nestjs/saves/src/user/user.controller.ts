@@ -1,59 +1,258 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotImplementedException, SetMetadata, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotImplementedException, SetMetadata, HttpCode, HttpStatus, ParseIntPipe, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, BadRequestException, PayloadTooLargeException, Query } from '@nestjs/common';
 import { UserService } from './user.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth/jwt-auth.guard.js';
-import { ApiBearerAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiOperation, ApiResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
-import { User } from './entities/user.entity.js';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConsumes, ApiForbiddenResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { UnauthorizedErrorDto } from '../auth/dto/login.dto.js';
 import { GetUserProfileDto } from './dto/get-user-profile.dto.js';
 import { Role } from '../auth/enums/role.enum.js';
 import { Roles } from '../auth/decorators/roles.decorators.js';
+import { Multer } from 'multer'
 import { RolesGuard } from '../auth/guards/roles/roles.guard.js';
+import { FileInterceptor } from '@nestjs/platform-express'
+import { SHARED_STORAGE_PATH, STORAGE_URL_PATH, THROTTLER_USER_PROFILE_LIMIT, THROTTLER_USER_PROFILE_TTL, THROTTLER_USER_PROFILE_UPDATE_LIMIT, THROTTLER_USER_PROFILE_UPDATE_TTL, THROTTLER_USER_PROFILE_UPLOADPROFILEPIC_LIMIT, THROTTLER_USER_PROFILE_UPLOADPROFILEPIC_TTL } from '../constant.js';
+import * as path from 'path'
+import * as fs from 'fs/promises'
+import type { AuthJwtFastifyRequest } from '../auth/types/auth-jwtFastifyRequest.js';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { UserThrottlerGuard } from '../auth/guards/user-throttler/user-throttler.guard.js';
+import { TitleService } from './title/title.service.js';
 
-@Roles(Role.USER)
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly titleService: TitleService
+  ) {}
 
+  @ApiOperation({summary: 'Register a new user account'})
+  @ApiResponse({status: 201, description: 'User created successfully'})
+  @ApiResponse({status: 401, description: 'validation failed.', type: UnauthorizedErrorDto})
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Post()
-  @ApiOperation({summary: 'Register a new user account'})
-  @ApiResponse({status: 201, description: 'User created successfully', type: User})
-  @ApiResponse({status: 401, description: 'validation failed.', type: UnauthorizedErrorDto})
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
 
   @ApiBearerAuth()
   @ApiOperation({
-    summary: 'get the current user profile',
-    description: 'use Authentication: Bearer <JWT token> in this get request \
-    and the backend will retrieve the user profile infomation'
+    summary: 'Get user profile',
+    description:
+      'Retrieves the authenticated user’s profile if no query params are passed. Provide either `id` or `tagId` to view another user’s profile. Providing both will return a 400 error.',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiQuery({
+    name: 'id',
+    required: false,
+    type: String,
+    description: 'Lookup target profile by User ID (mutually exclusive with tagId)',
+    example: 'usr_12345',
+  })
+  @ApiQuery({
+    name: 'tagId',
+    required: false,
+    type: String,
+    description: 'Lookup target profile by Tag/Handle (mutually exclusive with id)',
+    example: 'gamer_tag_99',
+  })
+  @ApiOkResponse({
     type: GetUserProfileDto,
-    description: "your user profile data"
+    description: 'Successfully retrieved user profile data',
+  })
+  @ApiBadRequestResponse({
+    description: 'Both `id` and `tagId` were provided simultaneously',
   })
   @ApiUnauthorizedResponse({
     type: UnauthorizedErrorDto,
-    description: 'missing or invalid JWT token'
+    description: 'Missing or invalid JWT token',
   })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
+  @Throttle({
+    default: {
+      limit: THROTTLER_USER_PROFILE_LIMIT,
+      ttl: THROTTLER_USER_PROFILE_TTL
+    }
+  })
+  @Roles(Role.USER)
   @Get('profile')
-  getProfile(@Req() req:any){
-    return this.userService.findOne(req.user.id);
+  async getProfile(
+    @Req() req: any,
+    @Query('id') id?: string,
+    @Query('tagId') tagId?: string,
+  ): Promise<GetUserProfileDto> {
+
+    let result;
+    if (tagId && id) {
+      throw new BadRequestException('must not contain both query params!');
+    } else if (!tagId && !id) {
+      result = await this.userService.findOne(req.user.id);
+    } else if (tagId) {
+      result = await this.userService.findByTagId(tagId);
+    } else {
+      result = await this.userService.findOne(id ?? '');
+    }
+
+    let resName: string | null = null;
+    if (result.activeTitleId) {
+      // get the name immediately
+      const {name} = await this.titleService.findOne(result.activeTitleId);
+
+      if (name)
+        resName = name;
+    }
+
+    return {
+      email: result.email,
+      avatarUrl: result.avatarUrl,
+      displayName: result.displayName,
+      tagId: result.tagId,
+      createdAt: result.createdAt,
+      pronoun: result.pronoun,
+      role: result.role,
+      signature: result.signature,
+      activeTitleId: result.activeTitleId,
+      titleName: resName,
+      cardTheme: result.cardTheme,
+    }
   }
 
 
-  @ApiOperation({
-    summary: 'Not implemented yet.'
+  //@Post('profile/uploadProfilePic')
+  //@
+  //uploadProfilePic(@Req() req:any, @Body()) {
+
+  //}
+
+
+
+  // @Post('profile/uploadProfilePic')
+  // @UseInterceptors(FileInterceptor('file'))
+  // async uploadProfilePic(@Req() req:any, @UploadedFile(
+  //   new ParseFilePipe({
+  //     validators: [
+        
+  //       /* FIX: user can upload any type of file, any size
+  //       but would trim the size to be a square, maybe include another
+  //       type of image later
+
+  //       - scale, resize the image down ? if the profile picture
+  //       is too big to store.
+  //        */
+
+  //       new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 }), // 10MB
+  //       new FileTypeValidator({ fileType: /(jpg|jpeg|png)$/ }),
+  //     ],
+  //   })
+  // ) file: Express.Multer.File) {
+
+  //   //console.log({ routeCheck: 'isHere', req});
+  //   return this.userService.uploadProfilePic(req.user.id, file);
+  // }
+
+    @HttpCode(HttpStatus.CREATED)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Upload user profile picture' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'Profile image file (JPG, JPEG, PNG, max 5MB)',
+        },
+      },
+    },
   })
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    throw new NotImplementedException('still not implement')
-    return this.userService.update(+id, updateUserDto);
+  @UseGuards(JwtAuthGuard, UserThrottlerGuard)
+  @Throttle({
+    default: {
+      limit: THROTTLER_USER_PROFILE_UPLOADPROFILEPIC_LIMIT,
+      ttl: THROTTLER_USER_PROFILE_UPLOADPROFILEPIC_TTL
+    }
+  })
+  @Post('profile/uploadProfilePic')
+  async uploadProfilePic(@Req() req: AuthJwtFastifyRequest) {
+
+    if (! req.isMultipart()) {
+      throw new BadRequestException(`Expected multipart/form-data`);
+    }
+
+    const part = await req.file({
+      limits: {
+        fileSize: 1024 * 1024 * 10, // 10MB Limit
+      },
+    });
+
+    if (!part) {
+      throw new BadRequestException('File is required');
+
+    }
+
+    if (part.fieldname !== 'file') {
+      part.file.resume();
+      throw new BadRequestException('Field name must be "file"');
+    }
+
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (!allowedMimeTypes.includes(part.mimetype)) {
+      throw new BadRequestException('Only JPG, JPEG, and PNG files are allowed');
+    }
+
+    const buffer = await part.toBuffer();
+
+    if (part.file.truncated) {
+      throw new PayloadTooLargeException('File size exceeds the 10MB limit');
+    }
+
+
+    return this.userService.uploadProfilePic(req.user.id, buffer);
+  }
+
+
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'update the user profile',
+    description: 'update the user profile'
+  })
+  @Patch('update')
+  @UseGuards(JwtAuthGuard, UserThrottlerGuard)
+  @Throttle({
+    default: {
+      limit: THROTTLER_USER_PROFILE_UPDATE_LIMIT,
+      ttl: THROTTLER_USER_PROFILE_UPDATE_TTL
+    }
+  })
+  async update(@Req() req:any, @Body() updateUserDto: UpdateUserDto)
+  : Promise<GetUserProfileDto>
+  {
+    //throw new NotImplementedException('still not implement')
+
+    const res = await this.userService.update(req.user.id, updateUserDto);
+
+    let resName: string | null = null;
+    if (res.activeTitleId) {
+      const {name} = await this.titleService.findOne(res.activeTitleId);
+      resName = name;
+    }
+
+    return {
+      email: res.email,
+      avatarUrl: res.avatarUrl,
+      displayName: res.displayName,
+      tagId: res.tagId,
+      createdAt: res.createdAt,
+      pronoun: res.pronoun,
+      role: res.role,
+      signature: res.signature,
+      activeTitleId: res.activeTitleId,
+      titleName: resName,
+      cardTheme: res.cardTheme,
+    }
+
   }
 
   @ApiOperation({
@@ -77,8 +276,10 @@ export class UserController {
   @Roles(Role.EDITOR, Role.ADMIN)
   //@UseGuards(RolesGuard)
   //@UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+    return this.userService.remove(id);
   }
+
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-set -eu
+set -eux
 
 run_suexec() {
   if [ $# -lt 3 ]; then
@@ -160,7 +160,7 @@ fi
 
 fi
 
-run_suexec ${USER_ID} ${GROUP_ID} npm run generate:types
+run_suexec ${USER_ID} ${GROUP_ID} pnpm generate:types
 
 if [ "${USER_ID}" -ne 0 ]; then
   exec su-exec "${USER_ID}:${GROUP_ID}" "$@"
