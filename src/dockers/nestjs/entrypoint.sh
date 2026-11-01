@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-set -eu
+set -eux
 
 run_suexec() {
   if [ $# -lt 3 ]; then
@@ -61,7 +61,26 @@ if [ ! -f "package.json" ]; then
   run_suexec ${USER_ID} ${GROUP_ID} pnpm dlx @nestjs/cli new nestjs -p pnpm --strict --skip-git
   cd ${NESTJS_DIR}
 
-  run_suexec ${USER_ID} ${GROUP_ID} printf "allowBuilds:\n  argon2: true\n  '@scarf/scarf': true\n" > pnpm-workspace.yaml
+  # run_suexec ${USER_ID} ${GROUP_ID} printf "allowBuilds:\n  argon2: true\n  '@scarf/scarf': true\n  esbuild: true\n\npackages:\n  - '.'\n\noverrides:\n  '@nestjs/common': '@nestjs/common'\n  '@nestjs/core': '@nestjs/core'\n" > pnpm-workspace.yaml
+  run_suexec ${USER_ID} ${GROUP_ID} sh -c 'cat << "EOF" > pnpm-workspace.yaml
+allowBuilds:
+  argon2: true
+  "@scarf/scarf": true
+  esbuild: true
+
+packages:
+  - "."
+
+overrides:
+  fastify: "5.12.5"
+
+EOF
+'
+
+  # run_suexec ${USER_ID} ${GROUP_ID} node -e 'const fs=require("fs"),f="tsconfig.json",c=JSON.parse(fs.readFileSync(f,"utf8"));c.compilerOptions=c.compilerOptions||{};c.compilerOptions.paths=Object.assign(c.compilerOptions.paths||{},{"@nestjs/common":["./node_modules/@nestjs/common"],"@nestjs/common/*":["./node_modules/@nestjs/common/*"],"@nestjs/core":["./node_modules/@nestjs/core"],"@nestjs/core*":["./node_modules/@nestjs/core*"]});fs.writeFileSync(f,JSON.stringify(c,null,2)+"\n");'
+
+  # run_suexec ${USER_ID} ${GROUP_ID} echo "dedupe-peer-dependents=true" >> .npmrc
+
 
   #run_suexec ${USER_ID} ${GROUP_ID} pnpm add -D @types/bcrypt @types/passport-local @types/passport-jwt \
   #  @types/ms
@@ -71,12 +90,21 @@ if [ ! -f "package.json" ]; then
   class-validator class-transformer \
   @nestjs/swagger \
   @nestjs/websockets @nestjs/platform-socket.io \
-  @nestjs/typeorm typeorm pg \
+  pg \
   @nestjs/config \
+  multer \
   @nestjs/jwt @nestjs/passport passport passport-jwt passport-local \
   argon2 ioredis redis-mock socket.io \
   passport-google-oauth20 \
-  passport-oauth2 
+  passport-oauth2  \
+  uuid \
+  dotenv drizzle-orm \
+  @nestjs/platform-fastify \
+  @fastify/static @fastify/multipart \
+  fastify \
+  zod \
+  @nestjs/throttler \
+  # @nestjs/typeorm typeorm \
 
 
     #@types/node \
@@ -85,10 +113,13 @@ if [ ! -f "package.json" ]; then
     typescript@npm:@typescript/typescript6 \
     @types/passport \
     @types/passport-jwt \
+    @types/multer \
     @types/passport-local \
-    @types/ms @types/ioredis @types/redis-mock \
+    @types/ms @types/redis-mock \
     @types/passport-google-oauth20 \
-    @types/passport-oauth2
+    @types/passport-oauth2 \
+    @types/pg \
+    drizzle-kit
 
   if [ -d "/app/saves" ] && [ -n "$(ls -A /app/saves 2>/dev/null)" ]; then
     printf "Restoring project from /app/saves\n"
@@ -103,7 +134,11 @@ if [ ! -d "${NESTJS_DIR}/node_modules" ] || [ -z "$(ls -A ${NESTJS_DIR}/node_mod
     run_suexec ${USER_ID} ${GROUP_ID} pnpm install
 fi
 
+chown -R ${USER_ID}:${GROUP_ID} /transcend_storage
+
+
 cd ${NESTJS_DIR}
+run_suexec ${USER_ID} ${GROUP_ID} pnpm drizzle-kit push
 if [ "${USER_ID}" -ne 0 ]; then
   exec su-exec "${USER_ID}:${GROUP_ID}" "$@"
 else

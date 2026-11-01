@@ -34,14 +34,9 @@ import { FortyTwoStrategy } from './strategies/fortyTwo.strategy.js';
     RefreshJwtStrategy,
     GoogleStrategy,
     FortyTwoStrategy,
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard
-    },
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard
-    }
+    JwtAuthGuard,
+    RolesGuard,
   ],
+  exports: [JwtModule, AuthService]
 })
 export class AuthModule {}

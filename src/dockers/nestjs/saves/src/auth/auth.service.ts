@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { UserService } from '../user/user.service.js';
 import { JwtService } from '@nestjs/jwt';
 import { AuthJwtPayload } from './types/auth-jwtPayload.js';
@@ -10,6 +10,8 @@ import { CreateUserDto } from '../user/dto/create-user.dto.js';
 
 @Injectable()
 export class AuthService {
+
+  private readonly logger = new Logger(AuthService.name);
 
   constructor(
     private userService: UserService,
@@ -37,7 +39,7 @@ export class AuthService {
     return { id: user.id };
   }
 
-  async login(userId: number) {
+  async login(userId: string) {
 
     //const payload:AuthJwtPayload = {sub: userId};
     //const token = this.jwtService.sign(payload);
@@ -54,7 +56,7 @@ export class AuthService {
     };
   }
 
-  async generateTokens(userId: number) {
+  async generateTokens(userId: string) {
     const payload: AuthJwtPayload = { sub: userId}
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload),
@@ -67,7 +69,7 @@ export class AuthService {
     })
   }
 
-  async refreshToken(userId: number) {
+  async refreshToken(userId: string) {
     const {accessToken, refreshToken} = await this.generateTokens(userId)
     const hashedRefreshToken = await argon2.hash(refreshToken);
     await this.userService.updateHashedRefreshToken(userId, hashedRefreshToken);
@@ -79,7 +81,7 @@ export class AuthService {
     };
   }
 
-  async validateRefreshToken(userId: number, refreshToken: string) {
+  async validateRefreshToken(userId: string, refreshToken: string) {
     const user = await this.userService.findOne(userId);
 
     if (!user || !user.hashedRefreshToken) {
@@ -97,11 +99,11 @@ export class AuthService {
     })
   }
 
-  async signOut(userId: number){
+  async signOut(userId: string){
     await this.userService.updateHashedRefreshToken(userId, null)
   }
 
-  async validateJwtUser(userId: number) {
+  async validateJwtUser(userId: string) {
     const user = await this.userService.findOne(userId);
 
     if (!user) {

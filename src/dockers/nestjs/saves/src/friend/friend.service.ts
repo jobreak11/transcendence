@@ -1,0 +1,295 @@
+import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { DRIZZLE } from '../drizzle/drizzle.module.js';
+import type { DrizzleDB } from '../drizzle/types/drizzle.js';
+import { friendships, FriendshipStatus } from '../drizzle/schema/friendships.schema.js';
+import { and, eq, or } from 'drizzle-orm';
+import { FindAllFriendshipsDto } from './dto/find-all-friendships.dto.js';
+import { FriendshipsDto } from './dto/friend.dto.js';
+import { REDIS_CLIENT } from '../redis/redis.provider.js';
+import type { RedisClient } from '../redis/redis.provider.js';
+import { CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME } from '../constant.js';
+import { redis_cache_friendship_all_friendships } from '../redis/namespaces/caching/cache-friendship.namespace.js';
+
+@Injectable()
+export class FriendService {
+
+  constructor(
+    @Inject(DRIZZLE) private db: DrizzleDB,
+    @Inject(REDIS_CLIENT) private readonly redis:RedisClient
+  ) {}
+
+  async findAllFriendships(userId: string): Promise<FindAllFriendshipsDto> {
+
+    // find from redis first
+    const foundFromCache = await this.getCacheFriendships(userId);
+    if (foundFromCache) {
+      return foundFromCache;
+    }
+
+    const records = await this.db
+      .select()
+      .from(friendships)
+      .where(or(eq(friendships.requesterUserId, userId),
+        eq(friendships.addresseeUserId, userId)))
+
+    let allFriendships: FindAllFriendshipsDto = {
+      acceptedFriends: [],
+      sentRequests: [],
+      receivedRequests: []
+    };
+
+    for (const record of records) {
+      if (record.status === FriendshipStatus.ACCEPTED) {
+        allFriendships.acceptedFriends.push({
+          userId: record.requesterUserId === userId ? record.addresseeUserId : record.requesterUserId,
+          status: record.status,
+          createdAt: record.createdAt
+        })
+      }
+      else if (record.status === FriendshipStatus.PENDING) {
+        if (record.requesterUserId === userId) {
+          allFriendships.acceptedFriends.push({
+            userId: record.addresseeUserId,
+            status: record.status,
+            createdAt: record.createdAt
+          })
+        }
+        else {
+          allFriendships.receivedRequests.push({
+            userId: record.requesterUserId,
+            status: record.status,
+            createdAt: record.createdAt
+          })
+        }
+      }
+    }
+
+
+    this.setCacheFriendships(allFriendships, userId);
+
+    return allFriendships;
+  }
+
+  setCacheFriendships(allFriendShips: FindAllFriendshipsDto, userId: string) {
+    return this.redis
+      .set(redis_cache_friendship_all_friendships(userId), JSON.stringify(allFriendShips), "EX", CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME);
+  }
+
+  async getCacheFriendships(userId: string) {
+
+    try {
+      const stringData = await this.redis
+        .getex(redis_cache_friendship_all_friendships(userId), "EX", CACHING_FRIENDSHIPS_SERVICE_EXPIRE_TIME);
+      if (stringData) {
+        return JSON.parse(stringData) as FindAllFriendshipsDto
+      }
+      return (null);
+    } catch (err) {
+      throw new InternalServerErrorException("cache redis internal error");
+    }
+  }
+
+  delCacheFriendships(userId: string) {
+    return this.redis
+      .del(redis_cache_friendship_all_friendships(userId));
+  }
+
+  async setFriendshipStatus(
+    currentUserId: string,
+    targetUserId: string,
+    status: FriendshipStatus,
+  ) {
+    if (currentUserId === targetUserId) {
+      throw new BadRequestException('Cannot perform this action on yourself');
+    }
+
+    if (status === FriendshipStatus.PENDING) {
+      throw new BadRequestException('Use makeFriendRequest to initiate a request');
+    }
+
+    // Find any existing relationship in either direction
+
+    const [existing] = await this.db
+      .select()
+      .from(friendships)
+      .where(
+        or(
+          and(
+            eq(friendships.requesterUserId, currentUserId),
+            eq(friendships.addresseeUserId, targetUserId),
+          ),
+          and(
+            eq(friendships.requesterUserId, targetUserId),
+            eq(friendships.addresseeUserId, currentUserId),
+          ),
+        ),
+      )
+      .limit(1);
+
+    // 1. BLOCKING: Can block regardless of whether a record currently exists
+    if (status === FriendshipStatus.BLOCKED) {
+      this.delCacheFriendships(currentUserId);
+      this.delCacheFriendships(targetUserId);
+      if (existing) {
+        // Overwrite existing record: blocker becomes requester, blocked becomes addressee
+        const [blocked] = await this.db
+          .update(friendships)
+          .set({
+            requesterUserId: currentUserId,
+            addresseeUserId: targetUserId,
+            status: FriendshipStatus.BLOCKED,
+          })
+          .where(
+            and(
+              eq(friendships.requesterUserId, existing.requesterUserId),
+              eq(friendships.addresseeUserId, existing.addresseeUserId),
+            ),
+          )
+          .returning();
+
+
+        return blocked;
+      }
+
+      // No prior relationship existed, create a new blocked entry
+      const [newBlock] = await this.db
+        .insert(friendships)
+        .values({
+          requesterUserId: currentUserId,
+          addresseeUserId: targetUserId,
+          status: FriendshipStatus.BLOCKED,
+        })
+        .returning();
+
+      return newBlock;
+    }
+
+    // 2. ACCEPTING & DECLINING: Requires an existing PENDING request
+    if (!existing) {
+      throw new NotFoundException('No friend request found between these users');
+    }
+
+    if (existing.status === FriendshipStatus.BLOCKED) {
+      throw new ForbiddenException('Cannot perform this action');
+    }
+
+    if (existing.status === FriendshipStatus.ACCEPTED) {
+      throw new ConflictException('You are already friends with this user');
+    }
+
+    if (existing.status !== FriendshipStatus.PENDING) {
+      throw new BadRequestException(`Cannot transition from ${existing.status} to ${status}`);
+    }
+
+    // Only the user who RECEIVED the request (addressee) can accept or decline it
+    if (existing.addresseeUserId !== currentUserId) {
+      throw new ForbiddenException(
+        'Only the recipient of a friend request can accept or decline it',
+      );
+    }
+
+    this.delCacheFriendships(currentUserId);
+    this.delCacheFriendships(targetUserId);
+
+    const [updated] = await this.db
+      .update(friendships)
+      .set({ status })
+      .where(
+        and(
+          eq(friendships.requesterUserId, existing.requesterUserId),
+          eq(friendships.addresseeUserId, existing.addresseeUserId),
+        ),
+      )
+      .returning();
+
+
+    return updated;
+  }
+
+
+  async makeFriendRequest(requesterUserId: string, addresseeUserId: string) {
+    if (requesterUserId === addresseeUserId) {
+      throw new BadRequestException('Cannot send a friend request to yourself');
+    }
+
+    const [existing] = await this.db
+      .select()
+      .from(friendships)
+      .where(
+        or(
+          and(
+            eq(friendships.requesterUserId, requesterUserId),
+            eq(friendships.addresseeUserId, addresseeUserId),
+          ),
+          and(
+            eq(friendships.requesterUserId, addresseeUserId),
+            eq(friendships.addresseeUserId, requesterUserId),
+          ),
+        ),
+      )
+      .limit(1);
+
+    if (existing) {
+      if (existing.status === FriendshipStatus.BLOCKED ) {
+        throw new ForbiddenException('Cannot Perform This Action.');
+      }
+
+      if (existing.status === FriendshipStatus.ACCEPTED) {
+        throw new ConflictException('Already friends with this user');
+      }
+
+      if (existing.status === FriendshipStatus.PENDING) {
+        if (existing.requesterUserId === requesterUserId) {
+          throw new ConflictException('Friend Request is already Sent and pending');
+        } else {
+          throw new ConflictException('This user has already sent you a friend request');
+        }
+      }
+
+      this.delCacheFriendships(requesterUserId);
+      this.delCacheFriendships(addresseeUserId);
+
+      if (existing.status === FriendshipStatus.DECLINED) {
+        const [updated] = await this.db
+          .update(friendships)
+          .set({
+            requesterUserId: requesterUserId,
+            addresseeUserId: addresseeUserId,
+            status: FriendshipStatus.PENDING,
+            createdAt: new Date(),
+          })
+          .where(
+            and(
+              eq(friendships.requesterUserId, existing.requesterUserId),
+              eq(friendships.addresseeUserId, existing.addresseeUserId),
+            ),
+          )
+          .returning();
+
+        return {
+          sentFriendRequestToUserId: requesterUserId === updated.requesterUserId ? friendships.addresseeUserId : requesterUserId,
+          status: updated.status,
+          createdAt: updated.createdAt
+        };
+      }
+    }
+
+    this.delCacheFriendships(requesterUserId);
+    this.delCacheFriendships(addresseeUserId);
+
+    const [newFriendRequest] = await this.db
+      .insert(friendships)
+      .values({
+        requesterUserId: requesterUserId,
+        addresseeUserId: addresseeUserId,
+        status: FriendshipStatus.PENDING
+      })
+      .returning();
+
+    return {
+      sentFriendRequestToUserId: addresseeUserId,
+      status: newFriendRequest.status,
+      createdAt: newFriendRequest.createdAt
+    };
+  }
+}

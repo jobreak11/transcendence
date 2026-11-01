@@ -1,4 +1,4 @@
-import { Controller, HttpCode, HttpStatus, Body, Post, Req, Request, UseGuards, NotImplementedException, Get, Res, ResponseDecoratorOptions } from '@nestjs/common';
+import { Controller, HttpCode, HttpStatus, Body, Post, Req, Request, UseGuards, NotImplementedException, Get, Res, ResponseDecoratorOptions, Query } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 import { AuthGuard } from '@nestjs/passport';
 import { LocalAuthGuard } from './guards/local-auth/local-auth.guard.js';
@@ -8,19 +8,38 @@ import { RefreshAuthGuard } from './guards/refresh-auth/refresh-auth.guard.js';
 import { RefreshTokenSuccessDto } from './dto/refresh-token.dto.js';
 import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard.js';
 import { Public } from './decorators/public.decorators.js';
-import { CreateUserDto } from '../user/dto/create-user.dto.js';
+import { CreateUserDto, CreateUserSchema } from '../user/dto/create-user.dto.js';
 import { GoogleAuthGuard } from './guards/google-auth/google-auth.guard.js';
 import type { Response } from 'express';
 import { FortytwoAuthGuard } from './guards/fortytwo-auth/fortytwo-auth.guard.js';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { THROTTLER_AUTH_LOGIN_LIMIT, THROTTLER_AUTH_LOGIN_TTL, THROTTLER_AUTH_SIGNOUT_LIMIT, THROTTLER_AUTH_SIGNOUT_TTL, THROTTLER_AUTH_SIGNUP_LIMIT, THROTTLER_AUTH_SIGNUP_TTL } from '../constant.js';
+import { UserThrottlerGuard } from './guards/user-throttler/user-throttler.guard.js';
+import { ZodValidationPipe } from '../pipes/ZodValidationPipe.js';
 
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Public()
+
+  @HttpCode(HttpStatus.OK)
+  @Get('check')
+  @UseGuards(JwtAuthGuard, UserThrottlerGuard)
+  authCheck() {
+
+  }
+
   @Post('signup')
-  registerUser(@Body() createUserDto: CreateUserDto) {
+  @Throttle({
+    // signup endpoint should not allow client to register so quickly
+    default: {
+      limit: THROTTLER_AUTH_SIGNUP_LIMIT,
+      ttl: THROTTLER_AUTH_SIGNUP_TTL
+    }
+  })
+  @UseGuards(ThrottlerGuard)
+  registerUser(@Body(new ZodValidationPipe(CreateUserSchema)) createUserDto: CreateUserDto) {
     return this.authService.registerUser(createUserDto);
   }
 
@@ -42,9 +61,14 @@ export class AuthController {
     description: 'Invalid email or password',
     type: UnauthorizedErrorDto
   })
-  @Public()
   @HttpCode(HttpStatus.OK)
-  @UseGuards(LocalAuthGuard)
+  @UseGuards(LocalAuthGuard, UserThrottlerGuard)
+  @Throttle({
+    default: {
+      limit: THROTTLER_AUTH_LOGIN_LIMIT,
+      ttl: THROTTLER_AUTH_LOGIN_TTL
+    }
+  })
   @Post('login')
   async login(@Request() req:any) {
 
@@ -88,13 +112,18 @@ export class AuthController {
     type: UnauthorizedErrorDto,
     description: 'invalid access_token or expired'
   })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, UserThrottlerGuard)
+  @Throttle({
+    default: {
+      limit: THROTTLER_AUTH_SIGNOUT_LIMIT,
+      ttl: THROTTLER_AUTH_SIGNOUT_TTL
+    }
+  })
   @Post('signout')
   signOut(@Req() req: any) {
     this.authService.signOut(req.user.id)
   }
 
-  @Public()
   @UseGuards(GoogleAuthGuard)
   @Get('google/login')
   googleLogin() {
@@ -102,17 +131,19 @@ export class AuthController {
   }
 
 
-  @Public()
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
-  async googleCallback(@Req() req:any) {
+  async googleCallback(@Req() req:any, @Query('state') state: string) {
 
+
+
+    const decodeRedirect = state ? decodeURIComponent(state) : '/';
     const response = await this.authService.login(req.user.id);
 
-    return response;
+    console.log({state, response});
+    return {...response, callbackUrl: decodeRedirect};
   }
 
-  @Public()
   @UseGuards(FortytwoAuthGuard)
   @Get('42/login')
   fortyTwoLogin() {
@@ -120,14 +151,14 @@ export class AuthController {
   }
 
 
-  @Public()
   @UseGuards(FortytwoAuthGuard)
   @Get('42/callback')
-  async fortyTwoCallback(@Req() req:any) {
+  async fortyTwoCallback(@Req() req:any, @Query('state') state: string) {
 
+    const decodeRedirect = state ? decodeURIComponent(state) : '/';
     const response = await this.authService.login(req.user.id);
 
-    return response;
+    return {...response, callbackUrl: decodeRedirect};
   }
 
 }
