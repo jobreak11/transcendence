@@ -83,6 +83,3 @@ export class GetUserProfileDto extends OmitType(UserDto, ['id', 'password', 'has
 //  displayName: string | null;
 
 //  pronoun: PronounType | null;
-
-
-

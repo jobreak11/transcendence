@@ -19,7 +19,7 @@ export class ConnectionGateway implements OnGatewayInit, OnGatewayConnection, On
 
   // optional though
   @WebSocketServer()
-  server: Server;
+  private server: Server;
 
   constructor(
     private readonly jwtService: JwtService,
