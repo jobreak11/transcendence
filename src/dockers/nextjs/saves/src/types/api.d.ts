@@ -768,6 +768,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * for the host to start the lobby game
+         * @description the user invoke this must be inside the target lobby, and also is the host of that lobby
+         */
         post: operations["LobbyController_startGame"];
         delete?: never;
         options?: never;
@@ -1099,12 +1103,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a19b09-59b7-7400-a35e-245e85c0eb47
+             * @example 01a19c7e-59b2-77e6-987d-643773827c44
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a19b09-59b9-75fe-80bb-90012ca07795
+             * @example 01a19c7e-59b4-7070-8cc1-ec77041d751e
              */
             chatRoomId: string;
             /**
@@ -1190,7 +1194,7 @@ export interface components {
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a19b09-59d3-70f2-a32c-0f81ce764405
+             * @example 01a19c7e-59d6-7045-9c07-a1e930e0ddd2
              */
             gameRoomId: string | null;
             /**
@@ -1279,7 +1283,7 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a19b09-59d3-70f2-a32c-0f81ce764405
+             * @example 01a19c7e-59d6-7045-9c07-a1e930e0ddd2
              */
             gameRoomId: string | null;
             /**
@@ -2322,7 +2326,9 @@ export interface operations {
     };
     LobbyController_startGame: {
         parameters: {
-            query?: never;
+            query: {
+                lobbyPinId: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;

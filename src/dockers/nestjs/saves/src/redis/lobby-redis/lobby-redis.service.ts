@@ -1136,11 +1136,14 @@ export class LobbyRedisService implements OnModuleInit {
         LobbyRoomStatus.UNAVAILABLE
       );
 
-      const res = await this.gameRedisService.gameRoomCreate({
-        lobbyData: await this.getLobbyFull(lobbyPinId),
-        lobbyMemberList: lobbyMemberList
-      });
+      //const res = await this.gameRedisService.gameRoomCreate({
+      //  lobbyData: await this.getLobbyFull(lobbyPinId),
+      //  lobbyMemberList: lobbyMemberList
+      //});
 
+      const res = {
+        gameRoomId: "something"
+      };
 
       // gonna set the game room id of the lobby room to be linkable
       await this.redis.hset(redis_lobby_details(lobbyPinId), "gameRoomId", res.gameRoomId);

@@ -7,12 +7,14 @@ import { io, Socket } from "socket.io-client";
 interface MainSocketContextType {
   socket: Socket | null;
   isConnected: boolean;
-  accessToken?: string
+  accessToken?: string;
+  connectionError: string | null;
 }
 
 const MainSocketContext = createContext<MainSocketContextType>({
   socket: null,
-  isConnected: false
+  isConnected: false,
+  connectionError: null,
 });
 
 interface MainSocketProviderProps {
@@ -26,16 +28,20 @@ export function MainSocketProvider({
 }: MainSocketProviderProps) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   useEffect(() => {
 
-    if (!accessToken)
-      return ;
+    if (!accessToken) {
+      setSocket(null);
+      setIsConnected(false);
+      setConnectionError("No access token is available for the connection.");
+      return;
+    }
 
-    const socketInstance: Socket = io('https://localhost:4333', {
+    const socketInstance: Socket = io(window.location.origin, {
       path: '/socket.io/',
       transports: ['websocket'],
-      secure: true,
       auth: {
         accessToken: accessToken
       },
@@ -43,18 +49,34 @@ export function MainSocketProvider({
       reconnectionAttempts: 5,
     });
 
-    socketInstance.on('connect', () => setIsConnected(true));
-    socketInstance.on('disconnect', () => setIsConnected(false));
+    socketInstance.on('connect', () => {
+      setIsConnected(true);
+      setConnectionError(null);
+    });
+    socketInstance.on('disconnect', (reason: string) => {
+      setIsConnected(false);
+      setConnectionError(`Socket disconnected: ${reason}`);
+    });
+    socketInstance.on('connect_error', (error: Error) => {
+      setIsConnected(false);
+      setConnectionError(error.message);
+    });
 
     setSocket(socketInstance);
 
     return () => {
+      socketInstance.removeAllListeners();
       socketInstance.disconnect();
     };
   }, [accessToken]);
 
   return (
-    <MainSocketContext.Provider value={{socket, isConnected,  accessToken}}>
+    <MainSocketContext.Provider value={{
+      socket,
+      isConnected,
+      accessToken,
+      connectionError,
+    }}>
       {children}
     </MainSocketContext.Provider>
   );
