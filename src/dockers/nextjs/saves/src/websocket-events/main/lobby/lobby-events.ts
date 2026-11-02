@@ -20,4 +20,40 @@ export namespace LobbyEvent {
       }
     }
   }
+
+  export namespace member_notify {
+    const member_notify_namespace = `${lobby_namespace}:member_notify`
+    export namespace to_client {
+      export const event_name = `${member_notify_namespace}:to_client`
+
+      export enum LobbyMemberNofifyType {
+
+        // event to notify that new member has join the lobby
+        MEMBER_JOIN = "MEMBER_JOIN",
+
+        // event to notify that a member has leave the lobby
+        MEMBER_LEAVE = "MEMBER_LEAVE",
+
+        // change role is to between player or spectator when in lobby
+        MEMBER_CHANGE_ROLE = "MEMBER_CHANGE_ROLE",
+
+        // notify that the host of the room has changed
+        MEMBER_CHANGE_HOST = "MEMBER_CHANGE_HOST",
+
+      }
+
+      export enum LobbyMemberNotifyRole {
+        PLAYER = "PLAYER",
+        SPECTATOR = "SPECTATOR"
+      }
+
+      export interface payload {
+        status: LobbyMemberNofifyType;
+        userId: string;
+        lobbyPinId: string;
+        role: LobbyMemberNotifyRole;
+
+      }
+    }
+  }
 }

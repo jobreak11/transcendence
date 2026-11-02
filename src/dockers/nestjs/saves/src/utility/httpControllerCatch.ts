@@ -16,16 +16,21 @@ export function httpControllerCatch(error: any) {
         return new NotFoundException("foreign key not found");
       }
 
-      return new HttpException(
-        {
-          status: code,
-          error: error?.cause?.message ?? "",
-        },
-        code,
-        {
-          cause: error?.cause ?? "none"
-        }
-      );
+      const isValidHttpStatus = code >= 100 && code <= 599;
+      if (isValidHttpStatus) {
+        return new HttpException(
+          {
+            statusCode: code,
+            message: error?.cause?.message ?? "Error",
+            error: error?.cause?.error ?? null,
+          },
+          code,
+          {
+            cause: error?.cause ?? "none"
+          }
+        )
+      }
+      return new InternalServerErrorException(error?.cause.message ?? "unknown error");
     }
 
     return new InternalServerErrorException("unknown error");

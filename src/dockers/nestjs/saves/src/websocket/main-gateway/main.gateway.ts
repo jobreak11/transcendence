@@ -1,8 +1,10 @@
-import { Logger } from "@nestjs/common";
+import { Logger, UseFilters } from "@nestjs/common";
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server } from "socket.io";
 import { MainGatewayService } from "./main-gateway.service.js";
+import { WsAllExceptionsFilter } from "../filters/WsAllExceptionsFilter.js";
 
+@UseFilters(WsAllExceptionsFilter)
 @WebSocketGateway({
   transports: ['polling', 'websocket'],
   namespace: '/'

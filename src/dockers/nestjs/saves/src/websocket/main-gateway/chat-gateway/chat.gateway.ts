@@ -4,9 +4,11 @@ import { Server, Socket } from "socket.io";
 import { WsZodValidationPipe } from "../../pipes/wsZodValidationPipe.js";
 import { ChatMessageType } from "../../../drizzle/schema/chat_messages/chat_messages.schema.js";
 import { ChatMessage } from "./dtos/chat-message.dto.js";
-import { Logger } from "@nestjs/common";
+import { Logger, UseFilters } from "@nestjs/common";
 import { event_main_chat_message } from "../events/chat.event.js";
+import { WsAllExceptionsFilter } from "../../filters/WsAllExceptionsFilter.js";
 
+@UseFilters(WsAllExceptionsFilter)
 @WebSocketGateway({
   transports: ['websocket'],
   namespace: "/"

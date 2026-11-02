@@ -1,10 +1,10 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Post, Query, Req, UseFilters, UseGuards } from '@nestjs/common';
 import { LobbyService } from './lobby.service.js';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth/jwt-auth.guard.js';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { LobbyGuard } from './lobby.guard.js';
 import { ZodValidationPipe } from '../../pipes/ZodValidationPipe.js';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { LobbyCreate } from '../../redis/lobby-redis/schemas/lobby-create.redis.schema.js';
 import { JoinLobbyDto } from './dto/join-lobby.dto.js';
 import { joinLobbySchema } from './schemas/join-lobby.schema.js';
@@ -14,9 +14,14 @@ import { httpControllerCatch } from '../../utility/httpControllerCatch.js';
 import { GetLobbyPublicDto } from './dto/get-lobby-public.dto.js';
 import { UserRedisService } from '../../redis/user-redis/user-redis.service.js';
 import { IsStrongPassword } from 'class-validator';
+import { LobbyUserCreateSchema } from './schemas/lobby-user-create.schema.js';
+import { LobbyUserCreateDto } from './dto/lobby-user-create.dto.js';
+import { LobbyUpdateDto } from '../../redis/lobby-redis/dtos/lobby-update.dto.js';
+import { HttpAllExceptionsFilter } from '../../filters/HttpAllExceptionsFilter.js';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, LobbyGuard, ThrottlerGuard)
+@UseFilters(HttpAllExceptionsFilter)
 @Controller('game/lobby')
 export class LobbyController {
   constructor(
@@ -29,15 +34,22 @@ export class LobbyController {
     summary: "create a lobby room",
     description: "user create a new lobby room. Must not currently in another lobby room."
   })
+  //@ApiBody({
+  //  type: LobbyUserCreateDto
+  //})
   @HttpCode(HttpStatus.CREATED)
   @Post('create')
   createLobbyRoom(
     @Req() req:any,
-    @Body(new ZodValidationPipe(LobbyCreate.schema.input)) body: LobbyCreate.InputDto
+    @Body(new ZodValidationPipe(LobbyUserCreateSchema)) body: LobbyUserCreateDto
   ) {
 
     try {
-      return this.lobbyService.createLobby(req.user.id, body);
+      return this.lobbyService.createLobby(req.user.id, {
+        details: {createdByUserId: req.user.id},
+        generalSettings: body.generalSettings,
+        gameSettings: body.gameSettings
+      });
     } catch (error: any) {
       throw httpControllerCatch(error);
 
@@ -119,6 +131,9 @@ export class LobbyController {
     summary: "update the setting of the lobby room",
     description: "user must be the host of the room"
   })
+  @ApiBody({
+    type: LobbyUpdateDto
+  })
   @Patch('update')
   updateGameSettings(
     @Req() req:any,
@@ -130,4 +145,21 @@ export class LobbyController {
       throw httpControllerCatch(error);
     }
   }
+
+  @ApiOperation({
+    summary: "for the host to start the lobby game",
+    description: "the user invoke this must be inside the target lobby, and also is the host of that lobby"
+  })
+  @Post('startgame')
+  startGame(
+    @Req() req: any,
+    @Query('lobbyPinId') lobbyPinId: string
+  ) {
+    try {
+
+    } catch (error: any) {
+      throw httpControllerCatch(error);
+    }
+  }
+
 }

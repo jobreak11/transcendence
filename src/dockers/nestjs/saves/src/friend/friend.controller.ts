@@ -8,6 +8,7 @@ import {
   Post,
   Query, // 1. Import Query instead of / in addition to Param
   Req,
+  UseFilters,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
@@ -17,10 +18,12 @@ import { FriendService } from './friend.service.js';
 import { UserThrottlerGuard } from '../auth/guards/user-throttler/user-throttler.guard.js';
 import { Throttle } from '@nestjs/throttler';
 import { THROTTLER_FRIEND_CONTROLLER_LIMIT, THROTTLER_FRIEND_CONTROLLER_TTL } from '../constant.js';
+import { HttpAllExceptionsFilter } from '../filters/HttpAllExceptionsFilter.js';
 
 @ApiTags('friendships')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, UserThrottlerGuard)
+@UseFilters(HttpAllExceptionsFilter)
 @Throttle({
   default: {
     limit: THROTTLER_FRIEND_CONTROLLER_LIMIT,

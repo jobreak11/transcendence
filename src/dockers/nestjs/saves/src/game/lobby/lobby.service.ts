@@ -11,6 +11,7 @@ import { UserRedisService } from '../../redis/user-redis/user-redis.service.js';
 import { errorWithCode } from '../../utility/errorWithCode.js';
 import z from 'zod';
 import { lobbyUpdateSchema } from '../../redis/lobby-redis/schemas/lobby-update.redis.schema.js';
+import { LobbyUpdateDto } from '../../redis/lobby-redis/dtos/lobby-update.dto.js';
 
 @Injectable()
 export class LobbyService implements OnModuleInit {
@@ -166,8 +167,8 @@ export class LobbyService implements OnModuleInit {
     return (res.filter((value) => value !== null));
   }
 
-  update(lobbyPinId: string, updateInputDto: z.input<typeof lobbyUpdateSchema>): Promise<LobbyDto> {
-    return this.lobbyRedisService.updateLobby(lobbyPinId, updateInputDto);
+  update(lobbyPinId: string, updateInputDto: LobbyUpdateDto): Promise<LobbyDto> {
+    return  this.lobbyRedisService.updateLobby(lobbyPinId, updateInputDto);
   }
 
 }

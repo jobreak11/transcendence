@@ -14,7 +14,7 @@ export function room_main_chat_specific(chatRoomId: string) {
 //  return `${room_main_chat_namespace()}:public`
 //}
 
-export function room_main_chat_lobby(lobbyPinId: string) {
-  return `${room_main_chat_namespace()}:lobby:${lobbyPinId}`
+//export function room_main_chat_lobby(lobbyPinId: string) {
+//  return `${room_main_chat_namespace()}:lobby:${lobbyPinId}`
 
-}
+//}
