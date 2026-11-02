@@ -4,6 +4,10 @@ import { Server, Socket } from "socket.io";
 import { GameGatewayService } from "./game-gameway.service.js";
 import { WsZodValidationPipe } from "../pipes/wsZodValidationPipe.js";
 import { actionSchema, type PokerActionDto, startHandSchema, type StartHandDto } from "./dtos/poker-action.dto.js";
+import { LobbyRedisService } from "../../redis/lobby-redis/lobby-redis.service.js";
+import { UserRedisService } from "../../redis/user-redis/user-redis.service.js";
+import { Module } from "@nestjs/core/internal";
+import { ModuleRef } from "@nestjs/core";
 
 @WebSocketGateway({
   transports: ['websocket'],
@@ -16,8 +20,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @WebSocketServer()
   private server: Server;
 
+  private lobbyRedisService!: LobbyRedisService;
+
   constructor(
     private readonly gameGatewayService: GameGatewayService ,
+    private readonly userRedisService: UserRedisService,
+    private readonly moduleRef: ModuleRef,
   ) {
 
   }
@@ -25,6 +33,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   afterInit(server: Server) {
     this.gameGatewayService.setServer(server);
 
+    this.lobbyRedisService = this.moduleRef.get(LobbyRedisService, {
+      strict: false
+    });
   }
 
   handleConnection(client: Socket) {
@@ -42,9 +53,23 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     body: StartHandDto,
   ) {
     try {
+
+      const [lobbyData, isUserInLobby] = await Promise.all([
+        this.lobbyRedisService.getLobbyFull(body.tableSessionId),
+        this.userRedisService.isUserInLobby(client.data.user, body.tableSessionId)
+      ])
+
+      if (isUserInLobby === false) {
+        throw new WsException("user must be in lobby");
+      }
+
+      if (lobbyData.details.hostUserId !== client.data.user) {
+        throw new WsException("user must be the host");
+      }
+
       const state = await this.gameGatewayService.startHand(
         body.tableSessionId,
-        client.data.user,
+        //client.data.user,
       );
       return { ok: true, state };
     } catch (error) {

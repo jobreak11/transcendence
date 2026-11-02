@@ -26,6 +26,8 @@ import { ChatRoomMemberRole } from "../../drizzle/schema/chat_room_members/chat_
 import { LobbyUpdateDto } from "./dtos/lobby-update.dto.js";
 import { LobbyGatewayService } from "../../websocket/main-gateway/lobby-gateway/lobby-gateway.service.js";
 import { LobbyMemberNotifyRole } from "../../websocket/main-gateway/lobby-gateway/dtos/member-notify.dto.js";
+import { GameGatewayService } from "../../websocket/game-gateway/game-gameway.service.js";
+import { LobbyDto } from "./dtos/lobby.dto.js";
 
 @Injectable()
 export class LobbyRedisService implements OnModuleInit {
@@ -38,6 +40,7 @@ export class LobbyRedisService implements OnModuleInit {
     private readonly chatService: ChatService,
     private readonly gameRedisService: GameRedisService,
     private readonly lobbyGatewayService: LobbyGatewayService,
+    private readonly gameGatewayService: GameGatewayService,
   ) {
 
   }
@@ -601,7 +604,7 @@ export class LobbyRedisService implements OnModuleInit {
   }
 
 
-  async getLobbyFull(lobbyPinId: string): Promise<Lobby.FullDto> {
+  async getLobbyFull(lobbyPinId: string): Promise<LobbyDto> {
 
     const allRes = await this.redis.pipeline()
       .hgetall(redis_lobby_details(lobbyPinId))
@@ -1106,7 +1109,7 @@ export class LobbyRedisService implements OnModuleInit {
     }
   }
 
-  async startGameRoom(lobbyPinId: string) {
+  async startGameRoom(lobbyPinId: string): Promise<LobbyDto> {
 
     // NOTE: must perform as atomic on lua script on redis
 
@@ -1141,12 +1144,12 @@ export class LobbyRedisService implements OnModuleInit {
       //  lobbyMemberList: lobbyMemberList
       //});
 
-      const res = {
-        gameRoomId: "something"
-      };
+
+
+      const res = await this.gameGatewayService.startHand(lobbyPinId);
 
       // gonna set the game room id of the lobby room to be linkable
-      await this.redis.hset(redis_lobby_details(lobbyPinId), "gameRoomId", res.gameRoomId);
+      await this.redis.hset(redis_lobby_details(lobbyPinId), "gameRoomId", res.tableSessionId);
 
       await this.setLobbyRoomStatus(lobbyPinId, LobbyRoomStatus.PLAYING);
       return this.getLobbyFull(lobbyPinId);

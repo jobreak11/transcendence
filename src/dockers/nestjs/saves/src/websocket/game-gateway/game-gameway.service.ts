@@ -6,6 +6,7 @@ import { REDIS_CLIENT, type RedisClient } from '../../redis/redis.provider.js';
 import { redis_lobby_game_settings, redis_lobby_general_settings, redis_lobby_global_details_lobby_lists, redis_lobby_player_member_list } from '../../redis/lobby-redis/namespaces/lobby.namespace.js';
 import { shuffleDeck } from '../../game/tools/shuffle.js';
 import { room_main_private_user } from '../main-gateway/rooms/user.room.js';
+import { UserRedisService } from '../../redis/user-redis/user-redis.service.js';
 type BettingRound = 'PREFLOP' | 'FLOP' | 'TURN' | 'RIVER';
 type ActionType = 'FOLD' | 'CHECK' | 'CALL' | 'RAISE';
 
@@ -119,13 +120,17 @@ export class GameGatewayService {
 
   constructor(
     @Inject(REDIS_CLIENT) private readonly redis: RedisClient,
+    private readonly userRedisService: UserRedisService
   ) {}
 
   setServer(server: Server) {
     this.server = server;
   }
 
-  async startHand(tableSessionId: string, requesterId: string) {
+  async startHand(
+    tableSessionId: string, 
+    //requesterId: string
+  ) {
     return this.withTableLock(tableSessionId, async () => {
       const server = this.requireServer();
       const lobbyExists = await this.redis.sismember(
@@ -146,9 +151,10 @@ export class GameGatewayService {
         ),
       ]);
 
-      if (generalSettings.hostUserId !== requesterId) {
-        throw new WsException('Only the table host can start a hand');
-      }
+      //if (generalSettings.hostUserId !== requesterId) {
+      //  throw new WsException('Only the table host can start a hand');
+      //}
+
       if (await this.redis.get(this.handKey(tableSessionId))) {
         throw new WsException('A hand is already in progress');
       }
