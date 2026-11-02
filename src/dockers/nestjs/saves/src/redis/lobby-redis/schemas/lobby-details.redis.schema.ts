@@ -16,8 +16,8 @@ export enum LobbyRoomStatus {
 const baseLobbyDetailsSchema = z.object({
   roomPinId: z.string(),
   createdAt: z.coerce.date(),
-  createdByUserId: z.uuid(),
-  hostUserId: z.uuid(),
+  createdByUserId: z.uuid().nullable(),
+  hostUserId: z.uuid().nullable(),
   roomStatus: z.enum(LobbyRoomStatus),
   currentPlayerCount: z.int(),
   currentSpectatorCount: z.int(),

@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, InternalServerErrorException, ParseUUIDPipe, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, InternalServerErrorException, ParseUUIDPipe, Post, Query, Req, UseFilters, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth/jwt-auth.guard.js';
 import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { ZodValidationPipe } from '../pipes/ZodValidationPipe.js';
@@ -13,8 +13,10 @@ import { httpControllerCatch } from '../utility/httpControllerCatch.js';
 import { brotliDecompressSync } from 'node:zlib';
 import { ChatRoomMemberRole } from '../drizzle/schema/chat_room_members/chat_room_members.schema.js';
 import { UserTitleDto } from '../user/title/title.dto.js';
+import { HttpAllExceptionsFilter } from '../filters/HttpAllExceptionsFilter.js';
 
 @UseGuards(JwtAuthGuard, UserThrottlerGuard)
+@UseFilters(HttpAllExceptionsFilter)
 @Throttle({
   default: {
     limit: THROTTLER_CHAT_CONTROLLER_LIMIT,

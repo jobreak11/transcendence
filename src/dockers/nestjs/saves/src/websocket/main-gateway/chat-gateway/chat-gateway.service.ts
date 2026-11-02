@@ -5,7 +5,6 @@ import { ChatService } from '../../../chat/chat.service.js';
 import { WsException } from '@nestjs/websockets';
 import { InstanceLinksHost } from '@nestjs/core/injector/instance-links-host.js';
 import { ChatMessageType } from '../../../drizzle/schema/chat_messages/chat_messages.schema.js';
-import { room_main_chat_lobby, room_main_chat_specific } from '../rooms/chat.room.js';
 import { resourceLimits } from 'worker_threads';
 import { ChatMessage } from './dtos/chat-message.dto.js';
 import { room_main_private_user } from '../rooms/user.room.js';
@@ -18,6 +17,7 @@ import { event_main_chat_event_notify, event_main_chat_message } from '../events
 import { EventMainChatEventNodifyStatusType, EventMainChatEventNotifyToClientDto } from './dtos/event-main-chat-event-notify-to-client.dto.js';
 import { use } from 'passport';
 import { ModuleRef } from '@nestjs/core';
+import { room_main_chat_specific } from '../rooms/chat.room.js';
 
 @Injectable()
 export class ChatGatewayService implements OnModuleInit {

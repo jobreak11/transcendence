@@ -27,12 +27,12 @@ export class LobbyDetailsDto implements lobbyDetailsDtoBase {
   @ApiProperty({
     description: "the user that created this lobby room"
   })
-  createdByUserId: string;
+  createdByUserId: string | null;
 
   @ApiProperty({
     description: "the host user of the lobby room"
   })
-  hostUserId: string;
+  hostUserId: string | null;
 
   @ApiProperty({
     description: "the current status of the lobby room",

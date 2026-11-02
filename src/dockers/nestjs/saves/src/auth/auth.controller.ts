@@ -1,4 +1,4 @@
-import { Controller, HttpCode, HttpStatus, Body, Post, Req, Request, UseGuards, NotImplementedException, Get, Res, ResponseDecoratorOptions, Query } from '@nestjs/common';
+import { Controller, HttpCode, HttpStatus, Body, Post, Req, Request, UseGuards, NotImplementedException, Get, Res, ResponseDecoratorOptions, Query, UseFilters } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 import { AuthGuard } from '@nestjs/passport';
 import { LocalAuthGuard } from './guards/local-auth/local-auth.guard.js';
@@ -17,8 +17,10 @@ import { THROTTLER_AUTH_LOGIN_LIMIT, THROTTLER_AUTH_LOGIN_TTL, THROTTLER_AUTH_SI
 import { UserThrottlerGuard } from './guards/user-throttler/user-throttler.guard.js';
 import { ZodValidationPipe } from '../pipes/ZodValidationPipe.js';
 import { UserRedisService } from '../redis/user-redis/user-redis.service.js';
+import { HttpAllExceptionsFilter } from '../filters/HttpAllExceptionsFilter.js';
 
 @ApiTags('Authentication')
+@UseFilters(HttpAllExceptionsFilter)
 @Controller('auth')
 export class AuthController {
   constructor(

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotImplementedException, SetMetadata, HttpCode, HttpStatus, ParseIntPipe, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, BadRequestException, PayloadTooLargeException, Query, InternalServerErrorException, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotImplementedException, SetMetadata, HttpCode, HttpStatus, ParseIntPipe, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, BadRequestException, PayloadTooLargeException, Query, InternalServerErrorException, Logger, UseFilters } from '@nestjs/common';
 import { UserService } from './user.service.js';
 import { CreateUserDto, createUserSchema } from './dto/create-user.dto.js';
 import { UpdateUserDto, updateUserSchema } from './dto/update-user.dto.js';
@@ -20,8 +20,10 @@ import { UserThrottlerGuard } from '../auth/guards/user-throttler/user-throttler
 import { TitleService } from './title/title.service.js';
 import { ZodValidationPipe } from '../pipes/ZodValidationPipe.js';
 import z from 'zod';
+import { HttpAllExceptionsFilter } from '../filters/HttpAllExceptionsFilter.js';
 
 @Controller('user')
+@UseFilters(HttpAllExceptionsFilter)
 export class UserController {
 
   private readonly logger = new Logger(UserController.name);

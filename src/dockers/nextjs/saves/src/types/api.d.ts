@@ -759,6 +759,22 @@ export interface paths {
         patch: operations["LobbyController_updateGameSettings"];
         trace?: never;
     };
+    "/game/lobby/startgame": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["LobbyController_startGame"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1083,12 +1099,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a19212-0261-77c4-8050-0391568c2678
+             * @example 01a19b09-59b7-7400-a35e-245e85c0eb47
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a19212-0264-774d-9c3d-619d336fc86f
+             * @example 01a19b09-59b9-75fe-80bb-90012ca07795
              */
             chatRoomId: string;
             /**
@@ -1132,10 +1148,49 @@ export interface components {
                 createdAt: string;
             }[];
         };
+        generalBase: {
+            /**
+             * @description the catchphrase of the room
+             * @example hell newbie welcome
+             */
+            catchPhrase?: string | null;
+            /**
+             * @description the lobby room type
+             * @example PUBLIC
+             * @enum {string}
+             */
+            roomType?: "PUBLIC" | "PRIVATE";
+            /**
+             * @description the password of the room
+             * @example veryStringPassword1234
+             */
+            password?: string | null;
+        };
+        gameBase: {
+            /** @description the max amount of player */
+            maxPlayer?: number;
+            /** @description the max amount of spectator */
+            maxSpectator?: number;
+            /**
+             * @description the format of the game
+             * @enum {string}
+             */
+            format?: "BEGINNER" | "PRO" | "TURBO" | "CUSTOM";
+            /** @description the starting chips */
+            startingChips?: number;
+            /** @description the bigblind amount */
+            bigBlind?: number;
+        };
+        LobbyUserCreateDto: {
+            /** @description the general setting of the lobby room */
+            generalSettings: components["schemas"]["generalBase"];
+            /** @description game settings */
+            gameSettings: components["schemas"]["gameBase"];
+        };
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a19212-0282-73d2-8112-48fb5d2d3987
+             * @example 01a19b09-59d3-70f2-a32c-0f81ce764405
              */
             gameRoomId: string | null;
             /**
@@ -1149,9 +1204,9 @@ export interface components {
              */
             createdAt: string;
             /** @description the user that created this lobby room */
-            createdByUserId: string;
+            createdByUserId: string | null;
             /** @description the host user of the lobby room */
-            hostUserId: string;
+            hostUserId: string | null;
             /**
              * @description the current status of the lobby room
              * @enum {string}
@@ -1224,7 +1279,7 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a19212-0282-73d2-8112-48fb5d2d3987
+             * @example 01a19b09-59d3-70f2-a32c-0f81ce764405
              */
             gameRoomId: string | null;
             /**
@@ -1238,9 +1293,9 @@ export interface components {
              */
             createdAt: string;
             /** @description the user that created this lobby room */
-            createdByUserId: string;
+            createdByUserId: string | null;
             /** @description the host user of the lobby room */
-            hostUserId: string;
+            hostUserId: string | null;
             /**
              * @description the current status of the lobby room
              * @enum {string}
@@ -1268,6 +1323,45 @@ export interface components {
             details: components["schemas"]["LobbyDetailsPublicDto"];
             gameSettings: components["schemas"]["LobbyGameSettingsDto"];
             generalSettings: components["schemas"]["LobbyGeneralSettingsPublicDto"];
+        };
+        baseGeneral: {
+            /**
+             * @description the catchphrase of the room
+             * @example hell newbie welcome
+             */
+            catchPhrase?: string | null;
+            /**
+             * @description the lobby room type
+             * @example PUBLIC
+             * @enum {string}
+             */
+            roomType?: "PUBLIC" | "PRIVATE";
+            /**
+             * @description the password of the room
+             * @example veryStringPassword1234
+             */
+            password?: string | null;
+        };
+        baseGameSetting: {
+            /** @description the max amount of player */
+            maxPlayer?: number;
+            /** @description the max amount of spectator */
+            maxSpectator?: number;
+            /**
+             * @description the format of the game
+             * @enum {string}
+             */
+            format?: "BEGINNER" | "PRO" | "TURBO" | "CUSTOM";
+            /** @description the starting chips */
+            startingChips?: number;
+            /** @description the bigblind amount */
+            bigBlind?: number;
+        };
+        LobbyUpdateDto: {
+            /** @description field to update in general settings */
+            generalSettings: components["schemas"]["baseGeneral"];
+            /** @description field to update in game settings */
+            gameSettings: components["schemas"]["baseGameSetting"];
         };
     };
     responses: never;
@@ -2109,7 +2203,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LobbyUserCreateDto"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -2206,7 +2304,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LobbyUpdateDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -2215,6 +2317,23 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["LobbyDto"];
                 };
+            };
+        };
+    };
+    LobbyController_startGame: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

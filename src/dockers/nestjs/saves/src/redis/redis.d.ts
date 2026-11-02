@@ -37,7 +37,7 @@ declare module 'ioredis' {
 
       leaveUserId: string,
       lobbyPinId: string,
-    ): Promise<number>;
+    ): Promise<number | string>;
 
     lobbyRoomSetStatus(
       allLobbyListKey: string,

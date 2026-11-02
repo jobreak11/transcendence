@@ -33,6 +33,26 @@ export namespace ChatEvent {
         messageText: string;
       }
     }
+  }
+
+  export namespace event_notify {
+
+    const event_notify_namespace = `${chat_namespace}:event_notify`
+
+    export namespace to_client {
+      export const event_name = `${event_notify_namespace}:to_client`
+    }
+
+    export enum EventMainChatEventNodifyStatusType {
+      JOIN_CHAT = "JOIN_CHAT", // JOIN_CHAT to tell the client through websocket that new chat room is able to receive message
+      LEAVE_CHAT = "LEAVE_CHAT", // LEAVE_CHAT to tell client through websocket that this chat room will is close and user won't receive any
+                                // new messages
+    }
+
+    export interface payload {
+      notifyStatus: EventMainChatEventNodifyStatusType,
+      chatRoomId: string
+    }
 
   }
 }
