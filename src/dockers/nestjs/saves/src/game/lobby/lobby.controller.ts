@@ -4,7 +4,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth/jwt-auth.guard.js';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { LobbyGuard } from './lobby.guard.js';
 import { ZodValidationPipe } from '../../pipes/ZodValidationPipe.js';
-import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { LobbyCreate } from '../../redis/lobby-redis/schemas/lobby-create.redis.schema.js';
 import { JoinLobbyDto } from './dto/join-lobby.dto.js';
 import { joinLobbySchema } from './schemas/join-lobby.schema.js';
@@ -18,6 +18,7 @@ import { LobbyUserCreateSchema } from './schemas/lobby-user-create.schema.js';
 import { LobbyUserCreateDto } from './dto/lobby-user-create.dto.js';
 import { LobbyUpdateDto } from '../../redis/lobby-redis/dtos/lobby-update.dto.js';
 import { HttpAllExceptionsFilter } from '../../filters/HttpAllExceptionsFilter.js';
+import { LobbyDto } from '../../redis/lobby-redis/dtos/lobby.dto.js';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, LobbyGuard, ThrottlerGuard)
@@ -150,13 +151,16 @@ export class LobbyController {
     summary: "for the host to start the lobby game",
     description: "the user invoke this must be inside the target lobby, and also is the host of that lobby"
   })
+  @ApiCreatedResponse({
+    type: () => LobbyDto
+  })
   @Post('startgame')
   startGame(
     @Req() req: any,
     @Query('lobbyPinId') lobbyPinId: string
   ) {
     try {
-
+      return this.lobbyService.startgame(req.user.id, lobbyPinId)
     } catch (error: any) {
       throw httpControllerCatch(error);
     }

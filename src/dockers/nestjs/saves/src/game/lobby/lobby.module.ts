@@ -8,7 +8,7 @@ import { LobbyRedisModule } from '../../redis/lobby-redis/lobby-redis.module.js'
 import { UserRedisModule } from '../../redis/user-redis/user-redis.module.js';
 
 @Module({
-  imports: [ChatGatewayModule, ConnectionGatewayModule, LobbyRedisModule, UserRedisModule],
+  imports: [ConnectionGatewayModule, LobbyRedisModule, UserRedisModule],
   controllers: [LobbyController],
   providers: [
     LobbyService

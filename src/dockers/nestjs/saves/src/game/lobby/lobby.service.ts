@@ -19,7 +19,6 @@ export class LobbyService implements OnModuleInit {
   private readonly logger = new Logger(LobbyService.name);
 
   constructor(
-    private readonly chatGatewayService: ChatGatewayService,
     private readonly lobbyRedisService: LobbyRedisService,
     private readonly userRedisService: UserRedisService,
 
@@ -169,6 +168,25 @@ export class LobbyService implements OnModuleInit {
 
   update(lobbyPinId: string, updateInputDto: LobbyUpdateDto): Promise<LobbyDto> {
     return  this.lobbyRedisService.updateLobby(lobbyPinId, updateInputDto);
+  }
+
+  async startgame(userId: string, lobbyPinId: string): Promise<LobbyDto> {
+
+    const [isUserinLobby, lobbyData] = await Promise.all([
+      this.userRedisService.isUserInLobby(userId, lobbyPinId),
+      this.lobbyRedisService.getLobbyFull(lobbyPinId)
+    ])
+
+    if (isUserinLobby === false) {
+      throw new NotFoundException("user is not in the taret lobby");
+    }
+
+    if (lobbyData.details.hostUserId !== userId) {
+      throw new ForbiddenException("user msut be the host of the lobby to start the game")
+    }
+
+    const res = await this.lobbyRedisService.startGameRoom(lobbyPinId);
+    return res;
   }
 
 }
