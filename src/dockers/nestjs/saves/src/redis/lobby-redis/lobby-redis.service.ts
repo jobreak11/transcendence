@@ -28,6 +28,7 @@ import { LobbyGatewayService } from "../../websocket/main-gateway/lobby-gateway/
 import { LobbyMemberNotifyRole } from "../../websocket/main-gateway/lobby-gateway/dtos/member-notify.dto.js";
 import { GameGatewayService } from "../../websocket/game-gateway/game-gameway.service.js";
 import { LobbyDto } from "./dtos/lobby.dto.js";
+import { ca } from "zod/v4/locales";
 
 @Injectable()
 export class LobbyRedisService implements OnModuleInit {
@@ -71,7 +72,7 @@ export class LobbyRedisService implements OnModuleInit {
 // #########################################################################
 
     await this.redis.defineCommand("lobbyRoomJoin", {
-      numberOfKeys: 6,
+      numberOfKeys: 7,
       readOnly: false,
       lua: `
         local userLobbyListKeys = KEYS[1]
@@ -80,6 +81,7 @@ export class LobbyRedisService implements OnModuleInit {
         local playerMemberListKey = KEYS[4]
         local lobbyGameSettingsKey = KEYS[5]
         local lobbyGeneralSettingsKey = KEYS[6]
+        local lobbyDetailsKey = KEYS[7]
 
         local isSpectator = ARGV[1]
         local joinUserId = ARGV[2]
@@ -105,7 +107,7 @@ export class LobbyRedisService implements OnModuleInit {
         end
 
         -- check if the target lobby current status is allowed to join
-        local currentLobbyStatus = redis.call('HGET', lobbyGeneralSettingsKey, 'roomStatus')
+        local currentLobbyStatus = redis.call('HGET', lobbyDetailsKey, 'roomStatus')
         if currentLobbyStatus == 'UNAVAILABLE' then
           return 4
         elseif isSpectator == "false" and currentLobbyStatus ~= 'WAITING' then
@@ -156,7 +158,7 @@ export class LobbyRedisService implements OnModuleInit {
 
 
     await this.redis.defineCommand("lobbyRoomLeave", {
-      numberOfKeys: 6,
+      numberOfKeys: 7,
       readOnly: false,
       lua: `
         local playerMemberListKey = KEYS[1]
@@ -165,6 +167,7 @@ export class LobbyRedisService implements OnModuleInit {
         local userLobbyListKey = KEYS[4]
         local generalSettingsKey = KEYS[5]
         local gameSettingsKey = KEYS[6]
+        local lobbyDetailsKey = KEYS[7]
 
         local leaveUserId = ARGV[1]
         local lobbyPinId = ARGV[2]
@@ -186,11 +189,25 @@ export class LobbyRedisService implements OnModuleInit {
           isUserHost = 0
         end
 
+        local isSpectator = 0
         if redis.call('ZREM', playerMemberListKey, leaveUserId) == 0 then
           if redis.call('ZREM', spectatorMemberListKey, leaveUserId) == 0 then
             return 2
           end
+          isSpectator = 1
+        else
+          isSpectator = 0
         end
+
+        -- if player leave must be in waiting state
+        -- if spectator leave 
+        local currentState = redis.call('HGET', lobbyDetailsKey, 'roomStatus')
+        if currentState == 'UNAVAILABLE' then
+          return 5
+        elseif isSpectator == 0 and currentLobbyStatus ~= 'WAITING' then
+          return 6
+        end
+
 
         -- also remove the current user in game lobby
         redis.call('SREM', userLobbyListKey, lobbyPinId);
@@ -745,6 +762,7 @@ export class LobbyRedisService implements OnModuleInit {
       redis_user_lobby_list(userId),
       redis_lobby_general_settings(lobbyPinId),
       redis_lobby_game_settings(lobbyPinId),
+      redis_lobby_details(lobbyPinId),
       userId,
       lobbyPinId
     );
@@ -785,6 +803,20 @@ export class LobbyRedisService implements OnModuleInit {
           await this.lobbyRemove(lobbyPinId);
           break ;
         }
+        case 5: {
+          // 5 is lobby is in unavailable state and user can't leave the room at the moment
+          throw errorWithCode(
+            HttpStatus.SERVICE_UNAVAILABLE,
+            "the lobby room is currently in unavailable state to perform the leave room, tryagain later"
+          )
+        }
+        case 6: {
+          // 6 is player member trying to leave the room while lobby is not in WAITING state
+          throw errorWithCode(
+            HttpStatus.FORBIDDEN,
+            "player cannot leave the room while lobby is not in WAITING STATE"
+          )
+        }
         default: {
           throw logError(
             this.logger,
@@ -799,6 +831,9 @@ export class LobbyRedisService implements OnModuleInit {
       }
     }
 
+    if (lobbyData.details.roomStatus === LobbyRoomStatus.PLAYING && lobbyData.details.gameRoomId) {
+      this.gameGatewayService.leaveGameSession(userId, lobbyData.details.gameRoomId)
+    }
     await this.chatService.leaveRoom(userId, lobbyData.details.chatRoomId);
     const role = lobbyMembers.playerList.includes(userId) ? LobbyMemberNotifyRole.PLAYER : LobbyMemberNotifyRole.SPECTATOR;
     this.lobbyGatewayService.leaveLobbySession(userId, lobbyPinId, role);
@@ -815,6 +850,7 @@ export class LobbyRedisService implements OnModuleInit {
       redis_lobby_player_member_list(lobbyPinId),
       redis_lobby_game_settings(lobbyPinId),
       redis_lobby_general_settings(lobbyPinId),
+      redis_lobby_details(lobbyPinId),
       isSpectator === true ? "true" : "false",
       userId,
       password ?? "",
@@ -891,6 +927,10 @@ export class LobbyRedisService implements OnModuleInit {
     }
 
     // if join success then this user join the chat room
+
+    if (lobbyData.details.roomStatus === LobbyRoomStatus.PLAYING && lobbyData.details.gameRoomId) {
+      this.gameGatewayService.joinGameSession(userId, lobbyData.details.gameRoomId)
+    }
 
     await this.chatService.joinRoom(userId, lobbyData.details.chatRoomId),
     this.lobbyGatewayService.joinLobbySession(userId, lobbyPinId, isSpectator ? LobbyMemberNotifyRole.SPECTATOR: LobbyMemberNotifyRole.PLAYER);

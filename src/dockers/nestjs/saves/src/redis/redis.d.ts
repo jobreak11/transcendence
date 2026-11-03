@@ -17,6 +17,8 @@ declare module 'ioredis' {
       playerMemberListKey: string,
       lobbyGameSettingsKey: string,
       lobbyGeneralSettingsKey: string,
+      lobbyDetailsKey: string,
+
       isSpectator: "true" | "false",
       joinUserId: string,
       password: string,
@@ -33,6 +35,7 @@ declare module 'ioredis' {
       userLobbyListKey: string,
       LobbygeneralSettingsKey: string,
       lobbyGameSettingsKey: string,
+      lobbyDetailsKey: string,
 
       leaveUserId: string,
       lobbyPinId: string,

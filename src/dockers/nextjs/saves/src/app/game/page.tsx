@@ -5,6 +5,8 @@ import HandInfo from "./components/handInfo";
 import GameTable from "./components/GameTable";
 import type { PokerActionType, PublicGameState } from "./types";
 import { useGameSocket } from "../(protected)/_context/useGameSocket";
+import { PokerEvent } from "../../websocket-events/game/poker/poker-events";
+import { GameEvent } from "../../websocket-events/game/game-events";
 
 interface PokerActionEvent {
   playerId: string;
@@ -267,15 +269,23 @@ export default function Page() {
       setIsStartingHand(false);
       setIsSendingAction(false);
     };
-    socket.on("poker:state", onState);
-    socket.on("poker:action", onAction);
-    socket.on("poker:private-cards", onPrivateCards);
+    //socket.on("poker:state", onState);
+    //socket.on("poker:action", onAction);
+    //socket.on("poker:private-cards", onPrivateCards);
+    //socket.on("exception", onSocketException);
+
+    socket.on(PokerEvent.state.to_client.event_name, onState);
+    socket.on(PokerEvent.action.to_client.event_name, onAction);
+    socket.on(PokerEvent.private_cards.to_client.event_name, onPrivateCards);
     socket.on("exception", onSocketException);
 
     return () => {
-      socket.off("poker:state", onState);
-      socket.off("poker:action", onAction);
-      socket.off("poker:private-cards", onPrivateCards);
+      //socket.off("poker:state", onState);
+      //socket.off("poker:action", onAction);
+      //socket.off("poker:private-cards", onPrivateCards);
+      socket.off(PokerEvent.state.to_client.event_name, onState);
+      socket.off(PokerEvent.action.to_client.event_name, onAction);
+      socket.off(PokerEvent.private_cards.to_client.event_name, onPrivateCards);
       socket.off("exception", onSocketException);
     };
   }, [gameState?.players, socket, tableSessionId, userId]);
@@ -384,7 +394,8 @@ export default function Page() {
     setLastAction("");
     setError("");
     socket.timeout(10_000).emit(
-      "poker:start",
+      //"poker:start",
+      GameEvent.start.to_server.event_name,
       { tableSessionId },
       (timeoutError: Error | null, response: unknown) => {
         setIsStartingHand(false);
@@ -533,7 +544,13 @@ export default function Page() {
     if (!socket || !tableSessionId || !isMyTurn) return;
     setIsSendingAction(true);
     setError("");
-    socket.emit("poker:action", { tableSessionId, actionType, amount });
+    //socket.emit("poker:action", { tableSessionId, actionType, amount });
+    const payload: PokerEvent.action.to_server.payload = {
+      tableSessionId: tableSessionId,
+      actionType: actionType,
+      amount: amount
+    }
+    socket.emit(PokerEvent.action.to_server.event_name, payload);
   };
 
   return (

@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { GameSocketProvider } from "../(protected)/_context/useGameSocket";
+import { MainSocketProvider } from "../(protected)/_context/useMainSocket";
 
 export default async function GameLayout({
   children,
@@ -13,8 +14,10 @@ export default async function GameLayout({
   }
 
   return (
-    <GameSocketProvider accessToken={accessToken}>
-      {children}
-    </GameSocketProvider>
+    <MainSocketProvider accessToken={accessToken}>
+      <GameSocketProvider accessToken={accessToken}>
+        {children}
+      </GameSocketProvider>
+    </MainSocketProvider>
   );
 }
