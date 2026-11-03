@@ -1,4 +1,4 @@
-import { Inject, Logger } from "@nestjs/common";
+import { Inject, Logger, UseFilters } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { GameGatewayService } from "./game-gameway.service.js";
@@ -11,7 +11,9 @@ import { ModuleRef } from "@nestjs/core";
 import { event_game_start } from "./events/game.event.js";
 import { room_game_specific_room } from "./rooms/game.room.js";
 import { event_game_poker_action } from "./events/poker.event.js";
+import { WsAllExceptionsFilter } from "../filters/WsAllExceptionsFilter.js";
 
+@UseFilters(WsAllExceptionsFilter)
 @WebSocketGateway({
   transports: ['websocket'],
   namespace: '/game'

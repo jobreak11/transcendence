@@ -1,9 +1,11 @@
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { GameConnectionGatewayService } from "./game-connection-gateway.service.js";
-import { Logger } from "@nestjs/common";
+import { Logger, UseFilters } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
+import { WsAllExceptionsFilter } from "../../filters/WsAllExceptionsFilter.js";
 
+@UseFilters(WsAllExceptionsFilter)
 @WebSocketGateway({
   transports: ['websocket'],
   namespace: "/game"
