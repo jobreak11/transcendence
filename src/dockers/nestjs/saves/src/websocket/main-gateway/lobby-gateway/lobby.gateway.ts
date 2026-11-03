@@ -41,7 +41,7 @@ export class LobbyGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
       return room_main_lobby_specific(lobbyId);
     })
 
-    await client.join(allRoomNames);
+    client.join(allRoomNames);
     
   }
 

@@ -46,7 +46,12 @@ export class LobbyGatewayService implements OnModuleInit {
       .emit(event_main_lobby_user_ready.to_client(), response);
   }
 
-  private JoinOrLeaveLobbySession(isJoin: boolean, userId: string, lobbyPinId: string, role: LobbyMemberNotifyRole) {
+  private JoinOrLeaveLobbySession(
+    isJoin: boolean,
+    userId: string,
+    lobbyPinId: string,
+    role: LobbyMemberNotifyRole
+  ) {
 
     if (isJoin === true) {
       this.server?.in(room_main_private_user(userId)).socketsJoin(

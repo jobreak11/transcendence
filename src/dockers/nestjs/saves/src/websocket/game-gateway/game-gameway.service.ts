@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { randomUUID } from 'node:crypto';
 import type { Server } from 'socket.io';
@@ -7,112 +7,30 @@ import { redis_lobby_game_settings, redis_lobby_general_settings, redis_lobby_gl
 import { shuffleDeck } from '../../game/tools/shuffle.js';
 import { room_main_private_user } from '../main-gateway/rooms/user.room.js';
 import { UserRedisService } from '../../redis/user-redis/user-redis.service.js';
-type BettingRound = 'PREFLOP' | 'FLOP' | 'TURN' | 'RIVER';
-type ActionType = 'FOLD' | 'CHECK' | 'CALL' | 'RAISE';
-
-interface MatchProgress {
-  cycleNumber: number;
-  handNumber: number;
-  cyclePlayerIds: string[];
-  bigBlindPlayerIds: string[];
-  cycleComplete: boolean;
-}
-
-export interface PlayerActionInput {
-  playerId: string;
-  tableSessionId: string;
-  actionType: ActionType;
-  amount?: number;
-  timedOut?: boolean;
-}
-
-interface PokerPlayer {
-  playerId: string;
-  seatNumber: number;
-  stack: number;
-  roundContribution: number;
-  totalContribution: number;
-  holeCards: string[];
-  folded: boolean;
-  allIn: boolean;
-}
-
-interface PokerState {
-  handId: string;
-  tableSessionId: string;
-  cycleNumber: number;
-  handNumber: number;
-  round: BettingRound;
-  deck: string[];
-  poolCards: string[];
-  players: PokerPlayer[];
-  buttonIndex: number;
-  currentPlayerId: string | null;
-  currentBet: number;
-  lastRaiseSize: number;
-  ante: number;
-  smallBlind: number;
-  bigBlind: number;
-  pot: number;
-  pendingPlayerIds: string[];
-  startedAt: string;
-  actionDeadlineAt: string;
-}
-
-interface HandRank {
-  score: number[];
-  label: string;
-}
-
-interface HandPayout {
-  player: PokerPlayer;
-  amount: number;
-}
-
-const ACTIVE_HAND_TTL_SECONDS = 24 * 60 * 60;
-const PLAYER_ACTION_TIMEOUT_MS = 10_000;
-const LOCK_TTL_MS = 15_000;
-const ROUND_ORDER: BettingRound[] = [
-  'PREFLOP',
-  'FLOP',
-  'TURN',
-  'RIVER',
-];
-const HAND_LABELS = [
-  'High card',
-  'One pair',
-  'Two pair',
-  'Three of a kind',
-  'Straight',
-  'Flush',
-  'Full house',
-  'Four of a kind',
-  'Straight flush',
-];
-
-function isMatchProgress(value: unknown): value is MatchProgress {
-  if (typeof value !== 'object' || value === null) {
-    return false;
-  }
-
-  const progress = value as Record<string, unknown>;
-  return typeof progress.cycleNumber === 'number'
-    && Number.isSafeInteger(progress.cycleNumber)
-    && progress.cycleNumber >= 1
-    && typeof progress.handNumber === 'number'
-    && Number.isSafeInteger(progress.handNumber)
-    && progress.handNumber >= 0
-    && Array.isArray(progress.cyclePlayerIds)
-    && progress.cyclePlayerIds.every((id: unknown) => typeof id === 'string')
-    && Array.isArray(progress.bigBlindPlayerIds)
-    && progress.bigBlindPlayerIds.every((id: unknown) => typeof id === 'string')
-    && typeof progress.cycleComplete === 'boolean';
-}
+import { isKeyObject } from 'node:util/types';
+import { room_game_private_user } from './rooms/user.room.js';
+import { room_game_specific_room } from './rooms/game.room.js';
+import { LobbyMemberNotifyRole } from '../main-gateway/lobby-gateway/dtos/member-notify.dto.js';
+import { ModuleRef } from '@nestjs/core';
+import { LobbyRedisService } from '../../redis/lobby-redis/lobby-redis.service.js';
+import { GameRedisService } from '../../redis/game-redis/game-redis.service.js';
+import { pl, ta } from 'zod/v4/locales';
+import { LobbyGameSettingsDto } from '../../redis/lobby-redis/dtos/lobby-gameSettings.dto.js';
+import { PokerPlayer } from './dtos/poker-player.dto.js';
+import { MatchProgress } from './dtos/match-progress.dto.js';
+import { BettingRound, PokerState } from './dtos/poker-state.dto.js';
+import { HAND_LABELS, PLAYER_ACTION_TIMEOUT_MS, ROUND_ORDER } from './game-gateway.constants.js';
+import { stat } from 'node:fs';
+import { event_game_poker_action, event_game_poker_private_cards, event_game_poker_state, EventGameActionToClientDto, EventGameFinishStateToClientDto, EventGamePrivateCardsToClientDto, EventGamePublicStateToClientDto } from './events/poker.event.js';
+import { HandPayout } from './dtos/hand-payout.dto.js';
+import { HandRank } from './dtos/hand-rank.dto.js';
+import { PlayerActionInput } from './dtos/player-action-input.dto.js';
 
 @Injectable()
-export class GameGatewayService {
+export class GameGatewayService implements OnModuleInit {
   private readonly logger = new Logger(GameGatewayService.name);
   private server: Server | null = null;
+  private lobbyRedisService!: LobbyRedisService;
   private readonly actionTimers = new Map<
     string,
     ReturnType<typeof setTimeout>
@@ -120,59 +38,78 @@ export class GameGatewayService {
 
   constructor(
     @Inject(REDIS_CLIENT) private readonly redis: RedisClient,
-    private readonly userRedisService: UserRedisService
+    private readonly userRedisService: UserRedisService,
+    private readonly gameRedisService: GameRedisService,
+    private readonly moduleRef: ModuleRef
   ) {}
 
   setServer(server: Server) {
     this.server = server;
   }
 
+  onModuleInit() {
+    this.lobbyRedisService = this.moduleRef.get(LobbyRedisService, {
+      strict: false
+    });
+  }
+
   async startHand(
     tableSessionId: string, 
     //requesterId: string
   ) {
-    return this.withTableLock(tableSessionId, async () => {
-      const server = this.requireServer();
-      const lobbyExists = await this.redis.sismember(
-        redis_lobby_global_details_lobby_lists(),
-        tableSessionId,
-      );
-      if (lobbyExists !== 1) {
+    return this.gameRedisService.withTableLock(tableSessionId, async () => {
+      const isLobbyExist = await this.lobbyRedisService.isLobbyExist(tableSessionId);
+      if (!isLobbyExist) {
         throw new WsException('Table does not exist');
       }
 
-      const [generalSettings, gameSettings, seatedPlayerIds] = await Promise.all([
-        this.redis.hgetall(redis_lobby_general_settings(tableSessionId)),
-        this.redis.hgetall(redis_lobby_game_settings(tableSessionId)),
-        this.redis.zrange(
-          redis_lobby_player_member_list(tableSessionId),
-          '0',
-          '-1',
-        ),
-      ]);
+      const [lobbyData, allPlayers] = await Promise.all([
+        this.lobbyRedisService.getLobbyFull(tableSessionId),
+        this.lobbyRedisService.getPlayerMemberList(tableSessionId)
+      ])
+
+      //const [generalSettings, gameSettings, seatedPlayerIds] = await Promise.all([
+      //  this.redis.hgetall(redis_lobby_general_settings(tableSessionId)),
+      //  this.redis.hgetall(redis_lobby_game_settings(tableSessionId)),
+      //  this.redis.zrange(
+      //    redis_lobby_player_member_list(tableSessionId),
+      //    '0',
+      //    '-1',
+      //  ),
+      //]);
 
       //if (generalSettings.hostUserId !== requesterId) {
       //  throw new WsException('Only the table host can start a hand');
       //}
 
-      if (await this.redis.get(this.handKey(tableSessionId))) {
+      //if (await this.redis.get(this.handKey(tableSessionId))) {
+      //  throw new WsException('A hand is already in progress');
+      //}
+      if (await this.gameRedisService.getHand(tableSessionId)) {
         throw new WsException('A hand is already in progress');
       }
 
-      const startingStack = this.getStartingStack(gameSettings);
-      const stackKey = this.stackKey(tableSessionId);
-      const existingStacks = await this.redis.hgetall(stackKey);
-      const players = seatedPlayerIds
-        .map((playerId, seatNumber) => ({
-          playerId,
-          seatNumber,
-          stack: this.readStack(existingStacks[playerId], startingStack),
-          roundContribution: 0,
-          totalContribution: 0,
-          holeCards: [],
-          folded: false,
-          allIn: false,
-        }))
+      const startingStack = this.getStartingStack(lobbyData.gameSettings);
+      //const stackKey = this.stackKey(tableSessionId);
+      //const existingStacks = await this.redis.hgetall(stackKey);
+      const existingStacks = await this.gameRedisService.getAllStacks(tableSessionId);
+
+      const players = allPlayers
+        .map((playerId, seatNumber) => {
+
+          const res: PokerPlayer = {
+            playerId,
+            seatNumber,
+            stack: this.readStack(existingStacks[playerId], startingStack),
+            roundContribution: 0,
+            totalContribution: 0,
+            holeCards: [],
+            folded: false,
+            allIn: false,
+          }
+
+          return res;
+        })
         .filter((player) => player.stack > 0);
 
       if (players.length < 2) {
@@ -183,12 +120,10 @@ export class GameGatewayService {
         tableSessionId,
         players.map(({ playerId }) => playerId),
       );
-      const bigBlind = this.getBigBlind(gameSettings);
-      const ante = this.getAnte(gameSettings, bigBlind);
+      const bigBlind = this.getBigBlind(lobbyData.gameSettings);
+      const ante = this.getAnte(lobbyData.gameSettings, bigBlind);
       const smallBlind = Math.max(1, Math.floor(bigBlind / 2));
-      const buttonSequence = await this.redis.incr(
-        this.buttonKey(tableSessionId),
-      );
+      const buttonSequence = await this.gameRedisService.incrButton(tableSessionId);
       const buttonIndex = (buttonSequence - 1) % players.length;
       const smallBlindIndex = players.length === 2
         ? buttonIndex
@@ -250,23 +185,47 @@ export class GameGatewayService {
         true,
       );
 
-      await this.saveState(state);
-      await this.saveStacks(state);
-      await this.saveMatchProgress(tableSessionId, matchProgress);
-      await server.in(state.players.map((player) =>
-        room_main_private_user(player.playerId),
-      )).socketsJoin(this.tableRoom(tableSessionId));
+      //await this.saveState(state);
+
+      //await this.saveStacks(state);
+      //await this.saveMatchProgress(tableSessionId, matchProgress);
+
+      await Promise.all([
+        this.gameRedisService.saveState(state),
+        this.gameRedisService.saveStacks(state),
+        this.gameRedisService.saveMatchProgress(tableSessionId, matchProgress),
+      ])
+      state.players.map((player) => {
+        this.joinGameSession(player.playerId, tableSessionId)
+      })
+
+      //this.server?.in(state.players.map((player) =>
+      //  room_main_private_user(player.playerId),
+      //)).socketsJoin(this.tableRoom(tableSessionId));
 
       for (const player of state.players) {
-        server.to(room_main_private_user(player.playerId)).emit(
-          'poker:private-cards',
-          {
-            tableSessionId,
-            handId: state.handId,
-            cards: player.holeCards,
-          },
-        );
+        const responseFormat: EventGamePrivateCardsToClientDto = {
+          tableSessionId: tableSessionId,
+          handId: state.handId,
+          cards: player.holeCards
+        }
+
+        this.server?.to(
+          room_game_private_user(player.playerId)
+        ).emit(
+          event_game_poker_private_cards.to_client(),
+          responseFormat
+        )
+        //server.to(room_main_private_user(player.playerId)).emit(
+        //  'poker:private-cards',
+        //  {
+        //    tableSessionId,
+        //    handId: state.handId,
+        //    cards: player.holeCards,
+        //  },
+        //);
       }
+
       while (this.shouldAdvanceRoundWithoutAction(state)) {
         const nextRoundIndex = ROUND_ORDER.indexOf(state.round) + 1;
         if (nextRoundIndex >= ROUND_ORDER.length) {
@@ -283,8 +242,8 @@ export class GameGatewayService {
   }
 
   async playerTurn(input: PlayerActionInput) {
-    return this.withTableLock(input.tableSessionId, async () => {
-      const state = await this.loadState(input.tableSessionId);
+    return this.gameRedisService.withTableLock(input.tableSessionId, async () => {
+      const state = await this.gameRedisService.loadState(input.tableSessionId);
       const player = state.players.find(({ playerId }) =>
         playerId === input.playerId,
       );
@@ -358,9 +317,10 @@ export class GameGatewayService {
       state.actionDeadlineAt = new Date(
         Date.now() + PLAYER_ACTION_TIMEOUT_MS,
       ).toISOString();
-      await this.saveState(state);
-      await this.saveStacks(state);
-
+      await Promise.all([
+        this.gameRedisService.saveState(state),
+        this.gameRedisService.saveStacks(state)
+      ])
       const response = {
         action: {
           playerId: player.playerId,
@@ -369,9 +329,12 @@ export class GameGatewayService {
         },
         state: this.publicState(state),
       };
-      this.requireServer()
-        .to(this.tableRoom(state.tableSessionId))
-        .emit('poker:action', response.action);
+      //this.requireServer()
+      //  .to(this.tableRoom(state.tableSessionId))
+      //  .emit('poker:action', response.action);
+      const thisresponse: EventGameActionToClientDto = response.action;
+      this.server?.to(room_game_specific_room(state.tableSessionId))
+        .emit(event_game_poker_action.to_client(), thisresponse);
       this.emitState(state);
       return response;
     });
@@ -492,16 +455,22 @@ export class GameGatewayService {
       payout.player.stack += payout.amount;
     }
 
-    await this.saveStacks(state);
-    const matchProgress = await this.loadMatchProgress(state.tableSessionId);
-    const [seatedPlayerIds, stacks] = await Promise.all([
-      this.redis.zrange(
-        redis_lobby_player_member_list(state.tableSessionId),
-        '0',
-        '-1',
-      ),
-      this.redis.hgetall(this.stackKey(state.tableSessionId)),
-    ]);
+    const [, matchProgress, seatedPlayerIds, stacks] = await Promise.all([
+      this.gameRedisService.saveStacks(state),
+      this.gameRedisService.loadMatchProgress(state.tableSessionId),
+      this.lobbyRedisService.getPlayerMemberList(state.tableSessionId),
+      this.gameRedisService.getAllStacks(state.tableSessionId)
+    ])
+    //await this.gameRedisService.saveStacks(state);
+    //const matchProgress = await this.loadMatchProgress(state.tableSessionId);
+    //const [seatedPlayerIds, stacks] = await Promise.all([
+    //  this.redis.zrange(
+    //    redis_lobby_player_member_list(state.tableSessionId),
+    //    '0',
+    //    '-1',
+    //  ),
+    //  this.redis.hgetall(this.stackKey(state.tableSessionId)),
+    //]);
     const activePlayerIds = new Set(
       seatedPlayerIds.filter((playerId) =>
         this.readStack(stacks[playerId], 0) > 0,
@@ -514,11 +483,16 @@ export class GameGatewayService {
       (playerId) => activePlayerIds.has(playerId),
     );
     matchProgress.cycleComplete = matchProgress.bigBlindPlayerIds.length === 0;
-    await this.saveMatchProgress(state.tableSessionId, matchProgress);
-    await this.redis.del(this.handKey(state.tableSessionId));
+
+    //await this.saveMatchProgress(state.tableSessionId, matchProgress);
+    //await this.redis.del(this.handKey(state.tableSessionId));
+    await Promise.all([
+      this.gameRedisService.saveMatchProgress(state.tableSessionId, matchProgress),
+      this.gameRedisService.delHand(state.tableSessionId)
+    ])
 
     const winningPayouts = payouts.filter(({ amount }) => amount > 0);
-    const result = {
+    const result: EventGameFinishStateToClientDto = {
       settled: true,
       handId: state.handId,
       tableSessionId: state.tableSessionId,
@@ -553,9 +527,13 @@ export class GameGatewayService {
       })),
     };
 
-    this.requireServer()
-      .to(this.tableRoom(state.tableSessionId))
-      .emit('poker:state', result);
+    //this.requireServer()
+    //  .to(this.tableRoom(state.tableSessionId))
+    //  .emit('poker:state', result);
+    this.server
+      ?.to(room_game_specific_room(state.tableSessionId))
+      .emit(event_game_poker_state.to_client(), result);
+
     this.logger.log(`Hand ${state.handId} settled for table ${state.tableSessionId}`);
     return result;
   }
@@ -749,7 +727,7 @@ export class GameGatewayService {
     return null;
   }
 
-  private publicState(state: PokerState) {
+  private publicState(state: PokerState): EventGamePublicStateToClientDto {
     return {
       handId: state.handId,
       tableSessionId: state.tableSessionId,
@@ -787,9 +765,13 @@ export class GameGatewayService {
   }
 
   private emitState(state: PokerState) {
-    this.requireServer()
-      .to(this.tableRoom(state.tableSessionId))
-      .emit('poker:state', this.publicState(state));
+    //this.requireServer()
+    //  .to(this.tableRoom(state.tableSessionId))
+    //  .emit('poker:state', this.publicState(state));
+    this.server
+      ?.to(room_game_specific_room(state.tableSessionId))
+      .emit(event_game_poker_state.to_client(), this.publicState(state));
+
     this.scheduleActionTimeout(state);
   }
 
@@ -835,20 +817,20 @@ export class GameGatewayService {
     this.actionTimers.delete(tableSessionId);
   }
 
-  private async saveState(state: PokerState) {
-    await this.redis.set(
-      this.handKey(state.tableSessionId),
-      JSON.stringify(state),
-      'EX',
-      ACTIVE_HAND_TTL_SECONDS,
-    );
-  }
+  //private async saveState(state: PokerState) {
+  //  await this.redis.set(
+  //    this.handKey(state.tableSessionId),
+  //    JSON.stringify(state),
+  //    'EX',
+  //    ACTIVE_HAND_TTL_SECONDS,
+  //  );
+  //}
 
   private async prepareMatchProgress(
     tableSessionId: string,
     activePlayerIds: string[],
   ): Promise<MatchProgress> {
-    const progress = await this.loadMatchProgress(tableSessionId);
+    const progress = await this.gameRedisService.loadMatchProgress(tableSessionId);
     const activeIds = new Set(activePlayerIds);
 
     if (progress.cycleComplete) {
@@ -891,61 +873,61 @@ export class GameGatewayService {
     return progress;
   }
 
-  private async loadMatchProgress(
-    tableSessionId: string,
-  ): Promise<MatchProgress> {
-    const stored = await this.redis.get(this.matchProgressKey(tableSessionId));
-    if (!stored) {
-      return {
-        cycleNumber: 1,
-        handNumber: 0,
-        cyclePlayerIds: [],
-        bigBlindPlayerIds: [],
-        cycleComplete: false,
-      };
-    }
+  //private async loadMatchProgress(
+  //  tableSessionId: string,
+  //): Promise<MatchProgress> {
+  //  const stored = await this.redis.get(this.matchProgressKey(tableSessionId));
+  //  if (!stored) {
+  //    return {
+  //      cycleNumber: 1,
+  //      handNumber: 0,
+  //      cyclePlayerIds: [],
+  //      bigBlindPlayerIds: [],
+  //      cycleComplete: false,
+  //    };
+  //  }
 
-    const progress: unknown = JSON.parse(stored);
-    if (!isMatchProgress(progress)) {
-      throw new Error(`Invalid poker match progress for table ${tableSessionId}`);
-    }
-    return progress;
-  }
+  //  const progress: unknown = JSON.parse(stored);
+  //  if (!isMatchProgress(progress)) {
+  //    throw new Error(`Invalid poker match progress for table ${tableSessionId}`);
+  //  }
+  //  return progress;
+  //}
 
-  private async saveMatchProgress(
-    tableSessionId: string,
-    progress: MatchProgress,
-  ) {
-    await this.redis.set(
-      this.matchProgressKey(tableSessionId),
-      JSON.stringify(progress),
-    );
-  }
+  //private async saveMatchProgress(
+  //  tableSessionId: string,
+  //  progress: MatchProgress,
+  //) {
+  //  await this.redis.set(
+  //    this.matchProgressKey(tableSessionId),
+  //    JSON.stringify(progress),
+  //  );
+  //}
 
-  private async loadState(tableSessionId: string): Promise<PokerState> {
-    const stored = await this.redis.get(this.handKey(tableSessionId));
-    if (!stored) {
-      throw new WsException('No active hand for this table');
-    }
-    const state = JSON.parse(stored) as PokerState;
-    if (!Number.isFinite(Date.parse(state.actionDeadlineAt))) {
-      state.actionDeadlineAt = new Date(
-        Date.now() + PLAYER_ACTION_TIMEOUT_MS,
-      ).toISOString();
-      await this.saveState(state);
-    }
-    return state;
-  }
+  //private async loadState(tableSessionId: string): Promise<PokerState> {
+  //  const stored = await this.redis.get(this.handKey(tableSessionId));
+  //  if (!stored) {
+  //    throw new WsException('No active hand for this table');
+  //  }
+  //  const state = JSON.parse(stored) as PokerState;
+  //  if (!Number.isFinite(Date.parse(state.actionDeadlineAt))) {
+  //    state.actionDeadlineAt = new Date(
+  //      Date.now() + PLAYER_ACTION_TIMEOUT_MS,
+  //    ).toISOString();
+  //    await this.saveState(state);
+  //  }
+  //  return state;
+  //}
 
-  private async saveStacks(state: PokerState) {
-    const values = Object.fromEntries(
-      state.players.map(({ playerId, stack }) => [playerId, String(stack)]),
-    );
-    await this.redis.hset(this.stackKey(state.tableSessionId), values);
-  }
+  //private async saveStacks(state: PokerState) {
+  //  const values = Object.fromEntries(
+  //    state.players.map(({ playerId, stack }) => [playerId, String(stack)]),
+  //  );
+  //  await this.redis.hset(this.stackKey(state.tableSessionId), values);
+  //}
 
-  private getStartingStack(settings: Record<string, string>): number {
-    const configured = Number(settings.startingChips);
+  private getStartingStack(gameSettings: LobbyGameSettingsDto): number {
+    const configured = gameSettings.startingChips;
     if (Number.isSafeInteger(configured) && configured > 0) {
       return configured;
     }
@@ -955,11 +937,11 @@ export class GameGatewayService {
       TURBO: 5000,
       CUSTOM: 2000,
     };
-    return defaults[settings.format] ?? 2000;
+    return defaults[gameSettings.format] ?? 2000;
   }
 
-  private getBigBlind(settings: Record<string, string>): number {
-    const configured = Number(settings.bigBlind);
+  private getBigBlind(settings: LobbyGameSettingsDto): number {
+    const configured = settings.bigBlind;
     if (Number.isSafeInteger(configured) && configured > 0) {
       return configured;
     }
@@ -972,13 +954,12 @@ export class GameGatewayService {
     return defaults[settings.format] ?? 10;
   }
 
-  private getAnte(settings: Record<string, string>, bigBlind: number): number {
-    const configured = Number(settings.ante);
+  private getAnte(settings: LobbyGameSettingsDto, bigBlind: number): number {
+    const configured = settings.ante;
     if (
       settings.ante !== undefined
-      && settings.ante.trim() !== ''
+      && configured !== null
       && Number.isSafeInteger(configured)
-      && configured >= 0
     ) {
       return configured;
     }
@@ -998,59 +979,82 @@ export class GameGatewayService {
     return Number.isSafeInteger(stack) && stack >= 0 ? stack : startingStack;
   }
 
-  private async withTableLock<T>(
-    tableSessionId: string,
-    operation: () => Promise<T>,
-  ): Promise<T> {
-    const lockKey = `${this.handKey(tableSessionId)}:lock`;
-    const token = randomUUID();
-    const acquired = await this.redis.set(
-      lockKey,
-      token,
-      'PX',
-      LOCK_TTL_MS,
-      'NX',
-    );
-    if (acquired !== 'OK') {
-      throw new WsException('Table is processing another game action');
+  //private async withTableLock<T>(
+  //  tableSessionId: string,
+  //  operation: () => Promise<T>,
+  //): Promise<T> {
+  //  const lockKey = `${this.handKey(tableSessionId)}:lock`;
+  //  const token = randomUUID();
+  //  const acquired = await this.redis.set(
+  //    lockKey,
+  //    token,
+  //    'PX',
+  //    LOCK_TTL_MS,
+  //    'NX',
+  //  );
+  //  if (acquired !== 'OK') {
+  //    throw new WsException('Table is processing another game action');
+  //  }
+
+  //  try {
+  //    return await operation();
+  //  } finally {
+  //    await this.redis.eval(
+  //      "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end",
+  //      1,
+  //      lockKey,
+  //      token,
+  //    );
+  //  }
+  //}
+
+
+  // ###########################################
+
+  private joinOrLeaveGameSession(
+    isJoin: boolean,
+    userId: string,
+    gameRoomId: string,
+
+  ) {
+
+    if (isJoin === true) {
+      this.server?.in(room_game_private_user(userId)).socketsJoin(
+        room_game_specific_room(gameRoomId)
+      )
     }
-
-    try {
-      return await operation();
-    } finally {
-      await this.redis.eval(
-        "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end",
-        1,
-        lockKey,
-        token,
-      );
+    else {
+      this.server?.in(room_game_private_user(userId)).socketsLeave(
+        room_game_specific_room(gameRoomId)
+      )
     }
   }
-
-  private requireServer(): Server {
-    if (!this.server) {
-      throw new Error('Poker gateway server has not initialized');
-    }
-    return this.server;
+  joinGameSession(userId:string, gameRoomId: string) {
+    this.joinOrLeaveGameSession(true, userId, gameRoomId);
+  }
+  leaveGameSession(userId:string, gameRoomId: string) {
+    this.joinOrLeaveGameSession(false, userId, gameRoomId);
   }
 
-  private handKey(tableSessionId: string) {
-    return `poker:table:${tableSessionId}:hand`;
-  }
+  // ####################################
 
-  private matchProgressKey(tableSessionId: string) {
-    return `poker:table:${tableSessionId}:match-progress`;
-  }
+  //private handKey(tableSessionId: string) {
+  //  return `poker:table:${tableSessionId}:hand`;
+  //}
 
-  private stackKey(tableSessionId: string) {
-    return `poker:table:${tableSessionId}:stacks`;
-  }
+  //private matchProgressKey(tableSessionId: string) {
+  //  return `poker:table:${tableSessionId}:match-progress`;
+  //}
 
-  private buttonKey(tableSessionId: string) {
-    return `poker:table:${tableSessionId}:button`;
-  }
+  //private stackKey(tableSessionId: string) {
+  //  return `poker:table:${tableSessionId}:stacks`;
+  //}
 
-  private tableRoom(tableSessionId: string) {
-    return `poker:table:${tableSessionId}`;
-  }
+  //private buttonKey(tableSessionId: string) {
+  //  return `poker:table:${tableSessionId}:button`;
+  //}
+
+  //private tableRoom(tableSessionId: string) {
+  //  return `poker:table:${tableSessionId}`;
+  //}
 }
