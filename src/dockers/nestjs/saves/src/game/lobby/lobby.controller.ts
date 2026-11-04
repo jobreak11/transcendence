@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Post, Query, Req, UseFilters, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Patch, Post, Query, Req, UseFilters, UseGuards } from '@nestjs/common';
 import { LobbyService } from './lobby.service.js';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth/jwt-auth.guard.js';
 import { ThrottlerGuard } from '@nestjs/throttler';
@@ -25,6 +25,8 @@ import { LobbyDto } from '../../redis/lobby-redis/dtos/lobby.dto.js';
 @UseFilters(HttpAllExceptionsFilter)
 @Controller('game/lobby')
 export class LobbyController {
+  private readonly logger = new Logger(LobbyController.name);
+
   constructor(
     private readonly lobbyService: LobbyService,
     private readonly userRedisService: UserRedisService
@@ -44,6 +46,7 @@ export class LobbyController {
     @Req() req:any,
     @Body(new ZodValidationPipe(LobbyUserCreateSchema)) body: LobbyUserCreateDto
   ) {
+    this.logger.log("game/lobby/create received");
 
     try {
       return this.lobbyService.createLobby(req.user.id, {
@@ -67,6 +70,7 @@ export class LobbyController {
     @Req() req:any,
     @Body(new ZodValidationPipe(joinLobbySchema)) body: JoinLobbyDto
   ) {
+    this.logger.log(`game/lobby/join receive from user ${req.user.id}`)
 
     try {
       return this.lobbyService.joinLobby(body.lobbyPinId, req.user.id, body.isSpectator, body.password);
@@ -163,6 +167,23 @@ export class LobbyController {
       return this.lobbyService.startgame(req.user.id, lobbyPinId)
     } catch (error: any) {
       throw httpControllerCatch(error);
+    }
+  }
+
+  @Get()
+  async oneLobby(
+    @Req() req: any,
+    @Query('lobbyPinId') lobbyPinId: string
+  ): Promise<GetLobbyPublicDto> {
+    const lobbyData = await this.lobbyService.getLobbyDto(lobbyPinId);
+
+    const {password, ...publicGeneralSettings} = lobbyData.generalSettings;
+    const {chatRoomId, ...publicDetails} = lobbyData.details;
+
+    return {
+      details: publicDetails,
+      generalSettings: publicGeneralSettings,
+      gameSettings: lobbyData.gameSettings
     }
   }
 

@@ -39,8 +39,8 @@ export function GameSocketProvider({
       return;
     }
 
-    const socketInstance: Socket = io(window.location.origin, {
-      path: '/socket.io/game',
+    const socketInstance: Socket = io(`${window.location.origin}/game`, {
+      path: '/socket.io',
       transports: ['websocket'],
       auth: {
         accessToken: accessToken

@@ -156,7 +156,7 @@ export class ChatRedisService implements OnModuleInit {
 
     const isExist = await this.redis.exists(redis_chat_room_details(chatRoomDto.id));
     
-    if (isExist !== 1)  {
+    if (isExist !== 0)  {
       throw logError(
         this.logger,
         "error from creatChatRoom()",

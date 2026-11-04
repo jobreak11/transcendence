@@ -7,6 +7,7 @@ import type { PokerActionType, PublicGameState } from "./types";
 import { useGameSocket } from "../(protected)/_context/useGameSocket";
 import { PokerEvent } from "../../websocket-events/game/poker/poker-events";
 import { GameEvent } from "../../websocket-events/game/game-events";
+import { GetLobbyPublicDto, JoinLobbyDto, LobbyDto, LobbyUserCreateDto } from "../../types/dto";
 
 interface PokerActionEvent {
   playerId: string;
@@ -14,17 +15,6 @@ interface PokerActionEvent {
   amount: number;
 }
 
-interface LobbyStatus {
-  roomPinId: string;
-  hostUserId?: string;
-  roomStatus?: string;
-  currentPlayerCount?: number;
-  currentSpectatorCount?: number;
-  gameSettings?: {
-    maxPlayer: number;
-    maxSpectator: number;
-  };
-}
 
 function isPublicGameState(value: unknown): value is PublicGameState {
   if (
@@ -152,35 +142,6 @@ function getUserIdFromToken(token?: string): string | null {
   return null;
 }
 
-function isLobbyStatus(value: unknown): value is LobbyStatus {
-  if (
-    typeof value !== "object"
-    || value === null
-    || !("roomPinId" in value)
-    || typeof value.roomPinId !== "string"
-  ) {
-    return false;
-  }
-
-  return (
-    (!("roomStatus" in value) || typeof value.roomStatus === "string")
-    && (!("hostUserId" in value) || typeof value.hostUserId === "string")
-    && (!("currentPlayerCount" in value) || typeof value.currentPlayerCount === "number")
-    && (!("currentSpectatorCount" in value) || typeof value.currentSpectatorCount === "number")
-    && (
-      !("gameSettings" in value)
-      || (
-        typeof value.gameSettings === "object"
-        && value.gameSettings !== null
-        && "maxPlayer" in value.gameSettings
-        && typeof value.gameSettings.maxPlayer === "number"
-        && "maxSpectator" in value.gameSettings
-        && typeof value.gameSettings.maxSpectator === "number"
-      )
-    )
-  );
-}
-
 export default function Page() {
   const {
     socket,
@@ -189,7 +150,7 @@ export default function Page() {
     connectionError,
   } = useGameSocket();
   const [tableSessionId, setTableSessionId] = useState("");
-  const [lobbyStatus, setLobbyStatus] = useState<LobbyStatus | null>(null);
+  const [lobbyStatus, setLobbyStatus] = useState<GetLobbyPublicDto | null>(null);
   const [lobbyStatusError, setLobbyStatusError] = useState("");
   const [lobbyStatusRefresh, setLobbyStatusRefresh] = useState(0);
   const [gameState, setGameState] = useState<PublicGameState | null>(null);
@@ -315,10 +276,10 @@ export default function Page() {
     const checkLobbyStatus = async () => {
       try {
         const response = await fetch(
-          `/api/game/lobby/status?lobbyPinId=${encodeURIComponent(tableSessionId)}`,
+          `/api/game/lobby?lobbyPinId=${encodeURIComponent(tableSessionId)}`,
           { cache: "no-store" },
         );
-        const body: unknown = await response.json();
+        const body: GetLobbyPublicDto = (await response.json()) as GetLobbyPublicDto;
         if (!response.ok) {
           const message = typeof body === "object"
             && body !== null
@@ -328,9 +289,7 @@ export default function Page() {
             : `Lobby status check failed (${response.status}).`;
           throw new Error(message);
         }
-        if (!isLobbyStatus(body) || body.roomPinId !== tableSessionId) {
-          throw new Error("The lobby status response was invalid.");
-        }
+
         if (active) {
           setLobbyStatus(body);
           setLobbyStatusError("");
@@ -371,7 +330,7 @@ export default function Page() {
     (gameState?.currentBet ?? 0) - (myPlayer?.roundContribution ?? 0),
   );
   const isHandInProgress = Boolean(gameState && !gameState.settled);
-  const isHost = lobbyStatus?.hostUserId === userId;
+  const isHost = lobbyStatus === null ? false :  lobbyStatus?.details.hostUserId === userId;
   const actionSecondsLeft = gameState?.actionDeadlineAt
     ? Math.max(
       0,
@@ -441,10 +400,18 @@ export default function Page() {
     setError("");
     setSuccessMessage("");
     try {
+      const sendBody: LobbyUserCreateDto = {
+        generalSettings: {},
+        gameSettings: {}
+      }
       const response = await fetch("/api/game/lobby/create", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(sendBody)
       });
-      const body: unknown = await response.json();
+      const body: LobbyDto = (await response.json()) as LobbyDto;
       if (!response.ok) {
         const message = typeof body === "object"
           && body !== null
@@ -455,16 +422,16 @@ export default function Page() {
         throw new Error(message);
       }
 
-      if (
-        typeof body !== "object"
-        || body === null
-        || !("roomPinId" in body)
-        || typeof body.roomPinId !== "string"
-      ) {
-        throw new Error("Lobby response did not contain a roomPinId.");
-      }
+      //if (
+      //  typeof body !== "object"
+      //  || body === null
+      //  || !("roomPinId" in body)
+      //  || typeof body.roomPinId !== "string"
+      //) {
+      //  throw new Error("Lobby response did not contain a roomPinId.");
+      //}
 
-      const newTableId = body.roomPinId;
+      const newTableId = body.details.roomPinId;
       setTableInput(newTableId);
       setTableSessionId(newTableId);
       setGameState(null);
@@ -502,15 +469,17 @@ export default function Page() {
     setError("");
     setSuccessMessage("");
     try {
+      const sendBody: JoinLobbyDto = {
+        lobbyPinId: tableSessionId,
+        password: joinPassword ? joinPassword : undefined,
+        isSpectator: false
+      }
       const response = await fetch("/api/game/lobby/join", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          lobbyPinId: tableSessionId,
-          password: joinPassword,
-        }),
+        body: JSON.stringify(sendBody)
       });
       if (!response.ok) {
         const body: unknown = await response.json();
@@ -609,7 +578,10 @@ export default function Page() {
           <p aria-live="polite">
             Lobby members:{" "}
             {lobbyStatus
-              ? `${lobbyStatus.currentPlayerCount ?? 0}/${lobbyStatus.gameSettings?.maxPlayer ?? "?"} players · ${lobbyStatus.currentSpectatorCount ?? 0}/${lobbyStatus.gameSettings?.maxSpectator ?? "?"} spectators${lobbyStatus.roomStatus ? ` · ${lobbyStatus.roomStatus}` : ""}`
+              ? `${lobbyStatus.details.currentPlayerCount 
+                  ?? 0}/${lobbyStatus.gameSettings?.maxPlayer 
+                  ?? "?"} players · ${lobbyStatus.details.currentSpectatorCount 
+                  ?? 0}/${lobbyStatus.gameSettings?.maxSpectator ?? "?"} spectators${lobbyStatus.details.roomStatus ? ` · ${lobbyStatus.details.roomStatus}` : ""}`
               : lobbyStatusError
                 ? "Status unavailable"
                 : isConnected
@@ -667,7 +639,7 @@ export default function Page() {
         tableSessionId={tableSessionId}
         userId={userId}
         myCards={myCards}
-        lobbyPlayerCount={lobbyStatus?.currentPlayerCount ?? 0}
+        lobbyPlayerCount={lobbyStatus?.details.currentPlayerCount ?? 0}
         isConnected={isConnected}
         isHost={isHost}
         isStartingHand={isStartingHand}

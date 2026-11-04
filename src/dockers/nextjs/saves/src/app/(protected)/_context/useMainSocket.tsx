@@ -40,7 +40,7 @@ export function MainSocketProvider({
     }
 
     const socketInstance: Socket = io(window.location.origin, {
-      path: '/socket.io/',
+      path: '/socket.io',
       transports: ['websocket'],
       auth: {
         accessToken: accessToken
