@@ -37,7 +37,6 @@ export class GameGatewayService implements OnModuleInit {
   >();
 
   constructor(
-    @Inject(REDIS_CLIENT) private readonly redis: RedisClient,
     private readonly userRedisService: UserRedisService,
     private readonly gameRedisService: GameRedisService,
     private readonly moduleRef: ModuleRef
