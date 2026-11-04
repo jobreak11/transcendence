@@ -396,9 +396,21 @@ export function ChatEmbbed() {
                     </div>
                     {/* Tab ด้านบน */}
                     <div className="flex-1 h-full flex items-center px-6 gap-4">
-                        <button className="bg-black text-white px-6 py-2 rounded-md text-sm flex items-center gap-2">💬 Global</button>
+                        {/* <button className="bg-black text-white px-6 py-2 rounded-md text-sm flex items-center gap-2">💬 Global</button> */}
+                        {/* <button
+                        type="button"
+                        onClick={() => setActiveFilter('ALL')}
+                        className={`px-3 py-1 border-r border-neutral-700 hover:bg-neutral-800 ${
+                            activeFilter === 'ALL'
+                            ? 'bg-neutral-800 text-white font-bold'
+                            : 'text-neutral-400'
+                        }`}
+                        >
+                        General
+                        </button> */}
+
                         {rooms.map((room) => {
-                            const isCrueent = activeFilter === room.id;
+                            const isCurrent = activeFilter === room.id;
                             const isTarget = activeSendRoomId === room.id;
                             const name = room.roomName || room.id.slice(0, 6);
                             return(<button 
@@ -408,6 +420,7 @@ export function ChatEmbbed() {
                                     setActiveFilter(room.id);
                                     setActiveSendRoomId(room.id);
                                 }}
+                                className={`${isCurrent ? 'bg-black text-white' : 'bg-[#B23441]/70 text-white/80'} px-6 py-2 rounded-md text-sm`}
                             >
                                 [{name}] {isTarget && '*'}
                             </button>);
@@ -480,7 +493,7 @@ export function ChatEmbbed() {
                                     value={inputText}
                                     onChange={(e) => setInputText(e.target.value)}
                                     placeholder="Type a message..." 
-                                    disabled={rooms.length === 0 || !isConnected}
+                                    disabled={!isConnected}
                                     className="bg-transparent flex-1 outline-none text-white/70 text-sm placeholder:text-white/30" 
                                 />
                                 <button type="submit"
