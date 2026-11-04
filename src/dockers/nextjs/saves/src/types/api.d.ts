@@ -779,6 +779,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/game/lobby": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["LobbyController_oneLobby"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1103,12 +1119,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a1a12d-0a44-71e1-89c8-daefa5033a25
+             * @example 01a1a65b-34f7-75da-b45b-a69e6ab061f1
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a1a12d-0a47-72c8-9497-631ecd1b4848
+             * @example 01a1a65b-34fa-70ef-a5a6-5ee374abba4f
              */
             chatRoomId: string;
             /**
@@ -1194,7 +1210,7 @@ export interface components {
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1a12d-0a77-7421-85c8-600f885e8be5
+             * @example 01a1a65b-351e-703f-a580-adfd395f6d69
              */
             gameRoomId: string | null;
             /**
@@ -1283,7 +1299,7 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1a12d-0a77-7421-85c8-600f885e8be5
+             * @example 01a1a65b-351e-703f-a580-adfd395f6d69
              */
             gameRoomId: string | null;
             /**
@@ -2343,6 +2359,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LobbyDto"];
+                };
+            };
+        };
+    };
+    LobbyController_oneLobby: {
+        parameters: {
+            query: {
+                lobbyPinId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetLobbyPublicDto"];
                 };
             };
         };
