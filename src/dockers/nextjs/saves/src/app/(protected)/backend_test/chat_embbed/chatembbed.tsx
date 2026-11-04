@@ -5,6 +5,7 @@ import { FindAllFriendshipsDto } from  '../../../../types/dto';
 import { FormEvent, useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import { useMainSocket } from '../../_context/useMainSocket';
+import { ChatMessageDto } from  '../../../../types/dto';
 
 
 export interface ChatRoom {
@@ -124,6 +125,123 @@ export function ChatEmbbed() {
         console.error('Failed to fetch public chat history:', err);
     }
   };
+
+
+    // Helper to fetch history for a single room
+    const fetchRoomHistory = async (roomId: string, currentRooms = roomsRef.current) => {
+      try {
+        const res = await fetch(`/api/chat/message?chatRoomId=${roomId}`);
+        if (!res.ok) return [];
+  
+        const data = (await res.json()) as ChatMessageDto[];
+        if (!Array.isArray(data)) return [];
+  
+        const targetRoom = currentRooms.find((r) => r.id === roomId);
+  
+        return data.map((item: any) => {
+          const d = item.createdAt ? new Date(item.createdAt) : new Date();
+          const time = !isNaN(d.getTime())
+            ? d.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+              })
+            : '--:--:--';
+          return {
+            id: item.chatMessageId || `${roomId}-${d.getTime()}-${Math.random()}`,
+            chatRoomId: item.chatRoomId || roomId,
+            roomName: targetRoom?.roomName || roomId.slice(0, 6),
+            roomType: targetRoom?.visibilityType || 'PUBLIC',
+            senderUserId: item.senderUserId || 'System',
+            message: item.messageText || item.message || '',
+            type: item.type || 'NORMAL',
+            timestamp: time,
+            rawCreatedAt: d.getTime(),
+          } as UnifiedMessage;
+        });
+      } catch (err) {
+        console.error(`Failed to fetch history for room ${roomId}:`, err);
+        return [];
+      }
+    };
+  
+    // 1. Fetch available chat rooms and their initial message histories
+    const loadRoomsAndHistory = async () => {
+      try {
+        const res = await fetch('/api/chat');
+        if (!res.ok) return;
+  
+        const data = await res.json();
+        if (!Array.isArray(data)) return;
+  
+        setRooms(data);
+        if (data.length > 0 && !activeSendRoomId) {
+          setActiveSendRoomId(data[0].id);
+        }
+  
+        // Fetch history for all joined rooms in parallel
+        const unvisitedRooms = data.filter((r) => !loadedHistoryRooms.current.has(r.id));
+        if (unvisitedRooms.length === 0) return;
+  
+        const historyBatches = await Promise.all(
+          unvisitedRooms.map((r) => fetchRoomHistory(r.id, data))
+        );
+  
+        unvisitedRooms.forEach((r) => loadedHistoryRooms.current.add(r.id));
+  
+        const combinedHistory = historyBatches.flat();
+  
+        // Merge with any existing messages and sort chronologically
+        setMessages((prev) => {
+          const existingIds = new Set(prev.map((m) => m.id));
+          const newUniqueHistory = combinedHistory.filter((m) => !existingIds.has(m.id));
+          return [...prev, ...newUniqueHistory].sort((a, b) => a.rawCreatedAt - b.rawCreatedAt);
+        });
+      } catch (err) {
+        console.error('Failed to load chat rooms:', err);
+      }
+    };
+
+    // Direct Message a friend & fetch DM history if new
+    const handleDirectMessageUser = async (friendItem: any) => {
+        const targetUserId = resolveFriendUserId(friendItem);
+        if (!targetUserId) return;
+
+        try {
+        setLoadingDmTarget(targetUserId);
+        const res = await fetch(`/api/chat/dm?targetUserId=${targetUserId}`, {
+            method: 'POST',
+        });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const roomId = data?.chatRoomId || data?.id;
+
+        if (roomId) {
+            socket?.emit('newJoinChatRoom', { chatRoomId: roomId });
+            await loadRoomsAndHistory();
+
+            // If history hasn't been loaded for this DM room, fetch it
+            if (!loadedHistoryRooms.current.has(roomId)) {
+            loadedHistoryRooms.current.add(roomId);
+            const history = await fetchRoomHistory(roomId);
+            setMessages((prev) => {
+                const existingIds = new Set(prev.map((m) => m.id));
+                const newUnique = history.filter((m) => !existingIds.has(m.id));
+                return [...prev, ...newUnique].sort((a, b) => a.rawCreatedAt - b.rawCreatedAt);
+            });
+            }
+
+            setActiveSendRoomId(roomId);
+            setActiveFilter(roomId);
+            inputRef.current?.focus();
+        }
+        } catch (err) {
+        console.error('Error starting DM:', err);
+        } finally {
+        setLoadingDmTarget(null);
+        }
+    };
 
     const loadFriends = async () => {
         try {
@@ -278,9 +396,22 @@ export function ChatEmbbed() {
                     </div>
                     {/* Tab ด้านบน */}
                     <div className="flex-1 h-full flex items-center px-6 gap-4">
-                        <button className="bg-[#B23441] text-white px-6 py-2 rounded-md text-sm font-semibold">#General</button>
-                        <button className="bg-[#B23441]/70 text-white/80 px-6 py-2 rounded-md text-sm">Nong Cat</button>
                         <button className="bg-black text-white px-6 py-2 rounded-md text-sm flex items-center gap-2">💬 Global</button>
+                        {rooms.map((room) => {
+                            const isCrueent = activeFilter === room.id;
+                            const isTarget = activeSendRoomId === room.id;
+                            const name = room.roomName || room.id.slice(0, 6);
+                            return(<button 
+                                key={room.id}
+                                type="button"
+                                onClick={ () => {
+                                    setActiveFilter(room.id);
+                                    setActiveSendRoomId(room.id);
+                                }}
+                            >
+                                [{name}] {isTarget && '*'}
+                            </button>);
+                        })}
                     </div>
                 </div>
                 
@@ -291,7 +422,9 @@ export function ChatEmbbed() {
                     <div className="flex-1 h-full bg-[#1D1D1D] flex flex-col">
                         
                         {/* ข้อความแชท (ย้าย overflow-y-auto และตั้งค่า Scrollbar มาไว้ที่กล่องนี้) */}
-                        <div className="flex-1 p-6 flex flex-col gap-3 text-sm text-white/80 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#111111] [&::-webkit-scrollbar-thumb]:bg-[#FFD700] [&::-webkit-scrollbar-thumb]:rounded-full">
+                        <div 
+                            ref={chatContainerRef}
+                            className="flex-1 p-6 flex flex-col gap-3 text-sm text-white/80 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#111111] [&::-webkit-scrollbar-thumb]:bg-[#FFD700] [&::-webkit-scrollbar-thumb]:rounded-full">
                             
                             {/* ดันข้อความให้ไปเริ่มจากด้านล่าง (แทนการใช้ justify-end) */}
                             <div className="mt-auto"></div>
@@ -328,9 +461,17 @@ export function ChatEmbbed() {
                         {/* กล่องพิมพ์ข้อความด้านล่าง (ใส่ shrink-0 เพื่อบังคับไม่ให้กล่องนี้หดตัวเวลาแชทเยอะๆ) */}
                         <form onSubmit={handleSend} className="w-full px-6 pb-6 pt-2 flex items-center gap-4 shrink-0">
                             {/* ปุ่ม Global */}
-                            <button className="bg-[#111111] text-white/60 text-sm px-4 py-3 rounded-lg border border-white/10 flex items-center gap-2">
-                                Global <span className="text-[10px]">▼</span>
-                            </button>
+                            <select 
+                                value={activeSendRoomId}
+                                onChange={(e) => setActiveSendRoomId(e.target.value)}
+                                className="bg-[#111111] text-white/60 text-sm px-4 py-3 rounded-lg border border-white/10 flex items-center gap-2">
+                                {rooms.map((room) => (
+                                    <option key={room.id} value={room.id}>
+                                    {room.roomName || room.id.slice(0, 6)}
+                                    </option>
+                                ))}
+                                <span className="text-[10px]">▼</span>
+                            </select>
                             {/* ช่อง Input */}
                             <div className="flex-1 bg-[#111111] rounded-lg flex items-center px-4 py-3 border border-white/10">
                                 <input 
@@ -370,10 +511,10 @@ export function ChatEmbbed() {
                             </div>
                             <div className="p-3">
                                 {/* ปุ่มห้องแชทสีเขียว */}
-                                <div className="bg-[#123928] text-white text-xs px-3 py-2 rounded-md flex justify-between items-center shadow-sm">
+                                <button className="bg-[#123928] text-white text-xs px-3 py-2 rounded-md flex justify-between items-center shadow-sm">
                                     <span># General Room</span>
                                     <span className="text-[10px]">▼</span>
-                                </div>
+                                </button>
                             </div>
                         </div>
 
@@ -396,18 +537,24 @@ export function ChatEmbbed() {
                                     const friendUserId = resolveFriendUserId(friend);
                                     const friendName = resolveFriendName(friend);
                                      const isResolving = loadingDmTarget === friendUserId;
-                                     return (                  <button
-                    key={friend.id || friendUserId || idx}
-                    type="button"
-                    disabled={isResolving || !friendUserId}
-                    className="w-full text-left px-1.5 py-0.5 flex items-center justify-between text-[11px] text-neutral-400 hover:bg-neutral-900 hover:text-neutral-200 disabled:opacity-50"
-                    title={`Click to DM ${friendName}`}
-                  >
-                    <span className="truncate">{friendName}</span>
-                    <span className="text-[10px] text-fuchsia-400 ml-1">
-                      {isResolving ? '...' : '[DM]'}
-                    </span>
-                  </button>);
+                                    return (
+                                     <div className="flex items-center gap-3 hover:bg-neutral-900 hover:text-neutral-200 disabled:opacity-50 p-1 rounded-md" >
+                                        <div className="w-8 h-8 rounded-full bg-[#123928] flex items-center justify-center text-white text-[10px] font-bold">NC</div>
+                                        <button
+                                            key={friend.id || friendUserId || idx}
+                                            type="button"
+                                            disabled={isResolving || !friendUserId}
+                                        className='flex items-center gap-3 '
+                                            // className="w-full text-left px-1.5 py-0.5 flex items-center justify-between text-[11px] text-neutral-400 hover:bg-neutral-900 hover:text-neutral-200 disabled:opacity-50"
+                                            title={`Click to DM ${friendName}`}
+                                            onClick={() => handleDirectMessageUser(friend)}
+                                        >
+                                            <span className="truncate">{friendName}</span>
+                                            <span className="text-[10px] text-fuchsia-400 ml-1">
+                                            </span>
+                                        </button>
+                                    </div>
+                                    );
                                     })
                                 }
                                 {/* คนที่ 1 */}
