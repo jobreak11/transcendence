@@ -1119,12 +1119,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a1a65b-34f7-75da-b45b-a69e6ab061f1
+             * @example 01a1a6d2-902c-719f-a4c4-8e0da33b24e0
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a1a65b-34fa-70ef-a5a6-5ee374abba4f
+             * @example 01a1a6d2-902d-711f-9cdc-ba9eb8fcf367
              */
             chatRoomId: string;
             /**
@@ -1210,7 +1210,7 @@ export interface components {
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1a65b-351e-703f-a580-adfd395f6d69
+             * @example 01a1a6d2-904b-774a-bfbd-2eed71f52915
              */
             gameRoomId: string | null;
             /**
@@ -1299,7 +1299,7 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1a65b-351e-703f-a580-adfd395f6d69
+             * @example 01a1a6d2-904b-774a-bfbd-2eed71f52915
              */
             gameRoomId: string | null;
             /**
@@ -1338,6 +1338,8 @@ export interface components {
              * @enum {string}
              */
             roomType: "PUBLIC" | "PRIVATE";
+            /** @description whether this lobby require password or not */
+            hasPassword: boolean;
         };
         GetLobbyPublicDto: {
             details: components["schemas"]["LobbyDetailsPublicDto"];

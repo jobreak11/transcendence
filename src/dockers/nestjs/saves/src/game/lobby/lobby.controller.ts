@@ -11,7 +11,7 @@ import { joinLobbySchema } from './schemas/join-lobby.schema.js';
 import z from 'zod';
 import { lobbyUpdateSchema } from '../../redis/lobby-redis/schemas/lobby-update.redis.schema.js';
 import { httpControllerCatch } from '../../utility/httpControllerCatch.js';
-import { GetLobbyPublicDto } from './dto/get-lobby-public.dto.js';
+import { GetLobbyPublicDto, LobbyGeneralSettingsPublicDto } from './dto/get-lobby-public.dto.js';
 import { UserRedisService } from '../../redis/user-redis/user-redis.service.js';
 import { IsStrongPassword } from 'class-validator';
 import { LobbyUserCreateSchema } from './schemas/lobby-user-create.schema.js';
@@ -114,10 +114,16 @@ export class LobbyController {
         const {password, ...publicGeneralSettings} = lobby.generalSettings;
         const {chatRoomId, ...publicDetails} = lobby.details;
 
+        const pub: LobbyGeneralSettingsPublicDto = {
+          catchPhrase: publicGeneralSettings.catchPhrase,
+          roomType: publicGeneralSettings.roomType,
+          hasPassword: password === null ? false : true
+        }
+
         return {
           details: publicDetails,
           gameSettings: lobby.gameSettings,
-          generalSettings: publicGeneralSettings
+          generalSettings: pub
         };
       })
 
@@ -180,10 +186,16 @@ export class LobbyController {
     const {password, ...publicGeneralSettings} = lobbyData.generalSettings;
     const {chatRoomId, ...publicDetails} = lobbyData.details;
 
+    const pub: LobbyGeneralSettingsPublicDto = {
+      catchPhrase: publicGeneralSettings.catchPhrase,
+      roomType: publicGeneralSettings.roomType,
+      hasPassword: password === null ? false : true
+    }
+
     return {
       details: publicDetails,
-      generalSettings: publicGeneralSettings,
-      gameSettings: lobbyData.gameSettings
+      gameSettings: lobbyData.gameSettings,
+      generalSettings: pub,
     }
   }
 
