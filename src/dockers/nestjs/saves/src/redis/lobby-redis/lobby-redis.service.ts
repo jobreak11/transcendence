@@ -490,8 +490,6 @@ export class LobbyRedisService implements OnModuleInit {
       visibilityType: ChatRoomVisibilityType.PRIVATE
     })
 
-
-
     const lobbyDto: z.input<typeof Lobby.schema.insert> = {
       generalSettings: inputPayload.data.generalSettings,
       details: {
