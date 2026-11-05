@@ -2,9 +2,85 @@ import { NextRequest, NextResponse } from "next/server";
 import { BACKEND_URL } from "../../../lib/constants";
 import { cookies } from "next/headers";
 
+
+const allowedPaths = new Set([
+
+  // testing
+  '/hello',
+
+  // user api
+  '/user',
+  '/user/profile',
+  '/user/profile/uploadProfilePic',
+  '/user/update',
+  '/user/delete',
+
+  // title api
+  '/title',
+  '/title/all',
+  '/title/find',
+  '/title/new',
+  '/title/give',
+  '/title/revoke',
+  '/title/update',
+  '/title/delete',
+
+  //auth api
+  '/auth/check',
+  '/auth/signup',
+  '/auth/login',
+  '/auth/refresh',
+  '/auth/signout',
+  '/auth/google/login',
+  '/auth/google/callback',
+  '/auth/42/login',
+  '/auth/42/callback',
+
+  // chat api
+  '/chat',
+  '/chat/dm',
+  '/chat/message',
+  '/chat/room/create',
+  '/chat/room/invite',
+  '/chat/room/leave',
+  '/chat/room/kick',
+
+  // public chat api
+  '/chat/public',
+
+  // friendships api
+  '/friend',
+  '/friend/request',
+  '/friend/accept',
+  '/friend/reject',
+  '/friend/block',
+
+  // lobby api
+  '/game/lobby/create',
+  '/game/lobby/join',
+  '/game/lobby/leave',
+  '/game/lobby/allRooms',
+  '/game/lobby/my-lobby',
+  '/game/lobby/update',
+  '/game/lobby/startgame',
+  '/game/lobby',
+
+
+])
+
 async function handleRequest(request: NextRequest, { params }: { params: Promise<{ path: string[] }>}) {
   const resolvedParams = await params;
   const pathString = resolvedParams.path.join('/');
+  if (!allowedPaths.has(`/${pathString}`)) {
+    return Response.json(
+      {
+        error: `Not found`,
+      },
+      {
+        status: 404
+      },
+    );
+  }
   const searchParams = request.nextUrl.search;
   const targetUrl = `${BACKEND_URL}/${pathString}${searchParams}`
 

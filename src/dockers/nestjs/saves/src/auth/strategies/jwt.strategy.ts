@@ -5,6 +5,7 @@ import jwtConfig from "../config/jwt.config.js";
 import { AuthJwtPayload } from "../types/auth-jwtPayload.js";
 import { Inject, Injectable } from "@nestjs/common";
 import { AuthService } from "../auth.service.js";
+import { FastifyRequest } from "fastify";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -17,7 +18,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new Error('JWT SECRET environment variable is not defined');
     }
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      //jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+        JwtStrategy.extractFromCookie,
+      ]),
       secretOrKey: secret,
       ignoreExpiration: false
     })
@@ -26,5 +31,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   validate(payload: AuthJwtPayload) {
     const userId = payload.sub;
     return this.authService.validateJwtUser(userId);
+  }
+
+  private static extractFromCookie(request: FastifyRequest): string | null {
+    return request.cookies?.accessToken ?? null;
   }
 }

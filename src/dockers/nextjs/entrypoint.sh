@@ -70,7 +70,7 @@ run_suexec ${USER_ID} ${GROUP_ID} node -e "
     \"start\": \`next start -p \${port}\`,
     \"lint\": \"eslint\",
     \"lint:fix\": \"eslint --fix\",
-    \"generate:types\": \"openapi-typescript http://nestjs:${TRANSCENDENCE_NESTJS_EXPOSE_PORT}/api-docs-json -o src/types/api.d.ts\"
+    \"generate:types\": \"openapi-typescript http://nestjs:${TRANSCENDENCE_NESTJS_EXPOSE_PORT}/admin/api-docs-json -o src/types/api.d.ts\"
   };
 
   fs.writeFileSync(filePath, JSON.stringify(pkg, null, 2) + \"\n\");

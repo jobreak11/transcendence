@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotImplementedException, SetMetadata, HttpCode, HttpStatus, ParseIntPipe, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, BadRequestException, PayloadTooLargeException, Query, InternalServerErrorException, Logger, UseFilters } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotImplementedException, SetMetadata, HttpCode, HttpStatus, ParseIntPipe, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, BadRequestException, PayloadTooLargeException, Query, InternalServerErrorException, Logger, UseFilters, ParseUUIDPipe } from '@nestjs/common';
 import { UserService } from './user.service.js';
 import { CreateUserDto, createUserSchema } from './dto/create-user.dto.js';
 import { UpdateUserDto, updateUserSchema } from './dto/update-user.dto.js';
@@ -21,6 +21,8 @@ import { TitleService } from './title/title.service.js';
 import { ZodValidationPipe } from '../pipes/ZodValidationPipe.js';
 import z from 'zod';
 import { HttpAllExceptionsFilter } from '../filters/HttpAllExceptionsFilter.js';
+import { THROTTLER_USER_ALLCOUNT_LIMIT, THROTTLER_USER_ALLCOUNT_TTL, THROTTLER_USER_BATCH_LIMIT, THROTTLER_USER_BATCH_TTL } from './user.constants.js';
+import { GetUserTotalCountDto } from './dto/get-user-count.dto.js';
 
 @Controller('user')
 @UseFilters(HttpAllExceptionsFilter)
@@ -33,13 +35,19 @@ export class UserController {
     private readonly titleService: TitleService
   ) {}
 
-  @ApiOperation({summary: 'Register a new user account'})
+  @ApiOperation({
+    summary: 'Register a new user account',
+    description: `register new user api for ADMIN role`
+  })
   @ApiResponse({status: 201, description: 'User created successfully'})
   @ApiResponse({status: 401, description: 'validation failed.', type: UnauthorizedErrorDto})
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Post()
-  create(@Body(new ZodValidationPipe(createUserSchema)) createUserDto: CreateUserDto) {
+  create(
+    @Req() req: any,
+    @Body(new ZodValidationPipe(createUserSchema)) createUserDto: CreateUserDto
+  ) {
     return this.userService.create(createUserDto);
   }
 
@@ -74,14 +82,13 @@ export class UserController {
     type: UnauthorizedErrorDto,
     description: 'Missing or invalid JWT token',
   })
-  @UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
+  @UseGuards(JwtAuthGuard, ThrottlerGuard)
   @Throttle({
     default: {
       limit: THROTTLER_USER_PROFILE_LIMIT,
       ttl: THROTTLER_USER_PROFILE_TTL
     }
   })
-  @Roles(Role.USER)
   @Get('profile')
   async getProfile(
     @Req() req: any,
@@ -282,12 +289,51 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @Roles(Role.EDITOR, Role.ADMIN)
-  //@UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   //@UseGuards(JwtAuthGuard)
-  @UseGuards(JwtAuthGuard)
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(id);
+  @Delete('delete')
+  remove(@Query('userId', ParseUUIDPipe) userId: string) {
+    return this.userService.remove(userId);
   }
 
+  @ApiOperation({
+    summary: "get multiple user info",
+    description: "for ADMIN AND EDITOR"
+  })
+  @Get('batch')
+  @Throttle({
+    default: {
+      limit: THROTTLER_USER_BATCH_LIMIT,
+      ttl: THROTTLER_USER_BATCH_TTL
+    }
+  })
+  @Roles(Role.ADMIN, Role.EDITOR)
+  @UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
+  getBatchUsers(
+    @Req() req: any,
+    @Query('page') page: number,
+  ) {
+    
+
+  }
+
+  // count overall user
+  @Get('totalCount')
+  @Throttle({
+    default: {
+      limit: THROTTLER_USER_ALLCOUNT_LIMIT,
+      ttl: THROTTLER_USER_ALLCOUNT_TTL
+    }
+  })
+  @Roles(Role.ADMIN, Role.EDITOR)
+  @UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
+  async totalUserCount(
+    @Req() req:any,
+  ): Promise<GetUserTotalCountDto> {
+    const total = await this.userService.allUserCount();
+
+    return {
+      totalUserCount: total
+    }
+  }
 }
