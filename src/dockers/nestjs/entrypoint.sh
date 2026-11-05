@@ -23,6 +23,7 @@ run_suexec() {
 export POSTGRES_PASSWORD="$(cat ${POSTGRES_PASSWORD_FILE})"
 export NESTJS_JWT_SECRET_KEY="$(cat ${NESTJS_JWT_SECRET_FILE})"
 export NESTJS_JWT_REFRESH_SECRET_KEY="$(cat ${NESTJS_JWT_REFRESH_SECRET_FILE})"
+export TRANSCENDENCE_ADMIN_PASSWORD="$(cat ${TRANSCENDENCE_ADMIN_PASSWORD_SECRET_FILE})"
 
 WORK_DIRECTORY=/app
 NESTJS_DIR=${WORK_DIRECTORY}/nestjs
@@ -100,7 +101,7 @@ EOF
   uuid \
   dotenv \
   @nestjs/platform-fastify \
-  @fastify/static @fastify/multipart \
+  @fastify/static @fastify/multipart @fastify/cookie \
   fastify \
   zod \
   @nestjs/throttler \
@@ -111,6 +112,7 @@ EOF
     #@types/node \
     #@types/express \
   run_suexec ${USER_ID} ${GROUP_ID} pnpm add -D \
+    tsx \
     typescript@npm:@typescript/typescript6 \
     @types/passport \
     @types/passport-jwt \
@@ -127,6 +129,11 @@ EOF
     cd ${NESTJS_DIR}
     run_suexec ${USER_ID} ${GROUP_ID} cp -r /app/saves/* ./ || true
   fi
+
+  cd ${NESTJS_DIR}
+  run_suexec ${USER_ID} ${GROUP_ID} pnpm drizzle-kit push
+  # Need to insert atleast 1 admin user automatically
+
 fi
 
 if [ ! -d "${NESTJS_DIR}/node_modules" ] || [ -z "$(ls -A ${NESTJS_DIR}/node_modules)" ]; then
@@ -140,6 +147,7 @@ chown -R ${USER_ID}:${GROUP_ID} /transcend_storage
 
 cd ${NESTJS_DIR}
 run_suexec ${USER_ID} ${GROUP_ID} pnpm drizzle-kit push
+run_suexec ${USER_ID} ${GROUP_ID} pnpm tsx "src/drizzle/seed.ts"
 if [ "${USER_ID}" -ne 0 ]; then
   exec su-exec "${USER_ID}:${GROUP_ID}" "$@"
 else

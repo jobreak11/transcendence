@@ -33,6 +33,12 @@ export class UserService {
   )
   {}
 
+
+  async allUserCount() {
+    const res = await this.db.$count(users);
+    return res;
+  }
+
   async updateHashedRefreshToken(userId: string, hashedRefreshToken: string | null): Promise<UserAndProfileDto>{
 
     try {
@@ -45,6 +51,7 @@ export class UserService {
           .returning();
 
         if (!updateUser) {
+          this.logger.error(`update user id ${userId} not found`);
           tx.rollback();
           throw new Error(`user id ${userId} not found`)
         }
@@ -56,6 +63,7 @@ export class UserService {
         })
 
         if (!userProfile) {
+          this.logger.error(`user profile ${userId} not found`)
           throw new Error(`user id ${userId} not found`)
         }
 
@@ -68,6 +76,11 @@ export class UserService {
 
       return res
     } catch (error: any) {
+      this.logger.error({
+        message: "error from updateHashedRefreshToken",
+        error: error
+      })
+
       throw new NotFoundException("user not found")
     }
   }

@@ -34,15 +34,15 @@ TRANSCENDENCE_NGINX_CONF_PATH="/etc/nginx/conf.d/default.conf"
 
 # now modifying the nginx configuration file
 sed -i -E -e "s|^([[:space:]]+)ssl_certificate[[:space:]]+.*;$|\1ssl_certificate ${CERT_DIR}/server.crt;|" \
-	-e "s|^([[:space:]]+)ssl_certificate_key[[:space:]]+.*;$|\1ssl_certificate_key ${CERT_DIR}/server.key;|" \
-	-e "s|^([[:space:]]+)listen[[:space:]]+[0-9]+[[:space:]]ssl;$|\1listen ${TRANSCENDENCE_NGINX_EXPOSE_PORT} ssl;|" \
-	-e "s|^([[:space:]]+)listen[[:space:]]+\[\:\:\]\:[0-9]+[[:space:]]ssl;$|\1listen [::]:${TRANSCENDENCE_NGINX_EXPOSE_PORT} ssl;|" \
-  -e "s|^([[:space:]]+)proxy_pass[[:space:]]+http://nextjs.*;$|\1proxy_pass http://nextjs:${NEXTJS_PORT};|" \
-  -e "s|^([[:space:]]+)proxy_pass[[:space:]]+http://nestjs.*;$|\1proxy_pass http://nestjs:${NESTJS_PORT};|" \
-  -e "s|^([[:space:]]+)proxy_pass[[:space:]]+http://dozzle.*;$|\1proxy_pass http://dozzle:${DOZZLE_PORT};|" \
-  -e "s|^([[:space:]]+)proxy_pass[[:space:]]+http://redisinsight.*;$|\1proxy_pass http://redisinsight:${REDIS_INSIGHT_PORT};|" \
+  -e "s|^([[:space:]]+)ssl_certificate_key[[:space:]]+.*;$|\1ssl_certificate_key ${CERT_DIR}/server.key;|" \
+  -e "s|^([[:space:]]+)listen[[:space:]]+[0-9]+[[:space:]]ssl;$|\1listen ${TRANSCENDENCE_NGINX_EXPOSE_PORT} ssl;|" \
+  -e "s|^([[:space:]]+)listen[[:space:]]+\[\:\:\]\:[0-9]+[[:space:]]ssl;$|\1listen [::]:${TRANSCENDENCE_NGINX_EXPOSE_PORT} ssl;|" \
+  -e "s|^([[:space:]]+)proxy_pass[[:space:]]+http://nextjs:[0-9]+(.*);$|\1proxy_pass http://nextjs:${NEXTJS_PORT}\2;|" \
+  -e "s|^([[:space:]]+)proxy_pass[[:space:]]+http://nestjs:[0-9]+(.*);$|\1proxy_pass http://nestjs:${NESTJS_PORT}\2;|" \
+  -e "s|^([[:space:]]+)proxy_pass[[:space:]]+http://dozzle:[0-9]+(.*);$|\1proxy_pass http://dozzle:${DOZZLE_PORT}\2;|" \
+  -e "s|^([[:space:]]+)proxy_pass[[:space:]]+http://redis-commander:[0-9]+(.*);$|\1proxy_pass http://redis-commander:${REDIS_INSIGHT_PORT}\2;|" \
   -e "s|^([[:space:]]+)server_name[[:space:]]+.*;$|\1server_name ${NGINX_DOMAIN_NAME_TRANSC};|" \
-	"${TRANSCENDENCE_NGINX_CONF_PATH}"
+  "${TRANSCENDENCE_NGINX_CONF_PATH}"
 
 touch "${TRANSCENDENCE_INIT_FILE}"
 

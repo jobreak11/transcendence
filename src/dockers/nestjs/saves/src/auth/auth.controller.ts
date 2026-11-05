@@ -18,6 +18,9 @@ import { UserThrottlerGuard } from './guards/user-throttler/user-throttler.guard
 import { ZodValidationPipe } from '../pipes/ZodValidationPipe.js';
 import { UserRedisService } from '../redis/user-redis/user-redis.service.js';
 import { HttpAllExceptionsFilter } from '../filters/HttpAllExceptionsFilter.js';
+import { RolesGuard } from './guards/roles/roles.guard.js';
+import { Roles } from './decorators/roles.decorators.js';
+import { Role } from './enums/role.enum.js';
 
 @ApiTags('Authentication')
 @UseFilters(HttpAllExceptionsFilter)
@@ -29,10 +32,19 @@ export class AuthController {
   ) {}
 
 
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Get('check')
   @UseGuards(JwtAuthGuard, UserThrottlerGuard)
   async authCheck(@Req() req: any) {
+
+  }
+
+  // internal user for nginx
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Get('internal/admin/check')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  adminAuthCheck(@Req() req: any) {
 
   }
 

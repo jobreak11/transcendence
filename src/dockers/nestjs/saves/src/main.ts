@@ -5,6 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { NestFastifyApplication, FastifyAdapter } from "@nestjs/platform-fastify"
 import fastifyMultipart from "@fastify/multipart"
 import { GLOBAL_LIMIT_FASTIFY_MULTIPART_FILE_FIELD_MAX, GLOBAL_LIMIT_FASTIFY_MULTIPART_FILESIZE_LIMIT } from './constant.js';
+import fastifyCookie from "@fastify/cookie"
 
 async function bootstrap() {
 
@@ -18,6 +19,7 @@ async function bootstrap() {
   //  transform: true,
   //  whitelist: true
   //}))
+  app.register(fastifyCookie);
 
   app.register(fastifyMultipart, {
     limits: {
@@ -30,7 +32,7 @@ async function bootstrap() {
     .setTitle('Backend API')
     .setDescription('NestJS Core API Documention')
     .setVersion('1.0')
-    .addServer('/nestjs', 'Relative Base Path')
+    .addServer('/admin', 'Relative Base Path')
     .addBearerAuth()
     .build()
 
@@ -41,7 +43,7 @@ async function bootstrap() {
   });
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-docs', app, document);
+  SwaggerModule.setup('admin/api-docs', app, document);
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 bootstrap();

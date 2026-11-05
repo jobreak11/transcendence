@@ -32,6 +32,8 @@ services:
     networks:
       - transcendence-network
     environment:
+      TRANSCENDENCE_ADMIN_USER_EMAIL: ${TRANSCENDENCE_ADMIN_USER_EMAIL}
+      TRANSCENDENCE_ADMIN_PASSWORD_SECRET_FILE: /run/secrets/admin-password
       PORT: ${NESTJS_EXPOSE_PORT}
       POSTGRES_PASSWORD_FILE: /run/secrets/db-password
       NESTJS_JWT_SECRET_FILE: /run/secrets/jwt-key
@@ -70,6 +72,7 @@ services:
       - db-password
       - jwt-key
       - jwt-refresh-key
+      - admin-password
 
 
 # nextjs frontend
@@ -172,7 +175,7 @@ services:
     restart: unless-stopped
     environment:
       DOZZLE_ADDR: ":${DOZZLE_EXPOSE_PORT}"
-      DOZZLE_BASE: /dozzle
+      DOZZLE_BASE: /admin/dozzle
     networks:
       - transcendence-network
     volumes:
@@ -191,6 +194,8 @@ volumes:
   shared_storage:
 
 secrets:
+  admin-password:
+    file: ./secrets/${TRANSCENDENCE_ADMIN_PASSWORD_SECRET_FILENAME}
   db-password:
     file: ./secrets/${POSTGRES_DB_PASSWORD_SECRET_FILENAME}
   jwt-key:

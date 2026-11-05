@@ -98,7 +98,7 @@ export interface paths {
         patch: operations["UserController_update"];
         trace?: never;
     };
-    "/user/{id}": {
+    "/user/delete": {
         parameters: {
             query?: never;
             header?: never;
@@ -286,6 +286,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["AuthController_authCheck"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/internal/admin/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AuthController_adminAuthCheck"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1119,12 +1135,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a1a6de-66a1-7514-b04c-21c2d934b376
+             * @example 01a1ac91-01c0-7050-a9c4-31ed5b7f1e06
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a1a6de-66a3-7692-bb4e-d69288e00e10
+             * @example 01a1ac91-01c2-77d8-bb24-e1d15549a817
              */
             chatRoomId: string;
             /**
@@ -1210,7 +1226,7 @@ export interface components {
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1a6de-66c3-75b8-b779-b7419e922afc
+             * @example 01a1ac91-01e1-73e6-b99e-dd6f6664a189
              */
             gameRoomId: string | null;
             /**
@@ -1299,7 +1315,7 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1a6de-66c3-75b8-b779-b7419e922afc
+             * @example 01a1ac91-01e1-73e6-b99e-dd6f6664a189
              */
             gameRoomId: string | null;
             /**
@@ -1537,11 +1553,11 @@ export interface operations {
     };
     UserController_remove: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
+            query: {
+                userId: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -1762,7 +1778,24 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AuthController_adminAuthCheck: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
