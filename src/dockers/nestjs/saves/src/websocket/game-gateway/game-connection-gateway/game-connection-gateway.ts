@@ -59,7 +59,7 @@ export class GameConnectionGateway implements OnGatewayInit, OnGatewayConnection
 
     await this.gameConnectionGatewayService.addClientId(client.id, client.data.user);
 
-    this.logger.debug(`client User ID: ${client.data.user} joined the main user private room`);
+    this.logger.debug(`client User ID: ${client.data.user} joined the GAME user private room`);
   }
 
   async handleDisconnect(client: Socket) {

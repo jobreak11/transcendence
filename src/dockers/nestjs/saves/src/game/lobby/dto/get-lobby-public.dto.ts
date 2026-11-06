@@ -4,9 +4,14 @@ import { LobbyDetailsDto } from "../../../redis/lobby-redis/dtos/lobby-details.d
 import { LobbyGameSettingsDto } from "../../../redis/lobby-redis/dtos/lobby-gameSettings.dto.js";
 import { LobbyGeneralSettingsDto } from "../../../redis/lobby-redis/dtos/lobby-generalSettings.dto.js";
 
-class LobbyGeneralSettingsPublicDto extends IntersectionType (
+export class LobbyGeneralSettingsPublicDto extends IntersectionType (
   OmitType(LobbyGeneralSettingsDto, ['password'] as const)
 ) {
+
+  @ApiProperty({
+    description: "whether this lobby require password or not"
+  })
+  hasPassword: boolean;
 
 }
 

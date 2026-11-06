@@ -779,6 +779,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/game/lobby": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["LobbyController_oneLobby"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1103,12 +1119,20 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
+<<<<<<< HEAD
              * @example 01a1afe5-e304-77f8-8b8d-45cc90264621
+=======
+             * @example 01a1a6de-66a1-7514-b04c-21c2d934b376
+>>>>>>> origin/srussame-feature-branch
              */
             userId: string;
             /**
              * @description chat room uuid
+<<<<<<< HEAD
              * @example 01a1afe5-e30a-747c-b079-9749160d3f69
+=======
+             * @example 01a1a6de-66a3-7692-bb4e-d69288e00e10
+>>>>>>> origin/srussame-feature-branch
              */
             chatRoomId: string;
             /**
@@ -1194,7 +1218,11 @@ export interface components {
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
+<<<<<<< HEAD
              * @example 01a1afe5-e381-779f-ad1f-018fa949869b
+=======
+             * @example 01a1a6de-66c3-75b8-b779-b7419e922afc
+>>>>>>> origin/srussame-feature-branch
              */
             gameRoomId: string | null;
             /**
@@ -1283,7 +1311,11 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
+<<<<<<< HEAD
              * @example 01a1afe5-e381-779f-ad1f-018fa949869b
+=======
+             * @example 01a1a6de-66c3-75b8-b779-b7419e922afc
+>>>>>>> origin/srussame-feature-branch
              */
             gameRoomId: string | null;
             /**
@@ -1322,6 +1354,8 @@ export interface components {
              * @enum {string}
              */
             roomType: "PUBLIC" | "PRIVATE";
+            /** @description whether this lobby require password or not */
+            hasPassword: boolean;
         };
         GetLobbyPublicDto: {
             details: components["schemas"]["LobbyDetailsPublicDto"];
@@ -2343,6 +2377,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LobbyDto"];
+                };
+            };
+        };
+    };
+    LobbyController_oneLobby: {
+        parameters: {
+            query: {
+                lobbyPinId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetLobbyPublicDto"];
                 };
             };
         };

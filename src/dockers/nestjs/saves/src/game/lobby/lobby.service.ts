@@ -115,6 +115,8 @@ export class LobbyService implements OnModuleInit {
     lobbyPassword?: string, 
   ) {
 
+    this.logger.debug("joinLobby called");
+
     return this.lobbyRedisService.lobbyUserJoin(
       toJoinUserId,
       lobbyPinId,

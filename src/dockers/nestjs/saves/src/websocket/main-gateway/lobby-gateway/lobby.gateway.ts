@@ -1,4 +1,4 @@
-import { Logger, UseFilters } from "@nestjs/common";
+import { Logger, UseFilters, UseGuards } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { WsAllExceptionsFilter } from "../../filters/WsAllExceptionsFilter.js";
