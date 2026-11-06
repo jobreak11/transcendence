@@ -67,6 +67,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   ) {
     try {
 
+      this.logger.debug({
+        message: `received ${event_game_start.to_server()}`
+      });
+
       const [lobbyData, isUserInLobby] = await Promise.all([
         this.lobbyRedisService.getLobbyFull(body.tableSessionId),
         this.userRedisService.isUserInLobby(client.data.user, body.tableSessionId)
