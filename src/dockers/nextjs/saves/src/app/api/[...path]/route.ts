@@ -9,11 +9,15 @@ const allowedPaths = new Set([
   '/hello',
 
   // user api
-  '/user',
   '/user/profile',
   '/user/profile/uploadProfilePic',
   '/user/update',
+  '/user/setRole',
+  '/user/create',
   '/user/delete',
+  '/user',
+  '/user/totalCount',
+
 
   // title api
   '/title',

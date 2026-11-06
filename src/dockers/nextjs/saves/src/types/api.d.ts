@@ -24,23 +24,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/user": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Register a new user account */
-        post: operations["UserController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/user/profile": {
         parameters: {
             query?: never;
@@ -98,6 +81,43 @@ export interface paths {
         patch: operations["UserController_update"];
         trace?: never;
     };
+    "/user/setRole": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** set the role of the user */
+        post: operations["UserController_setUserRole"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register a new user account
+         * @description register new user api for ADMIN role
+         */
+        post: operations["UserController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/user/delete": {
         parameters: {
             query?: never;
@@ -113,6 +133,42 @@ export interface paths {
          * @description takes access_token from Authorization: Bearer header     and allow only role ADMIN and EDITOR to delete user
          */
         delete: operations["UserController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * get multiple user info
+         * @description for ADMIN AND EDITOR
+         */
+        get: operations["UserController_getBatchUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/totalCount": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["UserController_totalUserCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -815,34 +871,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        CreateUserDto: {
-            /**
-             * @description the email of the user
-             * @example user@example.com
-             */
-            email: string;
-            /**
-             * @description the hashed password of the user
-             * @example SecurePassword123
-             */
-            password: string;
-            /**
-             * @description the display name of the user
-             * @example InwZa007
-             */
-            displayName?: string | null;
-            /** @description The url to the profile image of the user */
-            avatarUrl?: string | null;
-        };
-        UnauthorizedErrorDto: {
-            /**
-             * @description Http error status code
-             * @example 401
-             */
-            statusCode: number;
-            /** @example Unauthorized */
-            message: string;
-        };
         UserProfileBase: {
             /**
              * @description the display name of the user
@@ -904,6 +932,15 @@ export interface components {
             /** @description the profile details of the user */
             user_profile: components["schemas"]["UserProfileBase"];
         };
+        UnauthorizedErrorDto: {
+            /**
+             * @description Http error status code
+             * @example 401
+             */
+            statusCode: number;
+            /** @example Unauthorized */
+            message: string;
+        };
         BaseUserProfileDto: {
             /**
              * @description the display name of the user
@@ -943,6 +980,117 @@ export interface components {
             password?: string;
             /** @description the user profile details */
             user_profile?: components["schemas"]["BaseUserProfileDto"];
+        };
+        UserSetRoleDto: {
+            /** @description target user id to set role */
+            userId: string;
+            /**
+             * @description target role to set
+             * @enum {string}
+             */
+            newRole: "ADMIN" | "EDITOR" | "USER";
+        };
+        UserProfileDto: {
+            /**
+             * @description the id of the user
+             * @example xxxx-x-x-xx-xxx
+             */
+            userId: string;
+            /**
+             * @description the display name of the user
+             * @example InwZa007
+             */
+            displayName: string | null;
+            /** @description The url to the profile image of the user */
+            avatarUrl: string | null;
+            /**
+             * @description The pronoun of the user
+             * @example they/them
+             * @enum {string|null}
+             */
+            pronoun: "he/him" | "she/her" | "they/them" | "prefer not to say" | null;
+            /**
+             * @description signature is like something the user want to say in a form of small message in their profile
+             * @example I'm popeye popsiam USA.
+             */
+            signature: string | null;
+            /**
+             * @description title user wants to show on their profile
+             * @example God-Like win streaks
+             */
+            activeTitleId: string | null;
+            /**
+             * @description The card theme user will use
+             * @example STANDARD
+             * @enum {string}
+             */
+            cardTheme: "STANDARD" | "FANTASY";
+        };
+        UserAndProfileDto: {
+            /**
+             * @description the uuid main id for user table
+             * @example 01a105d0-bf8f-758a-a1ab-cf9098fded20
+             */
+            id: string;
+            /**
+             * @description tag id of user
+             * @example YYMMDD_0000
+             */
+            tagId: string;
+            /**
+             * @description the email of the user
+             * @example user@example.com
+             */
+            email: string;
+            /**
+             * @description the hashed password of the user
+             * @example SecurePassword123
+             */
+            password: string;
+            /**
+             * @description The role of the user
+             * @example USER
+             * @enum {string}
+             */
+            role: "ADMIN" | "EDITOR" | "USER";
+            /**
+             * @description the refresh token of the user
+             * @example asdflkaeflkasdflkasf
+             */
+            hashedRefreshToken: string | null;
+            /**
+             * Format: date-time
+             * @description The time and date that this user was created
+             */
+            createdAt: string;
+            /** @description the profile details of the user */
+            user_profile: components["schemas"]["UserProfileDto"] | null;
+        };
+        CreateUserDto: {
+            /**
+             * @description the email of the user
+             * @example user@example.com
+             */
+            email: string;
+            /**
+             * @description the hashed password of the user
+             * @example SecurePassword123
+             */
+            password: string;
+            /**
+             * @description the display name of the user
+             * @example InwZa007
+             */
+            displayName?: string | null;
+            /** @description The url to the profile image of the user */
+            avatarUrl?: string | null;
+        };
+        GetUserTotalCountDto: {
+            /**
+             * @description the total amount of user
+             * @example 100
+             */
+            totalUserCount: number;
         };
         TitleDto: {
             /**
@@ -1135,12 +1283,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a1ac91-01c0-7050-a9c4-31ed5b7f1e06
+             * @example 01a1b193-6668-776f-a6de-c8678da88f77
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a1ac91-01c2-77d8-bb24-e1d15549a817
+             * @example 01a1b193-666a-7649-a98c-d6e3cb3621f9
              */
             chatRoomId: string;
             /**
@@ -1226,7 +1374,7 @@ export interface components {
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1ac91-01e1-73e6-b99e-dd6f6664a189
+             * @example 01a1b193-6688-7230-ba37-b250838fc1ab
              */
             gameRoomId: string | null;
             /**
@@ -1315,7 +1463,7 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1ac91-01e1-73e6-b99e-dd6f6664a189
+             * @example 01a1b193-6688-7230-ba37-b250838fc1ab
              */
             gameRoomId: string | null;
             /**
@@ -1429,37 +1577,6 @@ export interface operations {
             };
         };
     };
-    UserController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateUserDto"];
-            };
-        };
-        responses: {
-            /** @description User created successfully */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description validation failed. */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
-                };
-            };
-        };
-    };
     UserController_getProfile: {
         parameters: {
             query?: {
@@ -1551,6 +1668,60 @@ export interface operations {
             };
         };
     };
+    UserController_setUserRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserSetRoleDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserAndProfileDto"];
+                };
+            };
+        };
+    };
+    UserController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUserDto"];
+            };
+        };
+        responses: {
+            /** @description User created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description validation failed. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
+                };
+            };
+        };
+    };
     UserController_remove: {
         parameters: {
             query: {
@@ -1584,6 +1755,47 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    UserController_getBatchUsers: {
+        parameters: {
+            query: {
+                limit: number;
+                offset: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserAndProfileDto"][];
+                };
+            };
+        };
+    };
+    UserController_totalUserCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetUserTotalCountDto"];
+                };
             };
         };
     };
