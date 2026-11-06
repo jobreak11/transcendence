@@ -9,3 +9,4 @@ export type ChatRoomDto = components['schemas']['ChatRoomDto'];
 export type ChatMessageDto = components['schemas']['ChatMessageDto'];
 
 export type UpdateUserDto = components['schemas']['UpdateUserDto'];
+export type ChatRoomMemberDto = components['schemas']['ChatRoomMemberDto'];
