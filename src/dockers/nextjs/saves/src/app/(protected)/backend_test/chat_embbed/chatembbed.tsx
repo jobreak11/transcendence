@@ -6,6 +6,7 @@ import { FormEvent, useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import { useMainSocket } from '../../_context/useMainSocket';
 import { ChatMessageDto } from  '../../../../types/dto';
+import { ChatRoomMemberDto } from  '../../../../types/dto';
 
 
 export interface ChatRoom {
@@ -174,10 +175,11 @@ export function ChatEmbbed() {
         const data = await res.json();
         if (!Array.isArray(data)) return;
   
-        setRooms(data);
-        if (data.length > 0 && !activeSendRoomId) {
-          setActiveSendRoomId(data[0].id);
-        }
+        setRooms(prev => {
+            const publicRoom = prev.find(r => r.id === 'public');
+            const nonDmRooms = data.filter((r: any) => r.visibilityType !== 'DIRECT_MESSAGE' && r.id !== 'public');
+            return publicRoom ? [publicRoom, ...nonDmRooms] : data;
+        });
   
         // Fetch history for all joined rooms in parallel
         const unvisitedRooms = data.filter((r) => !loadedHistoryRooms.current.has(r.id));
@@ -219,7 +221,19 @@ export function ChatEmbbed() {
 
         if (roomId) {
             socket?.emit('newJoinChatRoom', { chatRoomId: roomId });
-            await loadRoomsAndHistory();
+            // await loadRoomsAndHistory();
+            setRooms((prev) => {
+                    // ถ้าแท็บเพื่อนคนนี้มีเปิดอยู่แล้ว ไม่ต้องทำอะไร
+                    if (prev.some((r) => r.id === roomId)) return prev;
+                    
+                    // ถ้ายังไม่มี ให้สร้างแท็บต่อท้าย
+                    return [...prev, {
+                        id: roomId,
+                        roomName: resolveFriendName(friendItem),
+                        visibilityType: 'DIRECT_MESSAGE',
+                        createdAt: new Date().toISOString()
+                    }];
+                });
 
             // If history hasn't been loaded for this DM room, fetch it
             if (!loadedHistoryRooms.current.has(roomId)) {
@@ -281,7 +295,7 @@ export function ChatEmbbed() {
     useEffect(() => {
         if (!socket || !isConnected) return;
 
-        const handleIncomingMessage = (payload: PublicChatMessagePayload) => {
+        const handleIncomingMessage = (payload: any) => {
             const d = payload.createdAt ? new Date(payload.createdAt) : new Date();
             const time = !isNaN(d.getTime())
                 ? d.toLocaleTimeString([], {
@@ -290,11 +304,13 @@ export function ChatEmbbed() {
                     second: '2-digit',
                 })
                 : '--:--:--';
+            const targetRoomId = payload.chatRoomId || 'public';
+            const roomData = roomsRef.current.find(r => r.id === targetRoomId);
             const newMsg: UnifiedMessage = {
-                id: publicMessageId(payload),
-                chatRoomId: 'public',
-                roomName: 'Global',
-                roomType: 'PUBLIC',
+                id: payload.id || `${targetRoomId}-${d.getTime()}` ,
+                chatRoomId: targetRoomId,
+                roomName: roomData?.roomName || (targetRoomId === 'public' ? 'Global' : 'DM'),
+                roomType: roomData?.visibilityType ||'PUBLIC',
                 senderUserId: payload.userId || 'System',
                 message: payload.messageText || '',
                 type: payload.type || 'USER_MESSAGE',
@@ -333,7 +349,7 @@ export function ChatEmbbed() {
         const messageText = inputText.trim();
         socket.emit(
             'main:chat:message:to_server',
-            { chatRoomId: null, messageText },
+            { chatRoomId: activeSendRoomId === 'public' ? null : activeSendRoomId, messageText },
             (payload: PublicChatMessagePayload) => {
                 if (!payload?.createdAt) return;
                 const d = new Date(payload.createdAt);
@@ -346,7 +362,7 @@ export function ChatEmbbed() {
                     : '--:--:--';
                 const acknowledgedMessage: UnifiedMessage = {
                     id: publicMessageId(payload),
-                    chatRoomId: 'public',
+                    chatRoomId: activeSendRoomId,
                     roomName: 'Global',
                     roomType: 'PUBLIC',
                     senderUserId: payload.userId || 'System',
@@ -396,18 +412,7 @@ export function ChatEmbbed() {
                     </div>
                     {/* Tab ด้านบน */}
                     <div className="flex-1 h-full flex items-center px-6 gap-4">
-                        {/* <button className="bg-black text-white px-6 py-2 rounded-md text-sm flex items-center gap-2">💬 Global</button> */}
-                        {/* <button
-                        type="button"
-                        onClick={() => setActiveFilter('ALL')}
-                        className={`px-3 py-1 border-r border-neutral-700 hover:bg-neutral-800 ${
-                            activeFilter === 'ALL'
-                            ? 'bg-neutral-800 text-white font-bold'
-                            : 'text-neutral-400'
-                        }`}
-                        >
-                        General
-                        </button> */}
+
 
                         {rooms.map((room) => {
                             const isCurrent = activeFilter === room.id;
@@ -422,7 +427,22 @@ export function ChatEmbbed() {
                                 }}
                                 className={`${isCurrent ? 'bg-black text-white' : 'bg-[#B23441]/70 text-white/80'} px-6 py-2 rounded-md text-sm`}
                             >
-                                [{name}] {isTarget && '*'}
+                                [{name}] {isTarget && '* '}
+                                
+                            {
+                                room.id !== 'public' && (<button
+                                    type="button"
+                                    onClick={(e) => {
+                                            e.stopPropagation();
+                                            setRooms(prev => prev.filter(r => r.id !== room.id));
+                                            if (isCurrent) {
+                                                setActiveFilter('public');
+                                                setActiveSendRoomId('public');
+                                            }
+                                        }}
+                                    className="px-2 py-1 text-neutral-500 hover:text-neutral-200 hover:bg-neutral-800 border-l border-neutral-700 text-[11px]"
+                                    >✕</button>)
+                            }
                             </button>);
                         })}
                     </div>
@@ -476,7 +496,9 @@ export function ChatEmbbed() {
                             {/* ปุ่ม Global */}
                             <select 
                                 value={activeSendRoomId}
-                                onChange={(e) => setActiveSendRoomId(e.target.value)}
+                                onChange={(e) => {
+                                        setActiveSendRoomId(e.target.value);
+                                        setActiveFilter(e.target.value);}}
                                 className="bg-[#111111] text-white/60 text-sm px-4 py-3 rounded-lg border border-white/10 flex items-center gap-2">
                                 {rooms.map((room) => (
                                     <option key={room.id} value={room.id}>
@@ -551,22 +573,23 @@ export function ChatEmbbed() {
                                     const friendName = resolveFriendName(friend);
                                      const isResolving = loadingDmTarget === friendUserId;
                                     return (
-                                     <div className="flex items-center gap-3 hover:bg-neutral-900 hover:text-neutral-200 disabled:opacity-50 p-1 rounded-md" >
-                                        <div className="w-8 h-8 rounded-full bg-[#123928] flex items-center justify-center text-white text-[10px] font-bold">NC</div>
+                                    //  <div className="flex items-center gap-3 hover:bg-neutral-900 hover:text-neutral-200 disabled:opacity-50 p-1 rounded-md" >
                                         <button
                                             key={friend.id || friendUserId || idx}
                                             type="button"
                                             disabled={isResolving || !friendUserId}
-                                        className='flex items-center gap-3 '
+                                            // className='flex items-center gap-3 '
+                                            className="w-full flex items-center gap-3 hover:bg-neutral-900 hover:text-neutral-200 disabled:opacity-50 p-1 rounded-md text-left"
                                             // className="w-full text-left px-1.5 py-0.5 flex items-center justify-between text-[11px] text-neutral-400 hover:bg-neutral-900 hover:text-neutral-200 disabled:opacity-50"
                                             title={`Click to DM ${friendName}`}
                                             onClick={() => handleDirectMessageUser(friend)}
                                         >
+                                            <div className="w-8 h-8 rounded-full bg-[#123928] flex items-center justify-center text-white text-[10px] font-bold">NC</div>
                                             <span className="truncate">{friendName}</span>
                                             <span className="text-[10px] text-fuchsia-400 ml-1">
                                             </span>
                                         </button>
-                                    </div>
+                                    
                                     );
                                     })
                                 }
