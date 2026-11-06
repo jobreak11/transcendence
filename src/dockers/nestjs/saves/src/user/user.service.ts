@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, HttpStatus, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto, UpdateUserResponseDto, updateUserSchema } from './dto/update-user.dto.js';
 // import { InjectRepository } from '@nestjs/typeorm';
@@ -19,6 +19,10 @@ import { UserRedisService } from '../redis/user-redis/user-redis.service.js';
 import { UserAndProfileDto } from './dto/user-and-profile.dto.js';
 import { DRIZZLE } from '../drizzle/drizzle.module.js';
 import { UserCachingService } from '../redis/caching/user-caching/user-caching.service.js';
+import { GetUserProfileDto } from './dto/get-user-profile.dto.js';
+import { Role } from '../auth/enums/role.enum.js';
+import { errorCodes } from 'fastify';
+import { errorWithCode } from '../utility/errorWithCode.js';
 
 @Injectable()
 export class UserService {
@@ -32,6 +36,42 @@ export class UserService {
     private readonly titleService: TitleService,
   )
   {}
+
+  async setRole(userId: string, newRole: Role) {
+    // // check if user exist it will throw if not exist
+    // const user = await this.findOne(userId);
+
+    const [result] = await this.db.update(users)
+      .set({
+        role: newRole
+      })
+      .where(eq(users.id, userId))
+      .returning()
+
+    if (!result) {
+      throw errorWithCode(
+        HttpStatus.NOT_FOUND,
+        "user to set role is not found"
+      )
+    }
+
+    return this.findOne(userId);
+    
+  }
+
+  async getUsers(limit: number, offset: number): Promise<UserAndProfileDto[]> {
+
+    const res = await this.db.query.users.findMany({
+      with: {
+        user_profile: true
+      },
+      limit: limit,
+      offset: offset
+    })
+
+    return res 
+
+  }
 
 
   async allUserCount() {

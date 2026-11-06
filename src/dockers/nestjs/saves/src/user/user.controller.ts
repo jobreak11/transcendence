@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotImplementedException, SetMetadata, HttpCode, HttpStatus, ParseIntPipe, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, BadRequestException, PayloadTooLargeException, Query, InternalServerErrorException, Logger, UseFilters, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotImplementedException, SetMetadata, HttpCode, HttpStatus, ParseIntPipe, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, BadRequestException, PayloadTooLargeException, Query, InternalServerErrorException, Logger, UseFilters, ParseUUIDPipe, ForbiddenException, ConflictException } from '@nestjs/common';
 import { UserService } from './user.service.js';
 import { CreateUserDto, createUserSchema } from './dto/create-user.dto.js';
 import { UpdateUserDto, updateUserSchema } from './dto/update-user.dto.js';
@@ -21,8 +21,10 @@ import { TitleService } from './title/title.service.js';
 import { ZodValidationPipe } from '../pipes/ZodValidationPipe.js';
 import z from 'zod';
 import { HttpAllExceptionsFilter } from '../filters/HttpAllExceptionsFilter.js';
-import { THROTTLER_USER_ALLCOUNT_LIMIT, THROTTLER_USER_ALLCOUNT_TTL, THROTTLER_USER_BATCH_LIMIT, THROTTLER_USER_BATCH_TTL } from './user.constants.js';
+import { THROTTLER_USER_ALLCOUNT_LIMIT, THROTTLER_USER_ALLCOUNT_TTL, THROTTLER_USER_BATCH_LIMIT, THROTTLER_USER_BATCH_TTL, THROTTLER_USER_SET_ROLE_LIMIT, THROTTLER_USER_SET_ROLE_TTL, USER_SERVICE_PAGE_LIMIT_MAX } from './user.constants.js';
 import { GetUserTotalCountDto } from './dto/get-user-count.dto.js';
+import { UserAndProfileDto } from './dto/user-and-profile.dto.js';
+import { UserSetRoleDto, userSetRoleSchema } from './dto/set-role-user.dto.js';
 
 @Controller('user')
 @UseFilters(HttpAllExceptionsFilter)
@@ -35,21 +37,6 @@ export class UserController {
     private readonly titleService: TitleService
   ) {}
 
-  @ApiOperation({
-    summary: 'Register a new user account',
-    description: `register new user api for ADMIN role`
-  })
-  @ApiResponse({status: 201, description: 'User created successfully'})
-  @ApiResponse({status: 401, description: 'validation failed.', type: UnauthorizedErrorDto})
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
-  @Post()
-  create(
-    @Req() req: any,
-    @Body(new ZodValidationPipe(createUserSchema)) createUserDto: CreateUserDto
-  ) {
-    return this.userService.create(createUserDto);
-  }
 
   @ApiBearerAuth()
   @ApiOperation({
@@ -269,6 +256,62 @@ export class UserController {
     throw new InternalServerErrorException("internal error");
 
   }
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  @ApiOperation({
+    summary: "set the role of the user"
+  })
+  @Roles(Role.ADMIN)
+  @Throttle({
+    default: {
+      limit : THROTTLER_USER_SET_ROLE_LIMIT,
+      ttl: THROTTLER_USER_SET_ROLE_TTL
+    }
+  })
+  @UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
+  @Post('setRole')
+  async setUserRole(
+    @Req() req: any,
+    @Body(new ZodValidationPipe(userSetRoleSchema)) body: UserSetRoleDto
+  ) {
+
+    const targetUser = await this.userService.findOne(body.userId);
+
+    if (targetUser.id === req.user.id) {
+      throw new ForbiddenException("cannot set new role for yourself")
+    }
+
+    return this.userService.setRole(body.userId, body.newRole);
+  }
+
+
+  @ApiOperation({
+    summary: 'Register a new user account',
+    description: `register new user api for ADMIN role`
+  })
+  @ApiResponse({status: 201, description: 'User created successfully'})
+  @ApiResponse({status: 401, description: 'validation failed.', type: UnauthorizedErrorDto})
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Post('create')
+  create(
+    @Req() req: any,
+    @Body(new ZodValidationPipe(createUserSchema)) createUserDto: CreateUserDto
+  ) {
+    return this.userService.create(createUserDto);
+  }
 
   @ApiOperation({
     summary: `Delete user from the database`,
@@ -289,10 +332,36 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @Roles(Role.EDITOR, Role.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Throttle({
+    default: {
+      ttl: 10_000,
+      limit: 20
+    }
+  })
+  @UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
   //@UseGuards(JwtAuthGuard)
   @Delete('delete')
-  remove(@Query('userId', ParseUUIDPipe) userId: string) {
+  async remove(
+    @Req() req: any,
+    @Query('userId', ParseUUIDPipe) userId: string
+  ) {
+
+    if (userId === req.user.id) {
+      throw new ConflictException("cannot delete youeself user");
+    }
+
+    const [user, removerUser] = await Promise.all([
+      this.userService.findOne(userId),
+      this.userService.findOne(req.user.id),
+    ])
+
+    if (removerUser.role !== Role.ADMIN && user.role !== Role.USER) {
+      // cannot remove
+
+      throw new ForbiddenException("only ADMIN can remove account role higher than user")
+    }
+
+    this.logger.debug(`api reached user id to remove is ${userId}`)
     return this.userService.remove(userId);
   }
 
@@ -300,7 +369,7 @@ export class UserController {
     summary: "get multiple user info",
     description: "for ADMIN AND EDITOR"
   })
-  @Get('batch')
+  @Get()
   @Throttle({
     default: {
       limit: THROTTLER_USER_BATCH_LIMIT,
@@ -311,10 +380,13 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
   getBatchUsers(
     @Req() req: any,
-    @Query('page') page: number,
-  ) {
-    
-
+    @Query('limit', ParseIntPipe) limit: number,
+    @Query('offset', ParseIntPipe) offset: number,
+  ): Promise<UserAndProfileDto[]> {
+    if (limit < 1 || offset < 0 || limit > USER_SERVICE_PAGE_LIMIT_MAX) {
+      throw new BadRequestException("invalid query values");
+    }
+    return this.userService.getUsers(limit, offset)
   }
 
   // count overall user
@@ -330,6 +402,7 @@ export class UserController {
   async totalUserCount(
     @Req() req:any,
   ): Promise<GetUserTotalCountDto> {
+
     const total = await this.userService.allUserCount();
 
     return {
