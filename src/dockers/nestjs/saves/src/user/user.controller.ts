@@ -287,12 +287,24 @@ export class UserController {
     @Body(new ZodValidationPipe(userSetRoleSchema)) body: UserSetRoleDto
   ) {
 
+    // Rules
+
+    // 1. you cannot change the role of yourself
+    if (req.user.id === body.userId) {
+      throw new ForbiddenException("cannot set new role for yourself")
+    }
+
+    // cannot set other role to admin
+    if (body.newRole === Role.ADMIN) {
+      throw new ForbiddenException("cannot set other user to admin, should have only one admin")
+    }
+
     const targetUser = await this.userService.findOne(body.userId);
     const setterUser = await this.userService.findOne(req.user.id);
 
-    if (targetUser.id === req.user.id) {
-      throw new ForbiddenException("cannot set new role for yourself")
-    }
+    // ADMIN
+    // EDITOR ( aka dev )
+    // USER
 
     return this.userService.setRole(body.userId, body.newRole);
   }

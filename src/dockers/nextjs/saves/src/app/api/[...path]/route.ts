@@ -31,6 +31,7 @@ const allowedPaths = new Set([
 
   //auth api
   '/auth/check',
+  '/auth/admin/check',
   '/auth/signup',
   '/auth/login',
   '/auth/refresh',

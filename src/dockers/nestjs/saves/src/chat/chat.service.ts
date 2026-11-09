@@ -44,6 +44,7 @@ export class ChatService {
 
   async isUserInRoom(chatRoomId: string, userId: string) {
 
+
     const isTemp = await this.isChatRoomTemporary(chatRoomId);
 
     if (isTemp) {
@@ -182,10 +183,10 @@ export class ChatService {
       }
     });
 
-    if (res1 === undefined) {
+    if (!res1) {
       const res2 = await this.chatRedisService.findChatRoom(chatRoomId);
 
-      if (res2 === null) {
+      if (!res2) {
         throw errorWithCode(
           HttpStatus.NOT_FOUND,
           "chat room not found"
