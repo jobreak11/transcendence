@@ -21,6 +21,7 @@ import { HttpAllExceptionsFilter } from '../filters/HttpAllExceptionsFilter.js';
 import { RolesGuard } from './guards/roles/roles.guard.js';
 import { Roles } from './decorators/roles.decorators.js';
 import { Role } from './enums/role.enum.js';
+import { THROTTLER_AUTH_ADMIN_CHECK_LIMIT, THROTTLER_AUTH_ADMIN_CHECK_TTL } from './auth.constants.js';
 
 @ApiTags('Authentication')
 @UseFilters(HttpAllExceptionsFilter)
@@ -43,6 +44,20 @@ export class AuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Get('internal/admin/check')
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  internalAdminAuthCheck(@Req() req: any) {
+
+  }
+
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Get('admin/check')
+  @UseGuards(ThrottlerGuard, JwtAuthGuard, RolesGuard)
+  @Throttle({
+    default: {
+      limit: THROTTLER_AUTH_ADMIN_CHECK_LIMIT,
+      ttl: THROTTLER_AUTH_ADMIN_CHECK_TTL
+    }
+  })
   @Roles(Role.ADMIN)
   adminAuthCheck(@Req() req: any) {
 

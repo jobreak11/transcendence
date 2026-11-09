@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, InternalServerErrorException, ParseUUIDPipe, Post, Query, Req, UseFilters, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, InternalServerErrorException, Logger, ParseUUIDPipe, Post, Query, Req, UseFilters, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth/jwt-auth.guard.js';
 import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { ZodValidationPipe } from '../pipes/ZodValidationPipe.js';
@@ -27,6 +27,8 @@ import { HttpAllExceptionsFilter } from '../filters/HttpAllExceptionsFilter.js';
 @Controller('chat')
 export class ChatController {
 
+  private readonly logger = new Logger(ChatController.name);
+
   constructor(
     private readonly chatService: ChatService
   ) {}
@@ -43,7 +45,7 @@ export class ChatController {
   }
 
   @Post('dm')
-  dmUser(@Req() req:any, @Query('targetUserId') targetUserId:string) {
+  dmUser(@Req() req:any, @Query('targetUserId', ParseUUIDPipe) targetUserId:string) {
 
     try {
 
