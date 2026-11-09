@@ -288,6 +288,7 @@ export class UserController {
   ) {
 
     const targetUser = await this.userService.findOne(body.userId);
+    const setterUser = await this.userService.findOne(req.user.id);
 
     if (targetUser.id === req.user.id) {
       throw new ForbiddenException("cannot set new role for yourself")

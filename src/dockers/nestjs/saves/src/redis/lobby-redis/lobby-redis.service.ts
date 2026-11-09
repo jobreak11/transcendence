@@ -166,7 +166,6 @@ export class LobbyRedisService implements OnModuleInit {
       `
     });
 
-
     await this.redis.defineCommand("lobbyRoomLeave", {
       numberOfKeys: 7,
       readOnly: false,
@@ -186,17 +185,15 @@ export class LobbyRedisService implements OnModuleInit {
           return 3
         end
 
-        if redis.call("SISMEMBER", allLobbyListKey, lobbyPinId) == 0 then
+        if redis.call('SISMEMBER', allLobbyListKey, lobbyPinId) == 0 then
           return 1
         end
 
-        local isUserHost
-        local hostUserId = redis.call('HGET', generalSettingsKey, 'hostUserId');
+        local isUserHost = 0
+        local hostUserId = redis.call('HGET', generalSettingsKey, 'hostUserId')
 
         if hostUserId and hostUserId == leaveUserId then
           isUserHost = 1
-        else
-          isUserHost = 0
         end
 
         local isSpectator = 0
@@ -205,47 +202,37 @@ export class LobbyRedisService implements OnModuleInit {
             return 2
           end
           isSpectator = 1
-        else
-          isSpectator = 0
         end
 
-        -- if player leave must be in waiting state
-        -- if spectator leave 
+        -- If player leaves, room must be in WAITING state
         local currentState = redis.call('HGET', lobbyDetailsKey, 'roomStatus')
         if currentState == 'UNAVAILABLE' then
           return 5
-        elseif isSpectator == 0 and currentLobbyStatus ~= 'WAITING' then
+        elseif isSpectator == 0 and currentState ~= 'WAITING' then
           return 6
         end
 
+        -- Remove lobby pin from user's active lobby list
+        redis.call('SREM', userLobbyListKey, lobbyPinId)
 
-        -- also remove the current user in game lobby
-        redis.call('SREM', userLobbyListKey, lobbyPinId);
-
-        -- get current member in lobby
+        -- Get current member counts
         local curPCount = tonumber(redis.call('ZCARD', playerMemberListKey))
         local curSCount = tonumber(redis.call('ZCARD', spectatorMemberListKey))
 
-        -- will destroy the lobby room if the room is empty
+        -- Destroy the lobby room if completely empty
         if curPCount <= 0 and curSCount <= 0 then
-          -- remove all related keys
-          redis.call('UNLINK', generalSettingsKey, gameSettingsKey, playerMemberListKey, spectatorMemberListKey)
-          redis.call('SREM', allLobbyListKey, lobbyPinId)
-
           return 4
         end
 
-        -- if the user that out from the room is the host, transfer the host to
-        -- the oldest member in the lobby room
+        -- If the leaving user was the host, transfer host to the oldest member (by score/timestamp)
         if isUserHost == 1 then
           local oldestPlayerMember = redis.call('ZRANGE', playerMemberListKey, 0, 0, 'WITHSCORES')
-
           local oldestSpectatorMember = redis.call('ZRANGE', spectatorMemberListKey, 0, 0, 'WITHSCORES')
 
           local newHostId = ''
           if oldestPlayerMember[1] and oldestSpectatorMember[1] then
-            local playerTimestamp = tonumber(oldestPlayerMember[1])
-            local spectatorTimestamp = tonumber(oldestSpectatorMember[1])
+            local playerTimestamp = tonumber(oldestPlayerMember[2])
+            local spectatorTimestamp = tonumber(oldestSpectatorMember[2])
             if playerTimestamp <= spectatorTimestamp then
               newHostId = oldestPlayerMember[1]
             else
@@ -258,7 +245,6 @@ export class LobbyRedisService implements OnModuleInit {
           end
 
           redis.call('HSET', generalSettingsKey, 'hostUserId', newHostId)
-
           return newHostId
         end
 
