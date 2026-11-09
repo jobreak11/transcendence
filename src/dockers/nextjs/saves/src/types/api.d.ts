@@ -357,6 +357,22 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        get: operations["AuthController_internalAdminAuthCheck"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/admin/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
         get: operations["AuthController_adminAuthCheck"];
         put?: never;
         post?: never;
@@ -1283,12 +1299,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a1bf43-c163-7691-9344-7b8f013086ee
+             * @example 01a1c06a-1682-725e-a474-932ef108e2f3
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a1bf43-c165-76b7-8973-6ea2df9c817b
+             * @example 01a1c06a-1684-746e-acc4-282ce8143142
              */
             chatRoomId: string;
             /**
@@ -1374,7 +1390,7 @@ export interface components {
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1bf43-c189-7074-981e-f4441efdd75b
+             * @example 01a1c06a-16b2-778e-a8bc-9e2da46d1c8a
              */
             gameRoomId: string | null;
             /**
@@ -1463,7 +1479,7 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1bf43-c189-7074-981e-f4441efdd75b
+             * @example 01a1c06a-16b2-778e-a8bc-9e2da46d1c8a
              */
             gameRoomId: string | null;
             /**
@@ -1982,6 +1998,23 @@ export interface operations {
         };
     };
     AuthController_authCheck: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AuthController_internalAdminAuthCheck: {
         parameters: {
             query?: never;
             header?: never;

@@ -67,7 +67,7 @@ export class ChatController {
       if (!chatRoomId)
         throw new BadRequestException('chatRoomId query parameter is required');
 
-      const result = await this.chatService.isUserInRoom(req.user.id, chatRoomId);
+      const result = await this.chatService.isUserInRoom(chatRoomId, req.user.id);
 
       if (!result) {
         throw new ForbiddenException('User is not in the target chatroom');
