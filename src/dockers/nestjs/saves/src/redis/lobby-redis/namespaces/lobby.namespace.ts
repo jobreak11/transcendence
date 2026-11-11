@@ -14,7 +14,7 @@ export function redis_lobby_global_details_lobby_lists() {
 
 export function redis_lobby_all_keys(lobbyPinId: string): string[] {
   return [
-    redis_lobby_player_ready_list(lobbyPinId),
+    redis_lobby_ready_player_list(lobbyPinId),
     redis_lobby_details(lobbyPinId),
     redis_lobby_general_settings(lobbyPinId),
     redis_lobby_game_settings(lobbyPinId),
@@ -85,4 +85,3 @@ export function redis_lobby_player_ready_list(lobbyPinId: string) {
 //export function redis_lobby_chat_messages(lobbyPinId: string) {
 //  return `${redis_lobby_chat_namespace(lobbyPinId)}:messages`
 //}
-

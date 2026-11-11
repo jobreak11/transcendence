@@ -57,6 +57,12 @@ export interface EventGameFinishStateToClientDto {
   round: string;
   roundNumber: number;
   cycleComplete: boolean;
+  matchComplete: boolean;
+  playerPlaces: Record<string, number>;
+  playerNames?: Record<string, string>;
+  totalHandsPlayed: number;
+  matchStartedAt: string;
+  matchEndedAt?: string;
   poolCards: string[];
   pot: number;
   ante: number;
@@ -82,6 +88,13 @@ export const event_game_poker_state = {
   }
 }
 
+const event_game_poker_sync_namespace = `${event_game_poker_namespace()}:sync`
+export const event_game_poker_sync = {
+  to_server() {
+    return `${event_game_poker_sync_namespace}:to_server`
+  }
+}
+
 export interface EventGameActionToClientDto {
   playerId: string;
   actionType: ActionType;
@@ -96,4 +109,3 @@ export const event_game_poker_action = {
     return `${event_game_poker_action_namespace}:to_server`
   }
 }
-

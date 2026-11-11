@@ -2,11 +2,23 @@
 
 set -eu
 
-# health check script for checking the nextjs
-# server is actually running
+node -e '
+const net = require("node:net");
+const port = Number(process.env.PORT);
 
-if netstat -tulnp | grep -E -q ":${PORT}"; then
-  exit 0
-else
-  exit 1
-fi
+if (!Number.isInteger(port) || port < 1 || port > 65535) {
+  process.exit(1);
+}
+
+const socket = net.createConnection({ host: "127.0.0.1", port });
+socket.setTimeout(3000);
+socket.once("connect", () => {
+  socket.destroy();
+  process.exit(0);
+});
+socket.once("error", () => process.exit(1));
+socket.once("timeout", () => {
+  socket.destroy();
+  process.exit(1);
+});
+'

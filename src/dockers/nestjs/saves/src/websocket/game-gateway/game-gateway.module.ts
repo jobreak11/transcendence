@@ -6,9 +6,10 @@ import { GameConnectionGatewayModule } from "./game-connection-gateway/game-conn
 import { GameRedisModule } from "../../redis/game-redis/game-redis.module.js";
 import { UserRedisModule } from "../../redis/user-redis/user-redis.module.js";
 import { LobbyRedisModule } from "../../redis/lobby-redis/lobby-redis.module.js";
+import { UserModule } from "../../user/user.module.js";
 
 @Module({
-  imports: [GameConnectionGatewayModule, GameRedisModule, UserRedisModule],
+  imports: [GameConnectionGatewayModule, GameRedisModule, UserRedisModule, UserModule],
   providers: [GameGatewayService, GameGateway],
   exports: [GameGatewayService]
 })

@@ -4,19 +4,34 @@ export namespace LobbyEvent {
   const lobby_namespace = `${main_event_namespace}:lobby`
 
   export namespace ready {
-    const ready_namespace = `${lobby_namespace}:ready`
+    const ready_namespace = `${lobby_namespace}:user_ready`
     export namespace to_client {
       export const event_name = `${ready_namespace}:to_client`
 
       export interface payload {
-
+        lobbyPinId: string;
+        userId: string;
+        isReady: boolean;
+        createdAt: string;
       }
     }
     export namespace to_server {
       export const event_name = `${ready_namespace}:to_server`
 
       export interface payload {
+        lobbyPinId: string;
+      }
+    }
+  }
 
+  export namespace game_started {
+    const game_started_namespace = `${lobby_namespace}:game_started`
+    export namespace to_client {
+      export const event_name = `${game_started_namespace}:to_client`
+
+      export interface payload {
+        lobbyPinId: string;
+        tableSessionId: string;
       }
     }
   }

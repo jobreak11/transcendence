@@ -50,12 +50,12 @@ export class LobbyGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
   }
 
   @SubscribeMessage(event_main_lobby_user_ready.to_server())
-  userReady(
+  async userReady(
     @ConnectedSocket() client: Socket,
     @MessageBody(new WsZodValidationPipe(UserReadyToServerSchema)) body: UserReadyToServerDto
   ) {
 
-    this.lobbyGatewayService.userReady(client.data.user, body.lobbyPinId);
+    await this.lobbyGatewayService.userReady(client.data.user, body.lobbyPinId);
 
   }
 

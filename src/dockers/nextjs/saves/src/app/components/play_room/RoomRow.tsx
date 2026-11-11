@@ -4,10 +4,17 @@ import type { JoinRole, Room } from "../../../lib/types";
 
 type RoomRowProps = {
   room: Room;
+  isJoined: boolean;
   onJoin: (room: Room, role: JoinRole) => void;
+  onJumpIn: (room: Room) => void;
 };
 
-export default function RoomRow({ room, onJoin }: RoomRowProps) {
+export default function RoomRow({
+  room,
+  isJoined,
+  onJoin,
+  onJumpIn,
+}: RoomRowProps) {
   return (
     <div className="flex items-center gap-4 border-b border-[#aaa] py-[1%] max-[800px]:items-start max-[520px]:flex-col">
       <div className="relative size-[7vw] min-h-19 min-w-19 overflow-hidden max-[800px]:size-16 max-[800px]:min-h-16 max-[800px]:min-w-16 max-[520px]:self-center">
@@ -27,11 +34,15 @@ export default function RoomRow({ room, onJoin }: RoomRowProps) {
           <span>Private: {room.isPrivate ? "Yes" : "No"}</span>
           <JoinGroup
             label={`Players: ${room.players}/${room.maxPlayers}`}
-            onClick={() => onJoin(room, "player")}
+            actionLabel={isJoined ? "Jump in" : "Join"}
+            onClick={() =>
+              isJoined ? onJumpIn(room) : onJoin(room, "player")
+            }
           />
           <JoinGroup
             label={`Spectators: ${room.spectators}/${room.maxSpectators}`}
-            onClick={() => onJoin(room, "spectator")}
+            actionLabel="Join"
+            onClick={isJoined ? undefined : () => onJoin(room, "spectator")}
           />
         </div>
       </div>
@@ -39,17 +50,27 @@ export default function RoomRow({ room, onJoin }: RoomRowProps) {
   );
 }
 
-function JoinGroup({ label, onClick }: { label: string; onClick: () => void }) {
+function JoinGroup({
+  label,
+  actionLabel,
+  onClick,
+}: {
+  label: string;
+  actionLabel: string;
+  onClick?: () => void;
+}) {
   return (
     <span className="flex items-center gap-4 max-[800px]:justify-between">
       <span>{label}</span>
-      <button
-        type="button"
-        className="inline-flex cursor-pointer items-center justify-center rounded-lg border-0 bg-red-600 px-2.5 py-2 text-[clamp(14px,calc(6px+2vw),20px)] font-bold text-white hover:bg-red-700 focus-visible:bg-red-700"
-        onClick={onClick}
-      >
-        Join
-      </button>
+      {onClick && (
+        <button
+          type="button"
+          className="inline-flex cursor-pointer items-center justify-center rounded-lg border-0 bg-red-600 px-2.5 py-2 text-[clamp(14px,calc(6px+2vw),20px)] font-bold text-white hover:bg-red-700 focus-visible:bg-red-700"
+          onClick={onClick}
+        >
+          {actionLabel}
+        </button>
+      )}
     </span>
   );
 }

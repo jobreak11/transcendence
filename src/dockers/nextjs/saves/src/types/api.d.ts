@@ -742,7 +742,7 @@ export interface paths {
         put?: never;
         /**
          * create a lobby room
-         * @description user create a new lobby room. Must not currently in another lobby room.
+         * @description Users may create or join up to five lobby rooms at a time.
          */
         post: operations["LobbyController_createLobbyRoom"];
         delete?: never;
@@ -819,6 +819,26 @@ export interface paths {
             cookie?: never;
         };
         get: operations["LobbyController_getMyLobby"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/game/lobby/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * get the lobby player and spectator names
+         * @description Only members of the lobby can view its member list.
+         */
+        get: operations["LobbyController_getLobbyMembers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1505,6 +1525,8 @@ export interface components {
             currentPlayerCount: number;
             /** @description the current spectator count of the lobby room */
             currentSpectatorCount?: number;
+            /** @description the host user's display name */
+            hostDisplayName: string;
         };
         LobbyGeneralSettingsPublicDto: {
             /**
@@ -1525,6 +1547,14 @@ export interface components {
             details: components["schemas"]["LobbyDetailsPublicDto"];
             gameSettings: components["schemas"]["LobbyGameSettingsDto"];
             generalSettings: components["schemas"]["LobbyGeneralSettingsPublicDto"];
+        };
+        GetLobbyMemberListPublicDto: {
+            /** @description Display names of the lobby players */
+            playerList: string[];
+            /** @description Display names of the lobby spectators */
+            spectatorList: string[];
+            /** @description Display names of lobby players who are ready */
+            readyPlayerList: string[];
         };
         baseGeneral: {
             /**
@@ -2595,6 +2625,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LobbyDto"][];
+                };
+            };
+        };
+    };
+    LobbyController_getLobbyMembers: {
+        parameters: {
+            query: {
+                lobbyPinId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetLobbyMemberListPublicDto"];
                 };
             };
         };

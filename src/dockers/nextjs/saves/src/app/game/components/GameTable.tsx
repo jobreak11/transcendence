@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import ActionButtons from "./ActionButtons";
+import ActionButtons, { type GameDictionary } from "./ActionButtons";
 import { CardSlot, PlayerHand, PopUpTop, PopUpUnder, SeatIcon } from "./layout";
 import type { PokerActionType, PublicGameState } from "../types";
 
@@ -51,17 +51,12 @@ const SEAT_POSITIONS_BY_PLAYER_COUNT: Record<number, typeof SEAT_POSITIONS> = {
 
 interface GameTableProps {
   gameState: PublicGameState | null;
-  tableSessionId: string;
   userId: string | null;
   myCards: string[];
-  lobbyPlayerCount: number;
-  isConnected: boolean;
-  isHost: boolean;
-  isStartingHand: boolean;
   isHandInProgress: boolean;
   isMyTurn: boolean;
   callAmount: number;
-  onStartHand: () => void;
+  dictionary: GameDictionary;
   onAction: (actionType: PokerActionType, amount?: number) => void;
 }
 
@@ -107,17 +102,12 @@ function getCardName(card: string) {
 
 export default function GameTable({
   gameState,
-  tableSessionId,
   userId,
   myCards,
-  lobbyPlayerCount,
-  isConnected,
-  isHost,
-  isStartingHand,
   isHandInProgress,
   isMyTurn,
   callAmount,
-  onStartHand,
+  dictionary,
   onAction,
 }: GameTableProps) {
   const [hoveredCard, setHoveredCard] = useState<{
@@ -144,6 +134,8 @@ export default function GameTable({
       ? `Player ${(player.seatNumber ?? playerIndex) + 1}`
       : "Player";
   };
+  const matchWinnerId = Object.entries(gameState?.playerPlaces ?? {})
+    .find(([, place]) => place === 1)?.[0];
 
   return (
     <>
@@ -315,40 +307,21 @@ export default function GameTable({
               Match cycle complete.
             </p>
           )}
+          {gameState.matchComplete && (
+            <p className="mt-2 text-sm font-semibold text-amber-100">
+              {matchWinnerId
+                ? `Match complete. ${getPlayerName(matchWinnerId)} wins the match.`
+                : "Match complete. No winner was recorded."}
+            </p>
+          )}
         </section>
       )}
-
-      <button
-        type="button"
-        onClick={onStartHand}
-        disabled={
-          !isConnected
-          || !tableSessionId
-          || !isHost
-          || isStartingHand
-          || isHandInProgress
-          || lobbyPlayerCount < 2
-        }
-        title={
-          !isHost
-            ? "Only the lobby host can start a hand."
-            : isHandInProgress
-              ? "Wait for the current hand to finish."
-              : undefined
-        }
-        className="fixed bottom-[4vh] left-1/2 z-70 -translate-x-1/2 rounded bg-emerald-600 px-6 py-3 font-bold disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {isStartingHand
-          ? "Dealing cards..."
-          : gameState?.settled
-            ? "Deal next hand"
-            : "Deal cards"}
-      </button>
 
       {isHandInProgress && (
         <ActionButtons
           disabled={!isMyTurn}
           callAmount={callAmount}
+          dictionary={dictionary}
           onAction={onAction}
         />
       )}
