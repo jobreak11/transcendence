@@ -7,7 +7,7 @@ import { ChatMessageDto } from '../../../../types/dto';
 export interface ChatRoom {
   id: string;
   roomName: string | null;
-  type: 'PUBLIC' | 'PRIVATE' | 'DIRECT_MESSAGE' | string;
+  visibilityType: 'PUBLIC' | 'PRIVATE' | 'DIRECT_MESSAGE' | string;
   role?: string;
   createdAt?: string;
   joinedAt?: string;
@@ -504,7 +504,7 @@ export function ChatBoxComponent() {
                       {room.roomName || room.id.slice(0, 8)}
                     </span>
                     <span className="text-[9px] text-neutral-500 uppercase ml-1">
-                      {room.type === 'DIRECT_MESSAGE' ? 'DM' : room.type.slice(0, 3)}
+                      {room.visibilityType === 'DIRECT_MESSAGE' ? 'DM' : room.type.slice(0, 3)}
                     </span>
                   </button>
                 );
