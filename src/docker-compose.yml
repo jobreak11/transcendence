@@ -4,7 +4,6 @@ services:
     build:
       context: ./dockers/nginx
     environment:
-      TRANSCENDENCE_NGINX_CERT_DIR: ${NGINX_CERT_DIR}
       TRANSCENDENCE_NGINX_EXPOSE_PORT: ${NGINX_EXPOSE_PORT}
       TRANSCENDENCE_NEXTJS_EXPOSE_PORT: ${NEXTJS_EXPOSE_PORT}
       TRANSCENDENCE_NESTJS_EXPOSE_PORT: ${NESTJS_EXPOSE_PORT}
@@ -25,6 +24,8 @@ services:
       #   restart: true
     volumes:
       - shared_storage:/transcend_storage:ro
+      - ${NGINX_DATA_DIR}/server.crt:/nginx/server.crt:ro
+      - ${NGINX_DATA_DIR}/server.key:/nginx/server.key:ro
 
   nestjs:
     build:

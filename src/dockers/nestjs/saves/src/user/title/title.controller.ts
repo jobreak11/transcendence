@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ForbiddenException, Get, HttpCode, HttpStatus, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, HttpCode, HttpStatus, Logger, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth/jwt-auth.guard.js';
 import { RolesGuard } from '../../auth/guards/roles/roles.guard.js';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
@@ -16,11 +16,21 @@ import {
   UpdateTitleZodDto,
 } from './title.dto.js';
 import { title } from 'process';
+import { textToDate } from 'drizzle-orm/pg-core';
+import { THROTTLER_TITLE_DEFAULT_LIMIT, THROTTLER_TITLE_DEFAULT_TTL } from './title.constants.js';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, ThrottlerGuard)
+@Throttle({
+  default: {
+    limit: THROTTLER_TITLE_DEFAULT_LIMIT,
+    ttl: THROTTLER_TITLE_DEFAULT_TTL
+  }
+})
 @Controller('title')
 export class TitleController {
+
+  private readonly logger = new Logger(TitleController.name);
 
   constructor(
     private readonly titleService: TitleService,
@@ -110,7 +120,7 @@ export class TitleController {
   @Post('new')
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.EDITOR)
   createNewTitle(@Req() req: any, @Body(new ZodValidationPipe(CreateNewTitleSchema)) body: CreateNewTitleZodDto) {
 
     return this.titleService.createNewTitle(body);
@@ -135,12 +145,15 @@ export class TitleController {
   @Post('give')
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.EDITOR)
   giveUserTitle(
     @Req() req: any,
     @Query('userId', ParseUUIDPipe) userId: string,
     @Query('titleId', ParseUUIDPipe) titleId: string,
   ) {
+    
+    this.logger.debug("reach here");
+
 
     return this.titleService.giveUserTitle(userId, titleId);
   }
@@ -165,7 +178,7 @@ export class TitleController {
   @Delete('revoke')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.EDITOR)
   async revokeUserTitle(
     @Req() req: any,
     @Query('userId', ParseUUIDPipe) userId: string,
@@ -189,7 +202,7 @@ export class TitleController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Patch('update')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.EDITOR)
   updateTitle(
     @Req() req: any, 
     @Query('titleId', ParseUUIDPipe) titleId: string,
@@ -211,7 +224,7 @@ export class TitleController {
   })
   @Delete('delete')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.EDITOR)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteTitle(
     @Req() req: any,
