@@ -6,17 +6,13 @@ import type { JoinRole, Room } from "../../../lib/types";
 type PasswordDialogProps = {
   room: Room;
   role: JoinRole;
-  error: string;
-  isSubmitting: boolean;
   onClose: () => void;
-  onEnter: (password: string) => void;
+  onEnter: () => void;
 };
 
 export default function PasswordDialog({
   room,
   role,
-  error,
-  isSubmitting,
   onClose,
   onEnter,
 }: PasswordDialogProps) {
@@ -34,7 +30,7 @@ export default function PasswordDialog({
         aria-labelledby="password-heading"
         onSubmit={(event) => {
           event.preventDefault();
-          if (password && !isSubmitting) onEnter(password);
+          if (password) onEnter();
         }}
         onMouseDown={(event) => event.stopPropagation()}
       >
@@ -50,29 +46,20 @@ export default function PasswordDialog({
             id="password"
             type="password"
             value={password}
-            required
-            disabled={isSubmitting}
             autoFocus
             onChange={(event) => setPassword(event.target.value)}
             className="max-w-full rounded-md border border-[#666] bg-[#2a2a2a] px-2.5 py-1 text-white outline-none focus:ring-2 focus:ring-red-600"
           />
           <button
-            disabled={isSubmitting}
             className="inline-flex cursor-pointer items-center justify-center rounded-lg border-0 bg-red-600 px-2.5 py-2 text-[clamp(14px,calc(6px+2vw),20px)] font-bold text-white hover:bg-red-700 focus-visible:bg-red-700"
             type="submit"
           >
-            {isSubmitting ? "Joining…" : "Enter"}
+            Enter
           </button>
         </div>
-        {error && (
-          <p className="mt-3 text-red-700" role="alert">
-            {error}
-          </p>
-        )}
         <button
           className="mt-4 cursor-pointer border-0 bg-transparent text-[#333] underline"
           type="button"
-          disabled={isSubmitting}
           onClick={onClose}
         >
           Cancel
