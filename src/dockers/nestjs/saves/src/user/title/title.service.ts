@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, HttpException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { REDIS_CLIENT } from '../../redis/redis.provider.js';
 import type { RedisClient } from '../../redis/redis.provider.js';
 import { titles } from '../../drizzle/schema/titles.schema.js';
@@ -335,6 +335,7 @@ export class TitleService {
 
   async revokeTitleFromUser(userId: string, titleId: string) {
     // remove title of that target user
+
     try {
       const [res] = await this.db
         .delete(user_titles)
@@ -359,6 +360,9 @@ export class TitleService {
       //  // check if it is postgres error code
 
       //}
+      if (error instanceof HttpException) {
+        throw error;
+      }
 
       this.logger.error({
         message: "error from revokeTitleFromUser",
