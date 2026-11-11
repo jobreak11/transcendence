@@ -141,7 +141,7 @@ export default function LobbyPage() {
       <header className="border-b border-amber-300/20 bg-black/70 shadow-lg">
         <div className="mx-auto flex min-h-20 max-w-7xl items-center gap-4 px-4 sm:px-8">
           <h1 className="bg-linear-to-b from-amber-100 via-amber-400 to-yellow-700 bg-clip-text text-2xl font-bold text-transparent sm:text-4xl">
-            Play Room
+            Lobby
           </h1>
           <div className="ml-auto bg-linear-to-b from-amber-100 via-amber-400 to-yellow-700 bg-clip-text text-right font-semibold text-transparent sm:text-xl">
             USERNAME

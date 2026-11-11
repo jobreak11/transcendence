@@ -6,9 +6,10 @@ import { ChatGatewayModule } from '../../websocket/main-gateway/chat-gateway/cha
 import { ConnectionGatewayModule } from '../../websocket/main-gateway/connection-gateway/connection-gateway.module.js';
 import { LobbyRedisModule } from '../../redis/lobby-redis/lobby-redis.module.js';
 import { UserRedisModule } from '../../redis/user-redis/user-redis.module.js';
+import { UserModule } from '../../user/user.module.js';
 
 @Module({
-  imports: [ConnectionGatewayModule, LobbyRedisModule, UserRedisModule],
+  imports: [ConnectionGatewayModule, LobbyRedisModule, UserRedisModule, UserModule],
   controllers: [LobbyController],
   providers: [
     LobbyService

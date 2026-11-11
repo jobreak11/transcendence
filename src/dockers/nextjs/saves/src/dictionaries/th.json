@@ -1,0 +1,16 @@
+{
+  "game": {
+    "fold": "หมอบ",
+    "call": "สู้",
+    "check": "ผ่าน",
+    "raise": "เกทับ",
+    "cancelRaise": "ยกเลิก",
+    "additionalChips": "จำนวน",
+    "confirmRaise": "ยืนยัน",
+    "yourTurn": "ตาของคุณ",
+    "switchToEnglish": "English",
+    "switchToEnglishLabel": "เปลี่ยนภาษาเป็นอังกฤษ",
+    "switchToThai": "ไทย",
+    "switchToThaiLabel": "เปลี่ยนภาษาเป็นไทย"
+  }
+}

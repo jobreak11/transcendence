@@ -1,0 +1,16 @@
+{
+  "game": {
+    "fold": "Fold",
+    "call": "Call",
+    "check": "Check",
+    "raise": "Raise",
+    "cancelRaise": "Cancel raise",
+    "additionalChips": "Additional chips to raise",
+    "confirmRaise": "Confirm raise",
+    "yourTurn": "Your turn",
+    "switchToThai": "ไทย",
+    "switchToThaiLabel": "Switch language to Thai",
+    "switchToEnglish": "English",
+    "switchToEnglishLabel": "Switch language to English"
+  }
+}

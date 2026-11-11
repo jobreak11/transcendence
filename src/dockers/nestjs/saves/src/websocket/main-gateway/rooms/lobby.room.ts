@@ -5,5 +5,5 @@ function room_main_lobby_namespace() {
 }
 
 export function room_main_lobby_specific(lobbyPinId: string) {
-  return `${room_main_lobby_namespace}:specific:${lobbyPinId}`
+  return `${room_main_lobby_namespace()}:specific:${lobbyPinId}`
 }

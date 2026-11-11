@@ -654,7 +654,7 @@ export interface paths {
         put?: never;
         /**
          * create a lobby room
-         * @description user create a new lobby room. Must not currently in another lobby room.
+         * @description Users may create or join up to five lobby rooms at a time.
          */
         post: operations["LobbyController_createLobbyRoom"];
         delete?: never;
@@ -731,6 +731,26 @@ export interface paths {
             cookie?: never;
         };
         get: operations["LobbyController_getMyLobby"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/game/lobby/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * get the lobby player and spectator names
+         * @description Only members of the lobby can view its member list.
+         */
+        get: operations["LobbyController_getLobbyMembers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1119,20 +1139,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-<<<<<<< HEAD
-             * @example 01a1afe5-e304-77f8-8b8d-45cc90264621
-=======
-             * @example 01a1a6de-66a1-7514-b04c-21c2d934b376
->>>>>>> origin/srussame-feature-branch
+             * @example 01a1ca02-eb5a-72bb-9bbd-1e604226432c
              */
             userId: string;
             /**
              * @description chat room uuid
-<<<<<<< HEAD
-             * @example 01a1afe5-e30a-747c-b079-9749160d3f69
-=======
-             * @example 01a1a6de-66a3-7692-bb4e-d69288e00e10
->>>>>>> origin/srussame-feature-branch
+             * @example 01a1ca02-eb61-754e-aec6-2e3ab30b1685
              */
             chatRoomId: string;
             /**
@@ -1218,11 +1230,7 @@ export interface components {
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
-<<<<<<< HEAD
-             * @example 01a1afe5-e381-779f-ad1f-018fa949869b
-=======
-             * @example 01a1a6de-66c3-75b8-b779-b7419e922afc
->>>>>>> origin/srussame-feature-branch
+             * @example 01a1ca02-ebca-76dd-a71a-847a9f11e860
              */
             gameRoomId: string | null;
             /**
@@ -1311,11 +1319,7 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
-<<<<<<< HEAD
-             * @example 01a1afe5-e381-779f-ad1f-018fa949869b
-=======
-             * @example 01a1a6de-66c3-75b8-b779-b7419e922afc
->>>>>>> origin/srussame-feature-branch
+             * @example 01a1ca02-ebca-76dd-a71a-847a9f11e860
              */
             gameRoomId: string | null;
             /**
@@ -1341,6 +1345,8 @@ export interface components {
             currentPlayerCount: number;
             /** @description the current spectator count of the lobby room */
             currentSpectatorCount?: number;
+            /** @description the host user's display name */
+            hostDisplayName: string;
         };
         LobbyGeneralSettingsPublicDto: {
             /**
@@ -1361,6 +1367,14 @@ export interface components {
             details: components["schemas"]["LobbyDetailsPublicDto"];
             gameSettings: components["schemas"]["LobbyGameSettingsDto"];
             generalSettings: components["schemas"]["LobbyGeneralSettingsPublicDto"];
+        };
+        GetLobbyMemberListPublicDto: {
+            /** @description Display names of the lobby players */
+            playerList: string[];
+            /** @description Display names of the lobby spectators */
+            spectatorList: string[];
+            /** @description Display names of lobby players who are ready */
+            readyPlayerList: string[];
         };
         baseGeneral: {
             /**
@@ -2333,6 +2347,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LobbyDto"][];
+                };
+            };
+        };
+    };
+    LobbyController_getLobbyMembers: {
+        parameters: {
+            query: {
+                lobbyPinId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetLobbyMemberListPublicDto"];
                 };
             };
         };

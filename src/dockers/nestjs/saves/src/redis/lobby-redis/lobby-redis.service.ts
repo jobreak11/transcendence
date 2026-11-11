@@ -168,7 +168,7 @@ export class LobbyRedisService implements OnModuleInit {
 
 
     await this.redis.defineCommand("lobbyRoomLeave", {
-      numberOfKeys: 7,
+      numberOfKeys: 8,
       readOnly: false,
       lua: `
         local playerMemberListKey = KEYS[1]
@@ -178,9 +178,11 @@ export class LobbyRedisService implements OnModuleInit {
         local generalSettingsKey = KEYS[5]
         local gameSettingsKey = KEYS[6]
         local lobbyDetailsKey = KEYS[7]
+        local readyPlayerListKey = KEYS[8]
 
         local leaveUserId = ARGV[1]
         local lobbyPinId = ARGV[2]
+        local matchComplete = ARGV[3] == 'true'
 
         if redis.call('SISMEMBER', userLobbyListKey, lobbyPinId) == 0 then
           return 3
@@ -190,34 +192,29 @@ export class LobbyRedisService implements OnModuleInit {
           return 1
         end
 
-        local isUserHost
-        local hostUserId = redis.call('HGET', generalSettingsKey, 'hostUserId');
-
-        if hostUserId and hostUserId == leaveUserId then
-          isUserHost = 1
-        else
-          isUserHost = 0
-        end
-
-        local isSpectator = 0
-        if redis.call('ZREM', playerMemberListKey, leaveUserId) == 0 then
-          if redis.call('ZREM', spectatorMemberListKey, leaveUserId) == 0 then
-            return 2
-          end
-          isSpectator = 1
-        else
-          isSpectator = 0
-        end
-
-        -- if player leave must be in waiting state
-        -- if spectator leave 
         local currentState = redis.call('HGET', lobbyDetailsKey, 'roomStatus')
+        local isPlayer = redis.call('ZSCORE', playerMemberListKey, leaveUserId) ~= false
+        local isSpectator = redis.call('ZSCORE', spectatorMemberListKey, leaveUserId) ~= false
+
+        if not isPlayer and not isSpectator then
+          return 2
+        end
         if currentState == 'UNAVAILABLE' then
           return 5
-        elseif isSpectator == 0 and currentLobbyStatus ~= 'WAITING' then
+        elseif isPlayer and currentState ~= 'WAITING'
+          and not (currentState == 'PLAYING' and matchComplete) then
           return 6
         end
 
+        local hostUserId = redis.call('HGET', lobbyDetailsKey, 'hostUserId')
+        local isUserHost = hostUserId == leaveUserId
+
+        if isPlayer then
+          redis.call('ZREM', playerMemberListKey, leaveUserId)
+        else
+          redis.call('ZREM', spectatorMemberListKey, leaveUserId)
+        end
+        redis.call('SREM', readyPlayerListKey, leaveUserId)
 
         -- also remove the current user in game lobby
         redis.call('SREM', userLobbyListKey, lobbyPinId);
@@ -229,7 +226,7 @@ export class LobbyRedisService implements OnModuleInit {
         -- will destroy the lobby room if the room is empty
         if curPCount <= 0 and curSCount <= 0 then
           -- remove all related keys
-          redis.call('UNLINK', generalSettingsKey, gameSettingsKey, playerMemberListKey, spectatorMemberListKey)
+          redis.call('UNLINK', generalSettingsKey, gameSettingsKey, lobbyDetailsKey, playerMemberListKey, spectatorMemberListKey, readyPlayerListKey)
           redis.call('SREM', allLobbyListKey, lobbyPinId)
 
           return 4
@@ -237,7 +234,7 @@ export class LobbyRedisService implements OnModuleInit {
 
         -- if the user that out from the room is the host, transfer the host to
         -- the oldest member in the lobby room
-        if isUserHost == 1 then
+        if isUserHost then
           local oldestPlayerMember = redis.call('ZRANGE', playerMemberListKey, 0, 0, 'WITHSCORES')
 
           local oldestSpectatorMember = redis.call('ZRANGE', spectatorMemberListKey, 0, 0, 'WITHSCORES')
@@ -257,7 +254,7 @@ export class LobbyRedisService implements OnModuleInit {
             newHostId = oldestSpectatorMember[1]
           end
 
-          redis.call('HSET', generalSettingsKey, 'hostUserId', newHostId)
+          redis.call('HSET', lobbyDetailsKey, 'hostUserId', newHostId)
 
           return newHostId
         end
@@ -272,7 +269,7 @@ export class LobbyRedisService implements OnModuleInit {
         readOnly: false,
         lua: `
           local allLobbyListKey = KEYS[1]
-          local generalSettingsKey = KEYS[2]
+          local lobbyDetailsKey = KEYS[2]
 
           local lobbyPinId = ARGV[1]
           local setStatus = ARGV[2]
@@ -284,13 +281,13 @@ export class LobbyRedisService implements OnModuleInit {
 
           -- lobby exist then should set
 
-          local currentStatus = redis.call('HGET', generalSettingsKey, 'roomStatus')
+          local currentStatus = redis.call('HGET', lobbyDetailsKey, 'roomStatus')
 
           if not currentStatus or currentStatus == setStatus then
             return 2
           end
 
-          redis.call('HSET', generalSettingsKey, 'roomStatus', setStatus)
+          redis.call('HSET', lobbyDetailsKey, 'roomStatus', setStatus)
           return 0
         `
       }
@@ -781,6 +778,12 @@ export class LobbyRedisService implements OnModuleInit {
       this.getLobbyMemberList(lobbyPinId)
     ])
 
+    const matchComplete = lobbyData.details.roomStatus === LobbyRoomStatus.PLAYING
+      && lobbyData.details.gameRoomId !== null
+      && lobbyMembers.playerList.includes(userId)
+      ? (await this.gameRedisService.loadMatchProgress(lobbyData.details.gameRoomId)).matchComplete
+      : false;
+
     const res = await this.redis.lobbyRoomLeave(
       redis_lobby_player_member_list(lobbyPinId),
       redis_lobby_spectator_member_list(lobbyPinId),
@@ -789,10 +792,13 @@ export class LobbyRedisService implements OnModuleInit {
       redis_lobby_general_settings(lobbyPinId),
       redis_lobby_game_settings(lobbyPinId),
       redis_lobby_details(lobbyPinId),
+      redis_lobby_ready_player_list(lobbyPinId),
       userId,
-      lobbyPinId
+      lobbyPinId,
+      String(matchComplete)
     );
 
+    let lobbyDestroyed = false;
     if (typeof res === "string") {
       const hostRole = lobbyMembers.playerList.includes(res) ? LobbyMemberNotifyRole.PLAYER : LobbyMemberNotifyRole.SPECTATOR
       this.lobbyGatewayService.memberNotifyChangeHost(res, lobbyPinId, hostRole);
@@ -823,10 +829,8 @@ export class LobbyRedisService implements OnModuleInit {
           )
         }
         case 4: {
-          // the lobby room got destroyed
-          // chat room needs to be remove as well
+          lobbyDestroyed = true;
           await this.chatService.removeRoom(lobbyData.details.chatRoomId);
-          await this.lobbyRemove(lobbyPinId);
           break ;
         }
         case 5: {
@@ -857,37 +861,26 @@ export class LobbyRedisService implements OnModuleInit {
       }
     }
 
-    // change the lobby details player count or spectator count
-    const isSpectator = lobbyMembers.spectatorList.includes(userId)
-    if (isSpectator) {
-      let newValue = lobbyData.details.currentSpectatorCount === undefined ? 0 : lobbyData.details.currentSpectatorCount - 1
-      if (newValue < 0) {
-        newValue = 0;
-      }
+    if (!lobbyDestroyed) {
+      const isSpectator = lobbyMembers.spectatorList.includes(userId);
+      const countField = isSpectator ? "currentSpectatorCount" : "currentPlayerCount";
+      const currentCount = isSpectator
+        ? (lobbyData.details.currentSpectatorCount ?? 0)
+        : lobbyData.details.currentPlayerCount;
+      const newValue = Math.max(0, currentCount - 1);
       await this.redis.hset(
         redis_lobby_details(lobbyPinId),
-        "currentSpectatorCount",
+        countField,
         newValue
-      )
-      lobbyData.details.currentSpectatorCount = newValue;
-    }
-    else {
-      let newValue = lobbyData.details.currentPlayerCount - 1
-      if (newValue < 0) {
-        newValue = 0;
-      }
-      await this.redis.hset(
-        redis_lobby_details(lobbyPinId),
-        "currentSpectatorCount",
-        newValue
-      )
-      lobbyData.details.currentSpectatorCount = newValue;
+      );
     }
 
     if (lobbyData.details.roomStatus === LobbyRoomStatus.PLAYING && lobbyData.details.gameRoomId) {
       this.gameGatewayService.leaveGameSession(userId, lobbyData.details.gameRoomId)
     }
-    await this.chatService.leaveRoom(userId, lobbyData.details.chatRoomId);
+    if (!lobbyDestroyed) {
+      await this.chatService.leaveRoom(userId, lobbyData.details.chatRoomId);
+    }
     const role = lobbyMembers.playerList.includes(userId) ? LobbyMemberNotifyRole.PLAYER : LobbyMemberNotifyRole.SPECTATOR;
     this.lobbyGatewayService.leaveLobbySession(userId, lobbyPinId, role);
   }
@@ -1062,7 +1055,7 @@ export class LobbyRedisService implements OnModuleInit {
   async setLobbyRoomStatus(lobbyPinId: string, status: LobbyRoomStatus) {
     const res = await this.redis.lobbyRoomSetStatus(
       redis_lobby_global_details_lobby_lists(),
-      redis_lobby_general_settings(lobbyPinId),
+      redis_lobby_details(lobbyPinId),
       lobbyPinId,
       status.toString()
     );
@@ -1282,6 +1275,7 @@ export class LobbyRedisService implements OnModuleInit {
       await this.redis.hset(redis_lobby_details(lobbyPinId), "gameRoomId", res.tableSessionId);
 
       await this.setLobbyRoomStatus(lobbyPinId, LobbyRoomStatus.PLAYING);
+      this.lobbyGatewayService.gameStarted(lobbyPinId, res.tableSessionId);
       return this.getLobbyFull(lobbyPinId);
     }
     else {

@@ -12,3 +12,11 @@ export const event_game_start = {
   },
 }
 
+export const event_game_players_loaded = {
+  to_server() {
+    return `${event_game_namespace()}:players_loaded:to_server`
+  },
+  to_client() {
+    return `${event_game_namespace()}:players_loaded:to_client`
+  },
+}
