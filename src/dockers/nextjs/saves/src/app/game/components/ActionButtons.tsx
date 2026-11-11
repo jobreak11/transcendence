@@ -1,16 +1,21 @@
 import { useState } from "react";
+import type enDictionary from "../../../dictionaries/en.json";
 
 type PokerAction = "FOLD" | "CHECK" | "CALL" | "RAISE";
+export type GameLanguage = "en" | "th";
+export type GameDictionary = typeof enDictionary.game;
 
 interface ActionButtonsProps {
   disabled: boolean;
   callAmount: number;
+  dictionary: GameDictionary;
   onAction: (action: PokerAction, amount?: number) => void;
 }
 
 export default function ActionButtons({
   disabled,
   callAmount,
+  dictionary,
   onAction,
 }: ActionButtonsProps) {
   const [showRaiseOptions, setShowRaiseOptions] = useState(false);
@@ -27,7 +32,7 @@ export default function ActionButtons({
       {showRaiseOptions && (
         <div className="flex w-[25vw] flex-col gap-[1vh] rounded-[1vw] border border-neutral-800 bg-neutral-950 p-[1.5vw]">
           <label className="flex flex-col gap-1 text-sm text-white">
-            Additional chips to raise
+            {dictionary.additionalChips}
             <input
               type="number"
               min={1}
@@ -44,7 +49,7 @@ export default function ActionButtons({
             disabled={disabled || !Number.isSafeInteger(raiseAmount) || raiseAmount < 1}
             className="w-full rounded bg-amber-500 py-[1vh] font-extrabold uppercase text-neutral-950 disabled:opacity-50"
           >
-            Confirm raise
+            {dictionary.confirmRaise}
           </button>
         </div>
       )}
@@ -56,7 +61,7 @@ export default function ActionButtons({
           disabled={disabled}
           className="px-[2.2vw] py-[1.2vh] text-[1.2vw] bg-red-500 font-bold uppercase text-white transition-all hover:bg-red-300 hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Fold
+          {dictionary.fold}
         </button>
 
         <button
@@ -65,7 +70,9 @@ export default function ActionButtons({
           disabled={disabled}
           className="px-[2.2vw] py-[1.2vh] text-[1.2vw] bg-green-700 font-bold uppercase text-white transition-all hover:bg-green-400 hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {callAmount > 0 ? `Call ${callAmount}` : "Check"}
+          {callAmount > 0
+            ? `${dictionary.call} ${callAmount}`
+            : dictionary.check}
         </button>
 
         <button
@@ -74,10 +81,10 @@ export default function ActionButtons({
           disabled={disabled}
           className="px-[2.2vw] py-[1.2vh] text-[1.2vw] bg-blue-600 font-bold uppercase text-white transition-all hover:bg-sky-400 hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {showRaiseOptions ? "Cancel raise" : "Raise"}
+          {showRaiseOptions ? dictionary.cancelRaise : dictionary.raise}
         </button>
       </div>
-      {!disabled && <p className="text-xs text-white/70">Your turn</p>}
+      {!disabled && <p className="text-xs text-white/70">{dictionary.yourTurn}</p>}
     </div>
   );
 }

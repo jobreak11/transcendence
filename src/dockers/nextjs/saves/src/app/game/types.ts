@@ -30,6 +30,12 @@ export interface PublicGameState {
   cycleNumber?: number;
   handNumber?: number;
   cycleComplete?: boolean;
+  matchComplete?: boolean;
+  playerPlaces?: Record<string, number>;
+  playerNames?: Record<string, string>;
+  totalHandsPlayed?: number;
+  matchStartedAt?: string;
+  matchEndedAt?: string;
   winners?: HandWinner[];
   revealedCards?: Record<string, string[]>;
   players: PublicPlayer[];

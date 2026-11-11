@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { Server } from "socket.io";
 import { LobbyRedisService } from "../../../redis/lobby-redis/lobby-redis.service.js";
 import { room_main_lobby_specific } from "../rooms/lobby.room.js";
-import { event_main_lobby_member_notify, event_main_lobby_user_ready } from "../events/lobby.event.js";
+import { event_main_lobby_game_started, event_main_lobby_member_notify, event_main_lobby_user_ready } from "../events/lobby.event.js";
 import { UserReadyToClientDto } from "./dtos/user-ready.dto.js";
 import { room_main_private_user } from "../rooms/user.room.js";
 import { ModuleRef } from "@nestjs/core";
@@ -44,6 +44,11 @@ export class LobbyGatewayService implements OnModuleInit {
     // emit event corresponse to the response
     this.server?.to(room_main_lobby_specific(lobbyPinId))
       .emit(event_main_lobby_user_ready.to_client(), response);
+  }
+
+  gameStarted(lobbyPinId: string, tableSessionId: string) {
+    this.server?.to(room_main_lobby_specific(lobbyPinId))
+      .emit(event_main_lobby_game_started.to_client(), { lobbyPinId, tableSessionId });
   }
 
   private JoinOrLeaveLobbySession(

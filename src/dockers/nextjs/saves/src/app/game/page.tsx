@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import enDictionary from "../../dictionaries/en.json";
+import thDictionary from "../../dictionaries/th.json";
+import type { GameLanguage } from "./components/ActionButtons";
 import HandInfo from "./components/handInfo";
 import GameTable from "./components/GameTable";
 import type { PokerActionType, PublicGameState } from "./types";
@@ -61,6 +65,34 @@ function isPublicGameState(value: unknown): value is PublicGameState {
     )
     && (!("settled" in value) || typeof value.settled === "boolean")
     && (!("cycleComplete" in value) || typeof value.cycleComplete === "boolean")
+    && (!("matchComplete" in value) || typeof value.matchComplete === "boolean")
+    && (!("totalHandsPlayed" in value) || typeof value.totalHandsPlayed === "number")
+    && (!("matchStartedAt" in value) || typeof value.matchStartedAt === "string")
+    && (!("matchEndedAt" in value) || typeof value.matchEndedAt === "string")
+    && (
+      !("playerNames" in value)
+      || (
+        typeof value.playerNames === "object"
+        && value.playerNames !== null
+        && !Array.isArray(value.playerNames)
+        && Object.values(value.playerNames).every((name: unknown) =>
+          typeof name === "string"
+        )
+      )
+    )
+    && (
+      !("playerPlaces" in value)
+      || (
+        typeof value.playerPlaces === "object"
+        && value.playerPlaces !== null
+        && !Array.isArray(value.playerPlaces)
+        && Object.values(value.playerPlaces).every((place: unknown) =>
+          typeof place === "number"
+          && Number.isSafeInteger(place)
+          && place > 0
+        )
+      )
+    )
     && (
       !("winners" in value)
       || (
@@ -110,6 +142,41 @@ function isPokerActionEvent(value: unknown): value is PokerActionEvent {
     && typeof value.amount === "number";
 }
 
+function isSuccessfulPokerSyncResponse(
+  value: unknown,
+): value is {
+  ok: true;
+  state: PublicGameState | null;
+  cards: string[];
+} {
+  return typeof value === "object"
+    && value !== null
+    && "ok" in value
+    && value.ok === true
+    && "state" in value
+    && (value.state === null || isPublicGameState(value.state))
+    && "cards" in value
+    && Array.isArray(value.cards)
+    && value.cards.every((card: unknown) => typeof card === "string");
+}
+
+function isPlayersLoadedEvent(
+  value: unknown,
+): value is GameEvent.players_loaded.to_client.payload {
+  return typeof value === "object"
+    && value !== null
+    && "tableSessionId" in value
+    && typeof value.tableSessionId === "string"
+    && "readyCount" in value
+    && typeof value.readyCount === "number"
+    && "playerCount" in value
+    && typeof value.playerCount === "number"
+    && "allPlayersLoaded" in value
+    && typeof value.allPlayersLoaded === "boolean"
+    && "shouldAutoStartFirstHand" in value
+    && typeof value.shouldAutoStartFirstHand === "boolean";
+}
+
 interface PrivateCardsEvent {
   tableSessionId: string;
   handId: string;
@@ -143,6 +210,7 @@ function getUserIdFromToken(token?: string): string | null {
 }
 
 export default function Page() {
+  const router = useRouter();
   const {
     socket,
     isConnected,
@@ -161,12 +229,16 @@ export default function Page() {
   const [error, setError] = useState("");
   const [tableInput, setTableInput] = useState("");
   const [isCreatingLobby, setIsCreatingLobby] = useState(false);
-  const [isStartingHand, setIsStartingHand] = useState(false);
+  const [allPlayersLoaded, setAllPlayersLoaded] = useState(false);
+  const [isWaitingToStartFirstHand, setIsWaitingToStartFirstHand] = useState(false);
   const [isJoiningLobby, setIsJoiningLobby] = useState(false);
   const [joinPassword, setJoinPassword] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const [language, setLanguage] = useState<GameLanguage>("en");
   const userId = getUserIdFromToken(accessToken);
+  const isHost = lobbyStatus?.details.hostUserId === userId;
+  const dictionary = language === "en" ? enDictionary.game : thDictionary.game;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -189,8 +261,29 @@ export default function Page() {
       if (state.tableSessionId === tableSessionId) {
         setGameState(state);
         setError("");
-        setIsStartingHand(false);
         setIsSendingAction(false);
+        setIsWaitingToStartFirstHand(false);
+        if (
+          state.matchComplete
+          && state.playerPlaces
+          && state.totalHandsPlayed !== undefined
+          && state.matchStartedAt
+          && state.matchEndedAt
+          && window.location.pathname !== "/game/history"
+        ) {
+          window.sessionStorage.setItem(
+            "gameMatchHistory",
+            JSON.stringify({
+              tableSessionId: state.tableSessionId,
+              totalHandsPlayed: state.totalHandsPlayed,
+              matchStartedAt: state.matchStartedAt,
+              matchEndedAt: state.matchEndedAt,
+              playerPlaces: state.playerPlaces,
+              playerNames: state.playerNames ?? {},
+            }),
+          );
+          router.push("/game/history");
+        }
       }
     };
     const onAction = (action: PokerActionEvent) => {
@@ -227,8 +320,8 @@ export default function Page() {
             ? exception.message
             : "The server rejected the game request.";
       setError(message);
-      setIsStartingHand(false);
       setIsSendingAction(false);
+      setIsWaitingToStartFirstHand(false);
     };
     //socket.on("poker:state", onState);
     //socket.on("poker:action", onAction);
@@ -249,7 +342,83 @@ export default function Page() {
       socket.off(PokerEvent.private_cards.to_client.event_name, onPrivateCards);
       socket.off("exception", onSocketException);
     };
-  }, [gameState?.players, socket, tableSessionId, userId]);
+  }, [gameState?.players, router, socket, tableSessionId, userId]);
+
+  useEffect(() => {
+    setAllPlayersLoaded(false);
+    setIsWaitingToStartFirstHand(false);
+  }, [tableSessionId]);
+
+  useEffect(() => {
+    if (!socket || !isConnected || !tableSessionId) return;
+
+    socket.timeout(10_000).emit(
+      PokerEvent.sync.to_server.event_name,
+      { tableSessionId },
+      (timeoutError: Error | null, response: unknown) => {
+        if (timeoutError) {
+          setError("The server did not respond while loading the current hand.");
+          return;
+        }
+
+        if (!isSuccessfulPokerSyncResponse(response)) {
+          const message = typeof response === "object"
+            && response !== null
+            && "message" in response
+            && typeof response.message === "string"
+            ? response.message
+            : "The server returned an invalid current-hand response.";
+          setError(message);
+          return;
+        }
+
+        if (response.state && response.state.tableSessionId !== tableSessionId) {
+          setError("The server returned a hand for a different table.");
+          return;
+        }
+
+        setGameState(response.state);
+        setMyCards(response.cards);
+        setError("");
+      },
+    );
+  }, [isConnected, lobbyStatusRefresh, socket, tableSessionId]);
+
+  useEffect(() => {
+    if (!socket || !isConnected || !tableSessionId) return;
+
+    const applyPlayersLoaded = (response: unknown) => {
+      if (!isPlayersLoadedEvent(response)) {
+        setError("The server sent an invalid player readiness status.");
+        return;
+      }
+      if (response.tableSessionId !== tableSessionId) return;
+
+      setAllPlayersLoaded(response.allPlayersLoaded);
+      setIsWaitingToStartFirstHand(response.shouldAutoStartFirstHand);
+    };
+    const onPlayersLoaded = (response: unknown) => {
+      applyPlayersLoaded(response);
+    };
+
+    socket.on(GameEvent.players_loaded.to_client.event_name, onPlayersLoaded);
+    const reportLoaded = () => {
+      socket.emit(
+        GameEvent.players_loaded.to_server.event_name,
+        { tableSessionId },
+        applyPlayersLoaded,
+      );
+    };
+    reportLoaded();
+    const intervalId = isHost && !allPlayersLoaded
+      ? window.setInterval(reportLoaded, 1_000)
+      : null;
+
+    return () => {
+      socket.off(GameEvent.players_loaded.to_client.event_name, onPlayersLoaded);
+      if (intervalId !== null) window.clearInterval(intervalId);
+    };
+  }, [allPlayersLoaded, isConnected, isHost, socket, tableSessionId]);
 
   useEffect(() => {
     if (!gameState?.currentPlayerId || !gameState.actionDeadlineAt) return;
@@ -330,70 +499,12 @@ export default function Page() {
     (gameState?.currentBet ?? 0) - (myPlayer?.roundContribution ?? 0),
   );
   const isHandInProgress = Boolean(gameState && !gameState.settled);
-  const isHost = lobbyStatus === null ? false :  lobbyStatus?.details.hostUserId === userId;
   const actionSecondsLeft = gameState?.actionDeadlineAt
     ? Math.max(
       0,
       Math.ceil((Date.parse(gameState.actionDeadlineAt) - currentTime) / 1000),
     )
     : null;
-
-  const startHand = () => {
-    if (!socket || !isConnected) {
-      setError("The game socket is not connected.");
-      return;
-    }
-    if (!tableSessionId) {
-      setError("Enter a table ID or create a lobby first.");
-      return;
-    }
-
-    setIsStartingHand(true);
-    setMyCards([]);
-    setLastAction("");
-    setError("");
-    socket.timeout(10_000).emit(
-      //"poker:start",
-      GameEvent.start.to_server.event_name,
-      { tableSessionId },
-      (timeoutError: Error | null, response: unknown) => {
-        setIsStartingHand(false);
-        if (timeoutError) {
-          setError("The server did not respond. Check the NestJS logs.");
-          return;
-        }
-
-        if (
-          typeof response === "object"
-          && response !== null
-          && "ok" in response
-          && response.ok === false
-        ) {
-          setError(
-            "message" in response && typeof response.message === "string"
-              ? response.message
-              : "The server rejected the start-hand request.",
-          );
-          return;
-        }
-
-        if (
-          typeof response === "object"
-          && response !== null
-          && "ok" in response
-          && response.ok === true
-          && "state" in response
-          && isPublicGameState(response.state)
-          && response.state.tableSessionId === tableSessionId
-        ) {
-          setGameState(response.state);
-          return;
-        }
-
-        setError("The server returned an unexpected start-hand response.");
-      },
-    );
-  };
 
   const createLobby = async () => {
     setIsCreatingLobby(true);
@@ -589,6 +700,15 @@ export default function Page() {
                   : "Connect to check lobby members"}
           </p>
         )}
+        {tableSessionId && (
+          <p aria-live="polite">
+            {!allPlayersLoaded
+              ? "Waiting for all players to load the game..."
+              : isWaitingToStartFirstHand
+                ? "All players loaded. Starting the first hand in 5 seconds..."
+                : "All players loaded."}
+          </p>
+        )}
         {lobbyStatusError && (
           <p role="status" className="text-amber-200">{lobbyStatusError}</p>
         )}
@@ -636,21 +756,28 @@ export default function Page() {
 
       <GameTable
         gameState={gameState}
-        tableSessionId={tableSessionId}
         userId={userId}
         myCards={myCards}
-        lobbyPlayerCount={lobbyStatus?.details.currentPlayerCount ?? 0}
-        isConnected={isConnected}
-        isHost={isHost}
-        isStartingHand={isStartingHand}
         isHandInProgress={isHandInProgress}
         isMyTurn={isMyTurn}
         callAmount={callAmount}
-        onStartHand={startHand}
+        dictionary={dictionary}
         onAction={sendAction}
       />
 
-      <div className="fixed top-[3vh] right-[3vw]">
+      <div className="fixed top-[3vh] right-[3vw] flex gap-2">
+        <button
+          type="button"
+          onClick={() => setLanguage((current) => current === "en" ? "th" : "en")}
+          aria-label={language === "en"
+            ? enDictionary.game.switchToThaiLabel
+            : thDictionary.game.switchToEnglishLabel}
+          className="rounded-full bg-sky-500 px-4 py-2 text-sm font-bold text-white hover:bg-white hover:text-black"
+        >
+          {language === "en"
+            ? enDictionary.game.switchToThai
+            : thDictionary.game.switchToEnglish}
+        </button>
         <button
           type="button"
           onClick={() => setShowHandInfo((visible) => !visible)}

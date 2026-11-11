@@ -18,6 +18,7 @@ import { pl, ta } from 'zod/v4/locales';
 import { LobbyGameSettingsDto } from '../../redis/lobby-redis/dtos/lobby-gameSettings.dto.js';
 import { PokerPlayer } from './dtos/poker-player.dto.js';
 import { MatchProgress } from './dtos/match-progress.dto.js';
+import { UserService } from '../../user/user.service.js';
 import { BettingRound, PokerState } from './dtos/poker-state.dto.js';
 import { HAND_LABELS, PLAYER_ACTION_TIMEOUT_MS, ROUND_ORDER } from './game-gateway.constants.js';
 import { stat } from 'node:fs';
@@ -35,10 +36,15 @@ export class GameGatewayService implements OnModuleInit {
     string,
     ReturnType<typeof setTimeout>
   >();
+  private readonly nextHandTimers = new Map<
+    string,
+    ReturnType<typeof setTimeout>
+  >();
 
   constructor(
     private readonly userRedisService: UserRedisService,
     private readonly gameRedisService: GameRedisService,
+    private readonly userService: UserService,
     private readonly moduleRef: ModuleRef
   ) {}
 
@@ -50,6 +56,22 @@ export class GameGatewayService implements OnModuleInit {
     this.lobbyRedisService = this.moduleRef.get(LobbyRedisService, {
       strict: false
     });
+  }
+
+  async isFirstHand(tableSessionId: string) {
+    const progress = await this.gameRedisService.loadMatchProgress(tableSessionId);
+    return progress.handNumber === 0;
+  }
+
+  async getCurrentHand(tableSessionId: string, playerId: string) {
+    const state = await this.gameRedisService.getHand(tableSessionId);
+    if (!state) return null;
+
+    return {
+      state: this.publicState(state),
+      cards: state.players.find((player) => player.playerId === playerId)
+        ?.holeCards ?? [],
+    };
   }
 
   async startHand(
@@ -86,6 +108,9 @@ export class GameGatewayService implements OnModuleInit {
       //}
       if (await this.gameRedisService.getHand(tableSessionId)) {
         throw new WsException('A hand is already in progress');
+      }
+      if ((await this.gameRedisService.loadMatchProgress(tableSessionId)).matchComplete) {
+        throw new WsException('The match has ended');
       }
 
       const startingStack = this.getStartingStack(lobbyData.gameSettings);
@@ -181,7 +206,7 @@ export class GameGatewayService implements OnModuleInit {
       state.currentPlayerId = this.nextPendingPlayer(
         state,
         bigBlindIndex,
-        true,
+        false,
       );
 
       //await this.saveState(state);
@@ -454,8 +479,8 @@ export class GameGatewayService implements OnModuleInit {
       payout.player.stack += payout.amount;
     }
 
-    const [, matchProgress, seatedPlayerIds, stacks] = await Promise.all([
-      this.gameRedisService.saveStacks(state),
+    await this.gameRedisService.saveStacks(state);
+    const [matchProgress, seatedPlayerIds, stacks] = await Promise.all([
       this.gameRedisService.loadMatchProgress(state.tableSessionId),
       this.lobbyRedisService.getPlayerMemberList(state.tableSessionId),
       this.gameRedisService.getAllStacks(state.tableSessionId)
@@ -475,6 +500,37 @@ export class GameGatewayService implements OnModuleInit {
         this.readStack(stacks[playerId], 0) > 0,
       ),
     );
+    matchProgress.totalHandsPlayed += 1;
+    matchProgress.matchPlayerIds = [...new Set([
+      ...matchProgress.matchPlayerIds,
+      ...seatedPlayerIds,
+    ])];
+    const newlyEliminatedPlayerIds = matchProgress.matchPlayerIds
+      .filter((playerId) =>
+        !activePlayerIds.has(playerId)
+        && !Object.prototype.hasOwnProperty.call(matchProgress.playerPlaces, playerId),
+      )
+      .sort((left, right) => {
+        const leftSeat = state.players.find(({ playerId }) => playerId === left)?.seatNumber;
+        const rightSeat = state.players.find(({ playerId }) => playerId === right)?.seatNumber;
+        return (leftSeat ?? Number.MAX_SAFE_INTEGER) - (rightSeat ?? Number.MAX_SAFE_INTEGER)
+          || left.localeCompare(right);
+      });
+    const firstEliminationPlace =
+      matchProgress.matchPlayerIds.length - Object.keys(matchProgress.playerPlaces).length;
+    newlyEliminatedPlayerIds.forEach((playerId, index) => {
+      matchProgress.playerPlaces[playerId] = firstEliminationPlace - index;
+    });
+    matchProgress.matchComplete = activePlayerIds.size === 1;
+    const matchEndedAt = matchProgress.matchComplete
+      ? new Date().toISOString()
+      : undefined;
+    if (matchProgress.matchComplete) {
+      const [winnerPlayerId] = activePlayerIds;
+      if (winnerPlayerId) {
+        matchProgress.playerPlaces[winnerPlayerId] = 1;
+      }
+    }
     matchProgress.cyclePlayerIds = matchProgress.cyclePlayerIds.filter(
       (playerId) => activePlayerIds.has(playerId),
     );
@@ -491,6 +547,26 @@ export class GameGatewayService implements OnModuleInit {
     ])
 
     const winningPayouts = payouts.filter(({ amount }) => amount > 0);
+    const playerNames = matchProgress.matchComplete
+      ? Object.fromEntries(await Promise.all(
+        matchProgress.matchPlayerIds.map(async (playerId) => {
+          try {
+            const user = await this.userService.findOne(playerId);
+            return [
+              playerId,
+              user.user_profile?.displayName?.trim() || user.tagId,
+            ] as const;
+          } catch (error) {
+            this.logger.warn(
+              `Could not resolve match history username for player ${playerId}: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            );
+            return [playerId, "Unknown player"] as const;
+          }
+        }),
+      ))
+      : undefined;
     const result: EventGameFinishStateToClientDto = {
       settled: true,
       handId: state.handId,
@@ -501,6 +577,12 @@ export class GameGatewayService implements OnModuleInit {
       round: 'SHOWDOWN' as const,
       roundNumber: 5,
       cycleComplete: matchProgress.cycleComplete,
+      matchComplete: matchProgress.matchComplete,
+      playerPlaces: matchProgress.playerPlaces,
+      ...(playerNames ? { playerNames } : {}),
+      totalHandsPlayed: matchProgress.totalHandsPlayed,
+      matchStartedAt: matchProgress.startedAt ?? state.startedAt,
+      ...(matchEndedAt ? { matchEndedAt } : {}),
       poolCards: state.poolCards,
       pot: state.pot,
       ante: state.ante,
@@ -534,7 +616,35 @@ export class GameGatewayService implements OnModuleInit {
       .emit(event_game_poker_state.to_client(), result);
 
     this.logger.log(`Hand ${state.handId} settled for table ${state.tableSessionId}`);
+    if (matchProgress.matchComplete) {
+      const nextHandTimer = this.nextHandTimers.get(state.tableSessionId);
+      if (nextHandTimer) clearTimeout(nextHandTimer);
+      this.nextHandTimers.delete(state.tableSessionId);
+    } else {
+      this.scheduleNextHand(state.tableSessionId);
+    }
     return result;
+  }
+
+  private scheduleNextHand(tableSessionId: string) {
+    const existingTimer = this.nextHandTimers.get(tableSessionId);
+    if (existingTimer) clearTimeout(existingTimer);
+
+    const timer = setTimeout(() => {
+      this.nextHandTimers.delete(tableSessionId);
+      void this.startHand(tableSessionId).catch((error: unknown) => {
+        this.logger.error(
+          `Failed to start the next hand`,
+          error instanceof Error ? error.stack : String(error),
+        );
+        this.server
+          ?.to(room_game_specific_room(tableSessionId))
+          .emit("exception", {
+            message: "The server failed to automatically start the next hand.",
+          });
+      });
+    }, 5_000);
+    this.nextHandTimers.set(tableSessionId, timer);
   }
 
   private settleShowdown(state: PokerState): HandPayout[] {
@@ -830,7 +940,12 @@ export class GameGatewayService implements OnModuleInit {
     activePlayerIds: string[],
   ): Promise<MatchProgress> {
     const progress = await this.gameRedisService.loadMatchProgress(tableSessionId);
+    progress.startedAt ??= new Date().toISOString();
     const activeIds = new Set(activePlayerIds);
+    progress.matchPlayerIds = [...new Set([
+      ...progress.matchPlayerIds,
+      ...activePlayerIds,
+    ])];
 
     if (progress.cycleComplete) {
       progress.cycleNumber += 1;

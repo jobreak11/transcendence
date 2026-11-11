@@ -5,4 +5,9 @@ export interface MatchProgress {
   cyclePlayerIds: string[];
   bigBlindPlayerIds: string[];
   cycleComplete: boolean;
+  matchPlayerIds: string[];
+  playerPlaces: Record<string, number>;
+  matchComplete: boolean;
+  totalHandsPlayed: number;
+  startedAt: string | null;
 }
