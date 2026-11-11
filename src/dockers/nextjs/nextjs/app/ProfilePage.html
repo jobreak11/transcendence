@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" name="viewport" content="width=device-width,initial-scale=1" />
+<title>User Profile - Transcend 888</title>
+	<style id="style-normalize" type="text/css">
+		html {
+			font-family: sans-serif;
+			-ms-text-size-adjust: 100%;
+			-webkit-text-size-adjust: 100%;
+		}
+		body {
+			margin: 0;
+		}
+		details,
+		canvas,
+		header,
+		footer,
+		main,
+		menu,
+		nav,
+		section,
+		summary {
+			display: block;
+		}
+		audio,
+		/* audio:not([controls]) {
+			display: none;
+			height: 0;
+		} */
+		video {
+			display: inline-block;
+			vertical-align: baseline;
+		}
+		a {
+			background-color: transparent;
+		}
+		a:active,
+		a:hover {
+			outline: 0;
+		}
+		b,
+		strong {
+			font-weight: bold;
+		}
+		dfn {
+			font-style: italic;
+		}
+	</style>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+	<div class="headerbar">
+		<div class="deheader">
+			<div class="usertitle">
+				<div class="goldfont" style="width: fit-content; max-width: 25vw; padding-left: 8%; font-size: clamp(28px, calc(16px + 2vw), 40px); white-space: normal;" id="textFit">USERNAME</div>
+				<div class="goldfont" style="width: fit-content; max-width: 30vw; padding-left: 5%; font-size: clamp(14px, calc(6px + 2vw), 30px); white-space: normal; overflow-wrap: anywhere;">title/alias</div>
+			</div>
+			<div style="margin-left: auto; "><button style="font-size: clamp(16px, calc(6px + 2vw), 30px);">Play</button></div>
+			<div style="margin-left: auto; padding-right: 3%; font-size: clamp(14px, 0.2vw + 1rem, 80%)"><a href="#" id="logout">Logout</a></div>
+		</div>
+		<div class="bartab">
+			<div class="tabcolumn active" data-tab="Main">Main Profile</div>
+			<div class="tabcolumn" data-tab="Stat">Player Statistics</div>
+			<div class="tabcolumn" data-tab="Hist">Match History</div>
+			<div class="tabcolumn" data-tab="Sett">Account Settings</div>
+		</div>
+	</div>
+	<div class="content active" id="Main">
+		<div class="blogbox">
+			<div style="min-width: 15vw; min-height: 15vw; max-width: 15vw; max-height: 15vw; overflow: hidden;"><img src="profile_sample.png" alt="Profile picture" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+			<div style="padding: 1%; display: flex; flex-direction: column;">
+				<div>
+				<table class="aboutme">
+					<tr><td>Join: 03/08/2005</td><td>Level: NaN</td><td>Status: Pending</td></tr>
+					<tr><td>Matches Played: NaN</td><td>Rounds Won: NaN</td><td>Win Rate: NaN</td></tr>
+				</table><br><hr>
+				<div>Signature: Poker Rookie</div>
+				</div>
+			</div>
+		</div>
+		<div class="blogbox" style="flex-direction: column;">
+			<div style="display: flex; flex-direction: column; padding-bottom: 2%;">
+				<div style="padding-bottom: 0.5%;">Friends:</div>
+				<div class="iconspan" style="padding-left: 3%;">
+					<div style="width: 4vw; height: 4vw; overflow: hidden; padding-left: 0.5%;"><img src="defaultProfilePic.svg" alt="icon" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+					<div style="width: 4vw; height: 4vw; overflow: hidden; padding-left: 0.5%;"><img src="defaultProfilePic.svg" alt="icon" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+					<div style="width: 4vw; height: 4vw; overflow: hidden; padding-left: 0.5%;"><img src="defaultProfilePic.svg" alt="icon" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+					<div style="width: 4vw; height: 4vw; overflow: hidden; padding-left: 0.5%;"><img src="defaultProfilePic.svg" alt="icon" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+					<div style="width: 4vw; height: 4vw; overflow: hidden; padding-left: 0.5%;"><img src="defaultProfilePic.svg" alt="icon" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+				</div>
+			</div>
+			<div style="display: flex; flex-direction: column; padding-bottom: 2%;">
+				<div style="padding-bottom: 0.5%;">Trophies:</div>
+				<div class="iconspan" style="padding-left: 3%;">
+					<div style="width: 4vw; height: 4vw; overflow: hidden; padding-left: 0.5%;"><img src="iconLogo.svg" alt="icon" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+					<div style="width: 4vw; height: 4vw; overflow: hidden; padding-left: 0.5%;"><img src="iconLogo.svg" alt="icon" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+					<div style="width: 4vw; height: 4vw; overflow: hidden; padding-left: 0.5%;"><img src="iconLogo.svg" alt="icon" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+					<div style="width: 4vw; height: 4vw; overflow: hidden; padding-left: 0.5%;"><img src="iconLogo.svg" alt="icon" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+					<div style="width: 4vw; height: 4vw; overflow: hidden; padding-left: 0.5%;"><img src="iconLogo.svg" alt="icon" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="content" id="Stat">
+		<div class="blogbox">
+			<div style="padding: 1%; display: flex; flex-direction: column; width: 100%;">
+				<div>
+				<table style="padding: 2%; overflow-wrap: anywhere; width: 90%; position: relative; margin: 0 auto;">
+					<tr><td>Join: 03/08/2005</td><td>Level: NaN</td><td>Likes: NaN</td></tr>
+					<tr><td>Matches Played: NaN</td><td>Rounds Won: NaN</td><td>Win Rate: NaN</td></tr>
+					<tr><td>Highest Gain: NaN</td><td>Highest Loss: NaN</td><td>Highest Bank: NaN</td></tr>
+				</table><hr>
+				<div style="text-align: center; position: relative; margin: 0 auto; width: 30vw; height: 30vw; padding-bottom: 2%;">Playstyle<br>
+					<canvas id="playerStats"></canvas>
+				</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="content" id="Hist">
+		<div class="blogbox">
+			<div style="padding: 1%; display: flex; flex-direction: column; width: 100%;">
+				<div style="display: flex;">
+					<div style="width: 7vw; height: 7vw; overflow: hidden;"><img src="profile_sample.png" alt="Profile picture" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+					<div style="padding: 1%; position: relative; margin: 0 auto;"><table class="history">
+						<tr><td>Time: TBD</td><td>Mode: Casual</td><td>Enemy: TBD</td></tr>
+						<tr><td>Results: Loss</td><td>Rounds: 2/7</td><td></td></tr>
+					</table></div>
+					<div style="width: 7vw; height: 7vw; overflow: hidden;"><img src="defaultProfilePic.svg" alt="Profile picture" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+				</div><div><hr></div>
+				<div style="display: flex;">
+					<div style="width: 7vw; height: 7vw; overflow: hidden;"><img src="profile_sample.png" alt="Profile picture" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+					<div style="padding: 1%; position: relative; margin: 0 auto;"><table class="history">
+						<tr><td>Time: TBD</td><td>Mode: Ranked</td><td>Enemy: TBD</td></tr>
+						<tr><td>Results: Win</td><td>Rounds: 5/6</td><td>Points: +1</td></tr>
+					</table></div>
+					<div style="width: 7vw; height: 7vw; overflow: hidden;"><img src="defaultProfilePic.svg" alt="Profile picture" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+				</div><div><hr></div>
+			</div>
+		</div>
+	</div>
+	<div class="content" id="Sett">
+		<div class="blogbox">
+			<div style="min-width: 15vw; min-height: 15vw; max-width: 15vw; max-height: 15vw; overflow: hidden;"><img src="profile_sample.png" alt="Profile picture" style="display: block; object-fit: contain; width: 100%; height: 100%;"></div>
+			<div style="padding: 1%; display: flex; flex-direction: column;">
+				<div style="width: 100%;">
+				<table class="aboutme">
+					<tr><td>ID: REDACTED</td><td>Display Name: <input type="username" id="username"></td></tr>
+					<tr>
+						<td>Pronoun: <select name="pronoun" id="pronoun">
+							<option value="he">He/Him</option>
+							<option value="she">She/Her</option>
+							<option value="they">They/Them</option>
+						</select></td>
+						<td>Title: <select name="title" id="title">
+							<option value="default">Poker Rookie</option>
+							<option value="dev">DaveChips 888</option>
+							<option value="admin">Dont@Me</option>
+						</select></td>
+					</tr>
+				</table><br><hr>
+				<div>Signature: <input type="signature" id="signature" style="min-width: 80%;"></div>
+				<div style="display: flex; flex-direction: column; align-items: flex-end; margin-top: 2vh;"><button id="saveChanges" type="saveChanges" style="font-size: clamp(16px, calc(6px + 2vw), 24px);">Save</button></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="script.js" defer></script>
+</div>
+</body>
+</html>

@@ -1,0 +1,327 @@
+html,
+body {
+	min-width: 800px;
+	min-height: 600px;
+}
+
+#app {
+	min-width: 800px;
+	min-height: 600px;
+}
+
+body {
+	min-height: 100vh;
+	background-color: #262626;
+	background-image:
+		linear-gradient(
+			to bottom,
+			rgba(0, 0, 0, 0) 0%,
+			rgba(0, 0, 0, 0.25) 60%,
+			#000 120%
+		),
+		/* url("meshbg.svg"); */
+		url("meshbg1.svg");
+	background-repeat: no-repeat, repeat;
+	/* background-size: 100% 100%, 30px 30px; */
+	background-size: 100% 100%, 45px 45px;
+	color: white;
+	font-size: clamp(14px, calc(6px + 2vw), 28px);
+}
+
+input {
+	background-color: #2a2a2a;
+	color: white;
+	border: 1px solid #666;
+	border-radius: 6px;
+	padding: 4px 10px;
+}
+
+/* input[type="checkbox"] {
+	appearance: none;
+	width: clamp(8px, 2vw, 14px);
+	aspect-ratio: 1;
+	border-color: black;
+	background-color: rgba(29, 29, 29);
+	cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
+	accent-color: black;
+}
+
+input[type="checkbox"]:checked::after {
+	content: "✓";
+	color: gold;
+	text-align: center;
+	font-weight: bold;
+} */
+
+input[type="range"] {
+	accent-color: red;
+}
+
+input:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+button {
+	background-color: red;
+	color: white;
+	font-weight: bold;
+	border: transparent;
+	border-radius: 8px;
+	padding: 8px 10px;
+}
+
+a {
+	color: white;
+}
+
+dialog {
+	background-color: rgba(29, 29, 29);
+	border: transparent;
+	border-radius: 12px;
+	color: white;
+}
+
+dialog::backdrop {
+	background-color: rgba(0, 0, 0, 0.8);
+}
+
+.goldfont {
+	font-family: 'Times New Roman', Times, serif;
+	font-weight: bold;
+	color: gold;
+}
+
+/* .bottom-align {
+	position: relative;
+	bottom: 0;
+	margin: 0;
+} */
+
+.headerbar {
+	display: flex;
+	flex-direction: column;
+	position: sticky;
+	top: 0;
+	z-index: 1000;
+	height: 120px;
+	width: 100%;
+	background-color: black;
+}
+
+.deheader {
+	display: flex;
+	height: 60%;
+	width: 100%;
+	align-items: center;
+	text-align: center;
+	padding-top: 4px;
+}
+
+.usertitle {
+	display: flex;
+	align-items: end;
+	height: 80%;
+	width: 55vw;
+}
+
+.bartab {
+	display: flex;
+	height: 40%;
+	width: 100%;
+	align-items: stretch;
+	border-bottom: 4px solid red;
+}
+
+.tabcolumn {
+	margin-left: auto;
+	margin-right: auto;
+	border: transparent;
+	border-bottom: none;
+	border-radius: 6px 6px 0 0;
+	padding: 8px 10px;
+	cursor: pointer;
+	font-size: clamp(14px, calc(6px + 2vw), 80%);
+	font-weight: bold;
+	background-color: black;
+}
+
+.tabcolumn.active {
+	cursor: default;
+	background-color: red;
+}
+
+.content {
+	display: none;
+}
+
+.content.active {
+	display: flex;
+	flex-direction: column;
+}
+
+.blogbox {
+	display: flex;
+	align-self: center;
+	background-color: rgba(42, 42, 42, 0.75);
+	margin-top: 3vh;
+	width: 90vw;
+	height: fit-content;
+	padding: 1%;
+}
+
+.blogtab {
+	border: transparent;
+	border-bottom: none;
+	border-radius: 6px 6px 0 0;
+	padding: 8px 10px;
+	cursor: pointer;
+	background-color: rgba(29, 29, 29, 0.75);
+}
+
+.blogtab.active {
+	cursor: default;
+	background-color: transparent;
+	font-weight: bold;
+}
+
+.blogcont {
+	display: none;
+}
+
+.blogcont.active {
+	display: flex;
+	flex-direction: column;
+	padding: 1%;
+}
+
+.aboutme {
+	min-width: 70vw;
+	max-width: 100%;
+	align-self: center;
+	overflow-wrap: anywhere;
+}
+
+.iconspan {
+	display: flex;
+}
+
+.iconspan.box {
+	width: 5vw;
+	height: 5vw;
+	overflow: hidden;
+}
+
+.iconspan img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+.history {
+	padding: 1%;
+	overflow-wrap: anywhere;
+	min-width: 70vw;
+	max-width: 70%;
+	table-layout: fixed;
+	border-collapse: collapse;
+}
+
+.history td {
+	width: 33.33%;
+	vertical-align: middle;
+}
+
+.roomhost {
+	padding: 1%;
+	overflow-wrap: anywhere;
+	min-width: 75vw;
+	max-width: 100%;
+	table-layout: fixed;
+	border-collapse: collapse;
+}
+
+.roomhost td {
+	width: 25%;
+}
+
+.roomhost td.extended {
+	width: fit-content;
+}
+
+.tourndata {
+	display: flex;
+	flex-direction: column;
+	flex-wrap: wrap;
+	width: min(100%, 70vw);
+	position: relative;
+	margin: 0 auto;
+	font-size: clamp(11px, calc(6px + 2vw), 20px);
+	text-align: center;
+}
+
+.tourndetail {
+	width: 100%;
+}
+
+.tourndetail summary {
+	padding: 1%;
+	text-align: center;
+	font-size: clamp(14px, calc(6px + 2vw), 28px);
+	cursor: pointer;
+	list-style: none;
+	display: block;
+	width: fit-content;
+	margin-left: auto;
+}
+
+.tourndetail summary::-webkit-details-marker {
+	display: none;
+}
+
+.tourndetail summary::after {
+	content: "";
+	display: inline-block;
+	width: 0.45em;
+	height: 0.45em;
+	margin-left: 0.5em;
+	border-right: 2px solid currentColor;
+	border-bottom: 2px solid currentColor;
+	transform: rotate(45deg);
+	transition: transform 180ms ease;
+}
+
+.tourndetail[open] summary::after {
+	transform: rotate(225deg);
+}
+
+.subbox {
+	padding: 1%;
+	background-color: rgba(29, 29, 29, 0.75);
+	width: 80vw;
+	height: fit-content;
+	font-size: clamp(11px, calc(6px + 2vw), 18px);
+	position: relative;
+	margin: 0 auto;
+}
+
+/* .startheader {
+	text-align: center;
+	font-family: 'Times New Roman', Times, serif;
+	font-weight: bold;
+	font-size: clamp(32px, 2vw + 1rem, 64px);
+	color: gold;
+}
+
+.centerblock {
+	align-self: center;
+	vertical-align: middle;
+	text-align: center;
+}
+
+.row {
+	margin-top: 6px;
+} */
