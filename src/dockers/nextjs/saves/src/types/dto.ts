@@ -16,3 +16,7 @@ export type JoinLobbyDto = components['schemas']['JoinLobbyDto']
 export type GetLobbyPublicDto = components['schemas']['GetLobbyPublicDto'];
 
 export type ChatRoomMemberDto = components['schemas']['ChatRoomMemberDto'];
+
+export type FindAllFriendshipsDto = components['schemas']['FindAllFriendshipsDto'];
+export type GetUserProfileDto = components['schemas']['GetUserProfileDto'];
+
