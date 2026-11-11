@@ -121,7 +121,11 @@ export function ChatEmbbed() {
                 rawCreatedAt: d.getTime(),
             } as UnifiedMessage;
         });
-        setMessages(history);
+        setMessages((prev) => {
+            const existingIds = new Set(prev.map((message) => message.id));
+            const newHistory = history.filter((message) => !existingIds.has(message.id));
+            return [...prev, ...newHistory].sort((a, b) => a.rawCreatedAt - b.rawCreatedAt);
+        });
     } catch (err) {
         console.error('Failed to fetch public chat history:', err);
     }
@@ -132,11 +136,18 @@ export function ChatEmbbed() {
     const fetchRoomHistory = async (roomId: string, currentRooms = roomsRef.current) => {
       try {
         const res = await fetch(`/api/chat/message?chatRoomId=${roomId}`);
-        if (!res.ok) return [];
-  
+                if (!res.ok) {
+                    const errorMsg = await res.text();
+                    console.error(`Failed to fetch history for room ${roomId}: ${res.status} ${errorMsg}`);
+                    return null;
+                }
+
         const data = (await res.json()) as ChatMessageDto[];
-        if (!Array.isArray(data)) return [];
-  
+                if (!Array.isArray(data)) {
+                        console.error(`Invalid history response for room ${roomId}:`, data);
+                        return null;
+        }
+
         const targetRoom = currentRooms.find((r) => r.id === roomId);
   
         return data.map((item: any) => {
@@ -153,7 +164,7 @@ export function ChatEmbbed() {
             chatRoomId: item.chatRoomId || roomId,
             roomName: targetRoom?.roomName || roomId.slice(0, 6),
             roomType: targetRoom?.visibilityType || 'PUBLIC',
-            senderUserId: item.senderUserId || 'System',
+            senderUserId: item.senderUserId || item.userId || 'System',
             message: item.messageText || item.message || '',
             type: item.type || 'NORMAL',
             timestamp: time,
@@ -162,7 +173,7 @@ export function ChatEmbbed() {
         });
       } catch (err) {
         console.error(`Failed to fetch history for room ${roomId}:`, err);
-        return [];
+                return null;
       }
     };
   
@@ -173,25 +184,46 @@ export function ChatEmbbed() {
         if (!res.ok) return;
   
         const data = await res.json();
+        console.log("ข้อมูลที่ได้จาก API ตอน F5:", data);
         if (!Array.isArray(data)) return;
-  
-        setRooms(prev => {
-            const publicRoom = prev.find(r => r.id === 'public');
-            const nonDmRooms = data.filter((r: any) => r.visibilityType !== 'DIRECT_MESSAGE' && r.id !== 'public');
-            return publicRoom ? [publicRoom, ...nonDmRooms] : data;
-        });
+
+                let savedDmRooms: ChatRoom[] = [];
+                try {
+                    const savedRooms = JSON.parse(localStorage.getItem('savedDmRooms') || '[]');
+                    if (Array.isArray(savedRooms)) {
+                        savedDmRooms = savedRooms.filter((room: ChatRoom) => room.id && room.id !== 'public');
+                    }
+                } catch (err) {
+                    console.error('Failed to restore saved DM rooms:', err);
+                }
+
+                const roomsById = new Map<string, ChatRoom>();
+                [...data, ...savedDmRooms].forEach((room: ChatRoom) => roomsById.set(room.id, room));
+                const availableRooms = [...roomsById.values()];
+
+                setRooms(availableRooms);
+                if (availableRooms.length > 0 && !activeSendRoomId) {
+                        setActiveSendRoomId(availableRooms[0].id);
+        }
+        // setRooms(prev => {
+        //     const publicRoom = prev.find(r => r.id === 'public');
+        //     const nonDmRooms = data.filter((r: any) => r.visibilityType !== 'DIRECT_MESSAGE' && r.id !== 'public');
+        //     return publicRoom ? [publicRoom, ...nonDmRooms] : data;
+        // });
   
         // Fetch history for all joined rooms in parallel
-        const unvisitedRooms = data.filter((r) => !loadedHistoryRooms.current.has(r.id));
+        const unvisitedRooms = availableRooms.filter((r) => !loadedHistoryRooms.current.has(r.id));
         if (unvisitedRooms.length === 0) return;
   
         const historyBatches = await Promise.all(
-          unvisitedRooms.map((r) => fetchRoomHistory(r.id, data))
+          unvisitedRooms.map((r) => fetchRoomHistory(r.id, availableRooms))
         );
-  
-        unvisitedRooms.forEach((r) => loadedHistoryRooms.current.add(r.id));
-  
-        const combinedHistory = historyBatches.flat();
+
+                const combinedHistory = historyBatches.flatMap((history, index) => {
+                    if (history === null) return [];
+                    loadedHistoryRooms.current.add(unvisitedRooms[index].id);
+                    return history;
+                });
   
         // Merge with any existing messages and sort chronologically
         setMessages((prev) => {
@@ -227,23 +259,28 @@ export function ChatEmbbed() {
                     if (prev.some((r) => r.id === roomId)) return prev;
                     
                     // ถ้ายังไม่มี ให้สร้างแท็บต่อท้าย
-                    return [...prev, {
-                        id: roomId,
-                        roomName: resolveFriendName(friendItem),
-                        visibilityType: 'DIRECT_MESSAGE',
-                        createdAt: new Date().toISOString()
-                    }];
+                    const newRoom: ChatRoom = {
+                                        id: roomId,
+                                        roomName: resolveFriendName(friendItem),
+                                        visibilityType: 'DIRECT_MESSAGE',
+                                        createdAt: new Date().toISOString()
+                                    };
+                    const updatedRooms = [...prev, newRoom];
+                    localStorage.setItem('savedDmRooms', JSON.stringify(updatedRooms.filter(r => r.id !== 'public')));
+                    return updatedRooms;
                 });
 
             // If history hasn't been loaded for this DM room, fetch it
             if (!loadedHistoryRooms.current.has(roomId)) {
-            loadedHistoryRooms.current.add(roomId);
             const history = await fetchRoomHistory(roomId);
-            setMessages((prev) => {
-                const existingIds = new Set(prev.map((m) => m.id));
-                const newUnique = history.filter((m) => !existingIds.has(m.id));
-                return [...prev, ...newUnique].sort((a, b) => a.rawCreatedAt - b.rawCreatedAt);
-            });
+            if (history !== null) {
+                loadedHistoryRooms.current.add(roomId);
+                setMessages((prev) => {
+                    const existingIds = new Set(prev.map((m) => m.id));
+                    const newUnique = history.filter((m) => !existingIds.has(m.id));
+                    return [...prev, ...newUnique].sort((a, b) => a.rawCreatedAt - b.rawCreatedAt);
+                });
+            }
             }
 
             setActiveSendRoomId(roomId);
@@ -282,6 +319,7 @@ export function ChatEmbbed() {
         }]);
         setActiveSendRoomId('public');
         loadPublicChatHistory();
+        loadRoomsAndHistory();
         loadFriends();
     }, [accessToken]);
 
@@ -434,7 +472,12 @@ export function ChatEmbbed() {
                                     type="button"
                                     onClick={(e) => {
                                             e.stopPropagation();
-                                            setRooms(prev => prev.filter(r => r.id !== room.id));
+                                            setRooms(prev => {
+                                                const updatedRooms = prev.filter(r => r.id !== room.id);
+                                                // ✅ เพิ่มบรรทัดนี้: อัปเดต LocalStorage ด้วย
+                                                localStorage.setItem('savedDmRooms', JSON.stringify(updatedRooms.filter(r => r.id !== 'public')));
+                                                return updatedRooms;
+                                            });
                                             if (isCurrent) {
                                                 setActiveFilter('public');
                                                 setActiveSendRoomId('public');
