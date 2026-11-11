@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Patch, Post, Query, Req, UseFilters, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, HttpCode, HttpStatus, Logger, Patch, Post, Query, Req, UseFilters, UseGuards } from '@nestjs/common';
 import { LobbyService } from './lobby.service.js';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth/jwt-auth.guard.js';
 import { ThrottlerGuard } from '@nestjs/throttler';
@@ -19,6 +19,9 @@ import { LobbyUserCreateDto } from './dto/lobby-user-create.dto.js';
 import { LobbyUpdateDto } from '../../redis/lobby-redis/dtos/lobby-update.dto.js';
 import { HttpAllExceptionsFilter } from '../../filters/HttpAllExceptionsFilter.js';
 import { LobbyDto } from '../../redis/lobby-redis/dtos/lobby.dto.js';
+import { GetLobbyMemberListPublicDto } from './dto/get-lobby-member-list-public.dto.js';
+import { UserService } from '../../user/user.service.js';
+import { GameSettingFormat, GameSettings } from '../../redis/lobby-redis/schemas/lobby-gameSettings.redis.schema.js';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, LobbyGuard, ThrottlerGuard)
@@ -29,13 +32,33 @@ export class LobbyController {
 
   constructor(
     private readonly lobbyService: LobbyService,
-    private readonly userRedisService: UserRedisService
+    private readonly userRedisService: UserRedisService,
+    private readonly userService: UserService
   ) {
   }
 
   @ApiOperation({
+    summary: "get available lobby formats",
+    description: "Returns the starting stack and big blind configured for each lobby format."
+  })
+  @Get('formats')
+  getLobbyFormats() {
+    const formats = [
+      GameSettingFormat.BEGINNER,
+      GameSettingFormat.PRO,
+      GameSettingFormat.TURBO,
+    ] as const;
+
+    return formats.map((format) => ({
+      format,
+      startingChips: GameSettings.formatChips[format],
+      bigBlind: GameSettings.formatBB[format],
+    }));
+  }
+
+  @ApiOperation({
     summary: "create a lobby room",
-    description: "user create a new lobby room. Must not currently in another lobby room."
+    description: "Users may create or join up to five lobby rooms at a time."
   })
   //@ApiBody({
   //  type: LobbyUserCreateDto
@@ -109,23 +132,28 @@ export class LobbyController {
         this.lobbyService.findAll()
       ])
 
-      const formatted: GetLobbyPublicDto[] = allLobby.map((lobby): GetLobbyPublicDto => {
+      const formatted: GetLobbyPublicDto[] = await Promise.all(
+        allLobby.map(async (lobby): Promise<GetLobbyPublicDto> => {
 
-        const {password, ...publicGeneralSettings} = lobby.generalSettings;
-        const {chatRoomId, ...publicDetails} = lobby.details;
+          const {password, ...publicGeneralSettings} = lobby.generalSettings;
+          const {chatRoomId, ...publicDetails} = lobby.details;
 
-        const pub: LobbyGeneralSettingsPublicDto = {
-          catchPhrase: publicGeneralSettings.catchPhrase,
-          roomType: publicGeneralSettings.roomType,
-          hasPassword: password === null ? false : true
-        }
+          const pub: LobbyGeneralSettingsPublicDto = {
+            catchPhrase: publicGeneralSettings.catchPhrase,
+            roomType: publicGeneralSettings.roomType,
+            hasPassword: password === null ? false : true
+          }
 
-        return {
-          details: publicDetails,
-          gameSettings: lobby.gameSettings,
-          generalSettings: pub
-        };
-      })
+          return {
+            details: {
+              ...publicDetails,
+              hostDisplayName: await this.getHostDisplayName(publicDetails.hostUserId),
+            },
+            gameSettings: lobby.gameSettings,
+            generalSettings: pub
+          };
+        }),
+      );
 
       return formatted;
     } catch (error: any) {
@@ -136,6 +164,39 @@ export class LobbyController {
   @Get('my-lobby')
   getMyLobby(@Req() req: any) {
     return this.lobbyService.allLobbyUser(req.user.id);
+  }
+
+  @ApiOperation({
+    summary: "get the lobby player and spectator names",
+    description: "Only members of the lobby can view its member list."
+  })
+  @ApiResponse({
+    type: GetLobbyMemberListPublicDto
+  })
+  @Get('members')
+  async getLobbyMembers(
+    @Req() req: any,
+    @Query('lobbyPinId') lobbyPinId: string
+  ): Promise<GetLobbyMemberListPublicDto> {
+    const isMember = await this.userRedisService.isUserInLobby(req.user.id, lobbyPinId);
+    if (!isMember) {
+      throw new ForbiddenException("must join the lobby to view its members");
+    }
+
+    const { playerList, spectatorList, readyPlayerList } =
+      await this.lobbyService.getLobbyMemberList(lobbyPinId);
+
+    const getDisplayNames = async (userIds: string[]) =>
+      Promise.all(userIds.map(async (userId) => {
+        const user = await this.userService.findOne(userId);
+        return user.user_profile?.displayName?.trim() || user.tagId;
+      }));
+
+    return {
+      playerList: await getDisplayNames(playerList),
+      spectatorList: await getDisplayNames(spectatorList),
+      readyPlayerList: await getDisplayNames(readyPlayerList),
+    };
   }
 
   @ApiOperation({
@@ -193,10 +254,20 @@ export class LobbyController {
     }
 
     return {
-      details: publicDetails,
+      details: {
+        ...publicDetails,
+        hostDisplayName: await this.getHostDisplayName(publicDetails.hostUserId),
+      },
       gameSettings: lobbyData.gameSettings,
       generalSettings: pub,
     }
+  }
+
+  private async getHostDisplayName(hostUserId: string | null): Promise<string> {
+    if (!hostUserId) return "Unknown";
+
+    const user = await this.userService.findOne(hostUserId);
+    return user.user_profile?.displayName?.trim() || user.tagId;
   }
 
 }

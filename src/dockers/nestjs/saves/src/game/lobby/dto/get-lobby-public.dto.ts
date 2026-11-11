@@ -18,6 +18,10 @@ export class LobbyGeneralSettingsPublicDto extends IntersectionType (
 class LobbyDetailsPublicDto extends IntersectionType(
   OmitType(LobbyDetailsDto, ['chatRoomId'] as const)
 ) {
+  @ApiProperty({
+    description: "the host user's display name"
+  })
+  hostDisplayName: string;
 }
 
 export class GetLobbyPublicDto {
@@ -38,4 +42,3 @@ export class GetLobbyPublicDto {
   generalSettings: LobbyGeneralSettingsPublicDto;
 
 }
-

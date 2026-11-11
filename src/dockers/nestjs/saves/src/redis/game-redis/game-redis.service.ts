@@ -78,9 +78,26 @@ export class GameRedisService {
         cyclePlayerIds: [],
         bigBlindPlayerIds: [],
         cycleComplete: false,
+        matchPlayerIds: [],
+        playerPlaces: {},
+        matchComplete: false,
+        totalHandsPlayed: 0,
+        startedAt: null,
       }
     }
-    return JSON.parse(stored) as MatchProgress
+    const progress = JSON.parse(stored) as Partial<MatchProgress>;
+    return {
+      cycleNumber: progress.cycleNumber ?? 1,
+      handNumber: progress.handNumber ?? 0,
+      cyclePlayerIds: progress.cyclePlayerIds ?? [],
+      bigBlindPlayerIds: progress.bigBlindPlayerIds ?? [],
+      cycleComplete: progress.cycleComplete ?? false,
+      matchPlayerIds: progress.matchPlayerIds ?? [],
+      playerPlaces: progress.playerPlaces ?? {},
+      matchComplete: progress.matchComplete ?? false,
+      totalHandsPlayed: progress.totalHandsPlayed ?? 0,
+      startedAt: progress.startedAt ?? null,
+    }
   }
 
   saveMatchProgress(

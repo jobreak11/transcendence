@@ -60,6 +60,8 @@ export namespace PokerEvent {
         round: string;
         roundNumber: number;
         cycleComplete: boolean;
+        matchComplete: boolean;
+        playerPlaces: Record<string, number>;
         poolCards: string[];
         pot: number;
         ante: number;
@@ -80,6 +82,16 @@ export namespace PokerEvent {
       }
     }
 
+  }
+
+  export namespace sync {
+    const sync_namespace = `${poker_namespace}:sync`;
+    export namespace to_server {
+      export const event_name = `${sync_namespace}:to_server`;
+      export interface payload {
+        tableSessionId: string;
+      }
+    }
   }
 
   export namespace action {

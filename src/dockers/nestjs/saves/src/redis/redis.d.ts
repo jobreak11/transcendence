@@ -41,9 +41,11 @@ declare module 'ioredis' {
       LobbygeneralSettingsKey: string,
       lobbyGameSettingsKey: string,
       lobbyDetailsKey: string,
+      readyPlayerListKey: string,
 
       leaveUserId: string,
       lobbyPinId: string,
+      matchComplete: string,
     ): Promise<number | string>;
 
     lobbyRoomSetStatus(
