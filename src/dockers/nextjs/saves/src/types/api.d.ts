@@ -731,6 +731,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/game/lobby/formats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * get available lobby formats
+         * @description Returns the starting stack and big blind configured for each lobby format.
+         */
+        get: operations["LobbyController_getLobbyFormats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/game/lobby/create": {
         parameters: {
             query?: never;
@@ -1319,12 +1339,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a1cac2-5f45-7736-a943-c710443f29b0
+             * @example 01a1cb12-2b0f-77fb-b30c-bb623e39de30
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a1cac2-5f48-776d-a5da-d80f09c570a4
+             * @example 01a1cb12-2b11-73a1-81c6-8f798c7106cf
              */
             chatRoomId: string;
             /**
@@ -1410,7 +1430,7 @@ export interface components {
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1cac2-5f7c-7013-b736-71036303bfb6
+             * @example 01a1cb12-2b30-72ad-b75b-41baf2e893c3
              */
             gameRoomId: string | null;
             /**
@@ -1499,7 +1519,7 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1cac2-5f7c-7013-b736-71036303bfb6
+             * @example 01a1cb12-2b30-72ad-b75b-41baf2e893c3
              */
             gameRoomId: string | null;
             /**
@@ -2512,6 +2532,23 @@ export interface operations {
             query: {
                 targetUserId: string;
             };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    LobbyController_getLobbyFormats: {
+        parameters: {
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
