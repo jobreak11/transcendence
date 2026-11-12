@@ -11,6 +11,85 @@
     "switchToEnglish": "English",
     "switchToEnglishLabel": "เปลี่ยนภาษาเป็นอังกฤษ",
     "switchToThai": "ไทย",
-    "switchToThaiLabel": "เปลี่ยนภาษาเป็นไทย"
+    "switchToThaiLabel": "เปลี่ยนภาษาเป็นไทย",
+    "switchToChinese": "中文",
+    "switchToChineseLabel": "เปลี่ยนภาษาเป็นจีน"
+  },
+
+  "common": {
+    "play": "เล่น",
+    "login": "เข้าสู่ระบบ",
+    "logout": "ออกจากระบบ",
+    "save": "บันทึก",
+    "backToMain": "กลับหน้าหลัก",
+    "goToTop": "กลับขึ้นด้านบน",
+    "join": "เข้าร่วม",
+    "yes": "ใช่",
+    "no": "ไม่"
+  },
+
+  "auth": {
+    "signInWithGoogle": "เข้าสู่ระบบด้วย Google",
+    "signInWithTikTok": "เข้าสู่ระบบด้วย TikTok",
+    "signInWithLine": "เข้าสู่ระบบด้วย LINE",
+    "signInWithFacebook": "เข้าสู่ระบบด้วย Facebook",
+    "signInWith42Intra": "เข้าสู่ระบบด้วย 42 Intra"
+  },
+
+  "navigation": {
+    "about": "เกี่ยวกับ",
+    "statistics": "สถิติ",
+    "history": "ประวัติการเล่น",
+    "settings": "ตั้งค่า",
+    "rank": "อันดับ",
+    "tournament": "ทัวร์นาเมนต์",
+    "custom": "กำหนดเอง"
+  },
+
+  "home": {
+    "aboutUs": "เกี่ยวกับเรา",
+    "learnMore": "ดูเพิ่มเติม",
+    "description": "Transcend 888 เป็นเกมโป๊กเกอร์ออนไลน์ที่สร้างขึ้นเป็นส่วนหนึ่งของโปรเจกต์ Transcendence ของ 42 โปรเจกต์นี้ไม่แสวงหากำไรและเปิดให้เล่นฟรีเสมอ",
+    "paragraph": "อยากเล่นโป๊กเกอร์สนุก ๆ กับเพื่อน หรือล็อกอินเพื่อบันทึกสถิติและติดตามฝีมือของตัวเอง ก็เล่นได้ที่นี่ทุกที่ทุกเวลา เล่นฟรีโดยไม่ต้องใช้เหรียญหรือชิป"
+  },
+
+  "profile": {
+    "joined": "เข้าร่วมเมื่อ",
+    "level": "เลเวล",
+    "status": "สถานะ",
+    "matchesPlayed": "แมตช์ที่เล่น",
+    "roundsWon": "จำนวนครั้งที่ชนะ",
+    "winRate": "อัตราการชนะ",
+    "signature": "ลายเซ็น",
+    "friends": "เพื่อน",
+    "trophies": "ถ้วยรางวัล",
+    "likes": "ยอดถูกใจ",
+    "blackjackRate": "อัตราการชนะ Blackjack",
+    "playstyle": "สไตล์การเล่น",
+    "displayName": "ชื่อที่แสดง",
+    "pronoun": "คำเรียกแทนตัว",
+    "title": "ฉายา",
+    "id": "รหัสผู้ใช้"
+  },
+
+  "history": {
+    "time": "เวลา",
+    "mode": "โหมด",
+    "enemy": "คู่แข่ง",
+    "results": "ผลการแข่งขัน",
+    "win": "ชนะ",
+    "loss": "แพ้",
+    "rounds": "รอบ",
+    "points": "คะแนน"
+  },
+  
+  "lobby": {
+    "casual": "ทั่วไป",
+    "host": "เจ้าของห้อง",
+    "catchphrase": "ข้อความประจำห้อง",
+    "private": "ส่วนตัว",
+    "players": "ผู้เล่น",
+    "spectators": "ผู้ชม",
+    "joinSpectators": "เข้าร่วมเป็นผู้ชม"
   }
 }

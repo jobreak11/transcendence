@@ -11,6 +11,86 @@
     "switchToThai": "ไทย",
     "switchToThaiLabel": "Switch language to Thai",
     "switchToEnglish": "English",
-    "switchToEnglishLabel": "Switch language to English"
+    "switchToEnglishLabel": "Switch language to English",
+    "switchToChinese": "中文",
+    "switchToChineseLabel": "Switch language to Chinese"
+  },
+  
+  "common": {
+    "play": "Play",
+    "login": "Login",
+    "logout": "Logout",
+    "save": "Save",
+    "backToMain": "Back to Main",
+    "goToTop": "Go to top",
+    "join": "Join",
+    "yes": "Yes",
+    "no": "No"
+  },
+
+  "auth": {
+    "signInWithGoogle": "Sign in with Google",
+    "signInWithTikTok": "Sign in with TikTok",
+    "signInWithLine": "Sign in with LINE",
+    "signInWithFacebook": "Sign in with Facebook",
+    "signInWith42Intra": "Sign in with 42 Intra"
+  },
+
+  "navigation": {
+    "about": "About",
+    "statistics": "Statistics",
+    "history": "History",
+    "settings": "Settings",
+    "rank": "Rank",
+    "tournament": "Tournament",
+    "custom": "Custom"
+  },
+
+  "home": {
+    "aboutUs": "About Us",
+    "learnMore": "Learn More",
+    "description": "Transcend 888 is an online web poker game, created as part of the 42 project, Transcendence. This project is non-commercial and will always be free of charge.",
+    "paragraph": "Here, you can play the well-known poker card game anywhere. Having short fun testing your luck with your friends, or login with an account that tracks your progress to show the world how good you are, we all have it covered. With no coins, chips, nor payment, you can enjoy poker to its fullest."
+  },
+
+  "profile": {
+    "joined": "Joined",
+    "level": "Level",
+    "status": "Status",
+    "matchesPlayed": "Matches Played",
+    "roundsWon": "Rounds Won",
+    "winRate": "Win Rate",
+    "signature": "Signature",
+    "friends": "Friends",
+    "trophies": "Trophies",
+    "likes": "Likes",
+    "blackjackRate": "Blackjack Rate",
+    "playstyle": "Playstyle",
+    "displayName": "Display Name",
+    "pronoun": "Pronoun",
+    "title": "Title",
+    "id": "ID"
+  },
+
+  "history": {
+    "time": "Time",
+    "mode": "Mode",
+    "enemy": "Opponent",
+    "results": "Result",
+    "win": "Win",
+    "loss": "Loss",
+    "rounds": "Rounds",
+    "points": "Points"
+  },
+
+  "lobby": {
+    "casual": "Casual",
+    "host": "Host",
+    "catchphrase": "Catchphrase",
+    "private": "Private",
+    "players": "Players",
+    "spectators": "Spectators",
+    "joinSpectators": "Join as Spectator"
   }
+
 }
