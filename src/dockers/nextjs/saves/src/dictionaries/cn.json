@@ -1,4 +1,11 @@
 {
+  "language" :{
+    "select": "选择语言",
+    "english": "English",
+    "Thai": "ไทย",
+    "chinese": "中文"
+  },
+
  "game": {
     "fold": "弃牌",
     "call": "跟注",
@@ -69,7 +76,10 @@
     "displayName": "昵称",
     "pronoun": "代词",
     "title": "称号",
-    "id": "用户 ID"
+    "id": "用户 ID",
+    "highestGain": "单局最高加分",
+    "highestLoss": "单局最高扣分",
+    "highestRank": "最高排名"
   },
 
   "history": {

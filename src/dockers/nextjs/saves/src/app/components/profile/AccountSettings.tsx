@@ -22,6 +22,8 @@ import {
   type UserProfileResponse,
 } from "../../../lib/profile-api";
 
+import { useLanguage } from "../language/LanguageProvider";
+
 type AccountSettingsProps = {
   profile: UserProfileResponse;
 
@@ -63,6 +65,10 @@ export default function AccountSettings({
   profile,
   onSaved,
 }: AccountSettingsProps) {
+
+  const { dictionary } = 
+    useLanguage();
+
   const [draft, setDraft] =
     useState<ProfileDraft>(() =>
       createDraft(profile),
@@ -319,11 +325,11 @@ export default function AccountSettings({
         <div className="profile-details settings-details">
           <div className="settings-grid">
             <div>
-              ID: {profile.tagId}
+              {dictionary.profile.id}: {profile.tagId}
             </div>
 
             <label>
-              Display Name:{" "}
+              {dictionary.profile.displayName}:{" "}
               <input
                 type="text"
                 value={draft.displayName}
@@ -342,7 +348,7 @@ export default function AccountSettings({
             </label>
 
             <label>
-              Pronoun:{" "}
+              {dictionary.profile.pronoun}:{" "}
               <select
                 value={draft.pronoun}
                 disabled={isBusy}
@@ -376,13 +382,13 @@ export default function AccountSettings({
             </label>
 
             <div>
-              Title:{" "}
+              {dictionary.profile.title}:{" "}
               {profile.titleName ??
                 "No active title"}
             </div>
 
             <div>
-              Email: {profile.email}
+              {dictionary.profile.title}: {profile.email}
             </div>
           </div>
 
@@ -393,7 +399,7 @@ export default function AccountSettings({
           <br />
 
           <label className="signature-field">
-            Signature:{" "}
+            {dictionary.profile.signature}:{" "}
             <input
               type="text"
               value={draft.signature}

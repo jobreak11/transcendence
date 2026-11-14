@@ -1,4 +1,11 @@
 {
+  "language" :{
+    "select": "เลือกภาษา",
+    "english": "English",
+    "Thai": "ไทย",
+    "chinese": "中文"
+  },
+
   "game": {
     "fold": "หมอบ",
     "call": "สู้",
@@ -63,13 +70,16 @@
     "signature": "ลายเซ็น",
     "friends": "เพื่อน",
     "trophies": "ถ้วยรางวัล",
-    "likes": "ยอดถูกใจ",
+    "likes": "ยอดไลค์",
     "blackjackRate": "อัตราการชนะ Blackjack",
     "playstyle": "สไตล์การเล่น",
-    "displayName": "ชื่อที่แสดง",
+    "displayName": "ชื่อ",
     "pronoun": "คำเรียกแทนตัว",
     "title": "ฉายา",
-    "id": "รหัสผู้ใช้"
+    "id": "รหัสผู้ใช้",
+    "highestGain": "แต้มที่ได้สูงสุด",
+    "highestLoss": "แต้มที่เสียสูงสุด",
+    "highestRank": "อันดับสูงสุด"
   },
 
   "history": {

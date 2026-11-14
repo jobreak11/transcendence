@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import enDictionary from "../../dictionaries/en.json";
 import thDictionary from "../../dictionaries/th.json";
+import cnDictionary from "../../dictionaries/cn.json";
 import type { GameLanguage } from "./components/ActionButtons";
 import HandInfo from "./components/handInfo";
 import GameTable from "./components/GameTable";
@@ -238,7 +239,7 @@ export default function Page() {
   const [language, setLanguage] = useState<GameLanguage>("en");
   const userId = getUserIdFromToken(accessToken);
   const isHost = lobbyStatus?.details.hostUserId === userId;
-  const dictionary = language === "en" ? enDictionary.game : thDictionary.game;
+  const dictionary = language === "en" ? enDictionary.game : cnDictionary.game; //to edit
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -768,7 +769,7 @@ export default function Page() {
       <div className="fixed top-[3vh] right-[3vw] flex gap-2">
         <button
           type="button"
-          onClick={() => setLanguage((current) => current === "en" ? "th" : "en")}
+          onClick={() => setLanguage((current) => current === "en" ? "cn" : "en")} //to edit
           aria-label={language === "en"
             ? enDictionary.game.switchToThaiLabel
             : thDictionary.game.switchToEnglishLabel}

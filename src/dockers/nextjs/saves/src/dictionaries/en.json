@@ -1,4 +1,11 @@
 {
+  "language" :{
+    "select": "Select language",
+    "english": "English",
+    "Thai": "ไทย",
+    "chinese": "中文"
+  },
+  
   "game": {
     "fold": "Fold",
     "call": "Call",
@@ -69,7 +76,10 @@
     "displayName": "Display Name",
     "pronoun": "Pronoun",
     "title": "Title",
-    "id": "ID"
+    "id": "ID",
+    "highestGain": "Highest Gain",
+    "highestLoss": "Highest Loss",
+    "highestRank": "Highest Rank"
   },
 
   "history": {
