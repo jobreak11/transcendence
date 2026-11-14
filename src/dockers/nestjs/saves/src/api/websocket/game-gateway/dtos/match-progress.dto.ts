@@ -7,6 +7,11 @@ export interface MatchProgress {
   cycleComplete: boolean;
   matchPlayerIds: string[];
   playerPlaces: Record<string, number>;
+  playerStats: Record<string, {
+    playCount: number;
+    winCount: number;
+    expEarned: number;
+  }>;
   matchComplete: boolean;
   totalHandsPlayed: number;
   startedAt: string | null;

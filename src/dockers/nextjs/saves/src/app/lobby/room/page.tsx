@@ -346,6 +346,10 @@ export default function LobbyRoomPage() {
   }, [currentUserId, lobbyPinId, refreshMembers, socket]);
 
   useEffect(() => {
+    const returnedFromMatch =
+      new URLSearchParams(window.location.search).get("returnFromMatch") === "1";
+    if (returnedFromMatch) return;
+
     const gameRoomId = lobby?.details.gameRoomId;
     if (lobby?.details.roomStatus !== "PLAYING" || !gameRoomId) return;
 

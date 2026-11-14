@@ -12,7 +12,7 @@ import { pl, ta } from 'zod/v4/locales';
 import { PokerPlayer } from './dtos/poker-player.dto.js';
 import { MatchProgress } from './dtos/match-progress.dto.js';
 import { BettingRound, PokerState } from './dtos/poker-state.dto.js';
-import { HAND_LABELS, PLAYER_ACTION_TIMEOUT_MS, ROUND_ORDER } from './game-gateway.constants.js';
+import { EXP_PER_HAND_PLAYED, HAND_LABELS, PLAYER_ACTION_TIMEOUT_MS, ROUND_ORDER } from './game-gateway.constants.js';
 import { stat } from 'node:fs';
 import { event_game_poker_action, event_game_poker_private_cards, event_game_poker_state, EventGameActionToClientDto, EventGameFinishStateToClientDto, EventGamePrivateCardsToClientDto, EventGamePublicStateToClientDto } from './events/poker.event.js';
 import { HandPayout } from './dtos/hand-payout.dto.js';
@@ -142,7 +142,8 @@ export class GameGatewayService implements OnModuleInit {
         tableSessionId,
         players.map(({ playerId }) => playerId),
       );
-      const bigBlind = this.getBigBlind(lobbyData.gameSettings);
+      const bigBlind =
+        this.getBigBlind(lobbyData.gameSettings) * matchProgress.cycleNumber;
       const ante = this.getAnte(lobbyData.gameSettings, bigBlind);
       const smallBlind = Math.max(1, Math.floor(bigBlind / 2));
       const buttonSequence = await this.gameRedisService.incrButton(tableSessionId);
@@ -529,6 +530,42 @@ export class GameGatewayService implements OnModuleInit {
         matchProgress.playerPlaces[winnerPlayerId] = 1;
       }
     }
+    const showdownWinnerIds = new Set(
+      payouts
+        .filter(({ amount }) => amount > 0)
+        .map(({ player }) => player.playerId),
+    );
+    for (const player of state.players) {
+      const stats = matchProgress.playerStats[player.playerId] ?? {
+        playCount: 0,
+        winCount: 0,
+        expEarned: 0,
+      };
+      stats.playCount += 1;
+      if (revealCards && !player.folded && showdownWinnerIds.has(player.playerId)) {
+        stats.winCount += 1;
+      }
+      matchProgress.playerStats[player.playerId] = stats;
+    }
+    if (matchProgress.matchComplete) {
+      const playerCount = matchProgress.matchPlayerIds.length;
+      for (const playerId of matchProgress.matchPlayerIds) {
+        const place = matchProgress.playerPlaces[playerId];
+        if (place === undefined) continue;
+
+        const stats = matchProgress.playerStats[playerId] ?? {
+          playCount: 0,
+          winCount: 0,
+          expEarned: 0,
+        };
+        const placementExp = playerCount <= 1
+          ? 80
+          : 20 + Math.round(60 * (playerCount - place) / (playerCount - 1));
+        stats.expEarned = placementExp
+          + stats.playCount * EXP_PER_HAND_PLAYED;
+        matchProgress.playerStats[playerId] = stats;
+      }
+    }
     matchProgress.cyclePlayerIds = matchProgress.cyclePlayerIds.filter(
       (playerId) => activePlayerIds.has(playerId),
     );
@@ -577,6 +614,7 @@ export class GameGatewayService implements OnModuleInit {
       cycleComplete: matchProgress.cycleComplete,
       matchComplete: matchProgress.matchComplete,
       playerPlaces: matchProgress.playerPlaces,
+      playerStats: matchProgress.playerStats,
       ...(playerNames ? { playerNames } : {}),
       totalHandsPlayed: matchProgress.totalHandsPlayed,
       matchStartedAt: matchProgress.startedAt ?? state.startedAt,

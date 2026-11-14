@@ -715,6 +715,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/game/lobby/formats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * get available lobby formats
+         * @description Returns the starting stack and big blind configured for each lobby format.
+         */
+        get: operations["LobbyController_getLobbyFormats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/game/lobby/create": {
         parameters: {
             query?: never;
