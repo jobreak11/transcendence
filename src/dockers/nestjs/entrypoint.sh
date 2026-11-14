@@ -147,7 +147,7 @@ chown -R ${USER_ID}:${GROUP_ID} /transcend_storage
 
 cd ${NESTJS_DIR}
 run_suexec ${USER_ID} ${GROUP_ID} pnpm drizzle-kit push
-run_suexec ${USER_ID} ${GROUP_ID} pnpm tsx "src/drizzle/seed.ts"
+run_suexec ${USER_ID} ${GROUP_ID} pnpm tsx "src/infrastructure/drizzle/seed.ts"
 if [ "${USER_ID}" -ne 0 ]; then
   exec su-exec "${USER_ID}:${GROUP_ID}" "$@"
 else

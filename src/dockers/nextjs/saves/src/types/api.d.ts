@@ -4,18 +4,186 @@
  */
 
 export interface paths {
-    "/hello": {
+    "/auth/check": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
+        get: operations["InternalAuthController_authCheck"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/internal/admin/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalAuthController_internalAdminAuthCheck"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/admin/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalAuthController_adminAuthCheck"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["InternalAuthController_registerUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
         /**
-         * Basic Hello world test
-         * @description the most basic simple get to the backend service
+         * User Login
+         * @description Accepts email and password, verifies credentials,     and returns a JWT.
          */
-        get: operations["AppController_getHello"];
+        post: operations["InternalAuthController_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh JWT Token API
+         * @description takes the refresh token from 'Authorization: Bearer refreshToken'     in the header of the request
+         */
+        post: operations["InternalAuthController_refreshToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/signout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke the jwt refresh token
+         * @description take the access_token from Authoriazation: Bearer header     from the POST request and set the hashedRefeshToken in the user table to     NULL
+         */
+        post: operations["InternalAuthController_signOut"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/google/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalAuthController_googleLogin"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/google/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalAuthController_googleCallback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/42/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalAuthController_fortyTwoLogin"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/42/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalAuthController_fortyTwoCallback"];
         put?: never;
         post?: never;
         delete?: never;
@@ -35,7 +203,7 @@ export interface paths {
          * Get user profile
          * @description Retrieves the authenticated user’s profile if no query params are passed. Provide either `id` or `tagId` to view another user’s profile. Providing both will return a 400 error.
          */
-        get: operations["UserController_getProfile"];
+        get: operations["InternalUsersController_getProfile"];
         put?: never;
         post?: never;
         delete?: never;
@@ -54,7 +222,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Upload user profile picture */
-        post: operations["UserController_uploadProfilePic"];
+        post: operations["InternalUsersController_uploadProfilePic"];
         delete?: never;
         options?: never;
         head?: never;
@@ -78,7 +246,7 @@ export interface paths {
          * update the user profile
          * @description update the user profile
          */
-        patch: operations["UserController_update"];
+        patch: operations["InternalUsersController_update"];
         trace?: never;
     };
     "/user/setRole": {
@@ -91,7 +259,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** set the role of the user */
-        post: operations["UserController_setUserRole"];
+        post: operations["InternalUsersController_setUserRole"];
         delete?: never;
         options?: never;
         head?: never;
@@ -111,7 +279,7 @@ export interface paths {
          * Register a new user account
          * @description register new user api for ADMIN role
          */
-        post: operations["UserController_create"];
+        post: operations["InternalUsersController_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -132,7 +300,7 @@ export interface paths {
          * Delete user from the database
          * @description takes access_token from Authorization: Bearer header     and allow only role ADMIN and EDITOR to delete user
          */
-        delete: operations["UserController_remove"];
+        delete: operations["InternalUsersController_remove"];
         options?: never;
         head?: never;
         patch?: never;
@@ -149,7 +317,7 @@ export interface paths {
          * get multiple user info
          * @description for ADMIN AND EDITOR
          */
-        get: operations["UserController_getBatchUsers"];
+        get: operations["InternalUsersController_getBatchUsers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -165,7 +333,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["UserController_totalUserCount"];
+        get: operations["InternalUsersController_totalUserCount"];
         put?: never;
         post?: never;
         delete?: never;
@@ -185,7 +353,7 @@ export interface paths {
          * get all the titles available
          * @description receive an array of all titles       available in the database
          */
-        get: operations["TitleController_getAllTitles"];
+        get: operations["InternalTitlesController_getAllTitles"];
         put?: never;
         post?: never;
         delete?: never;
@@ -205,7 +373,7 @@ export interface paths {
          * get all the titles available for this current user / specific titles
          * @description receive an array of this user titles       available
          */
-        get: operations["TitleController_getUserTitles"];
+        get: operations["InternalTitlesController_getUserTitles"];
         put?: never;
         post?: never;
         delete?: never;
@@ -225,7 +393,7 @@ export interface paths {
          * find the title details
          * @description provide the query to get the detail of the       specific title by id or by name
          */
-        get: operations["TitleController_findTitle"];
+        get: operations["InternalTitlesController_findTitle"];
         put?: never;
         post?: never;
         delete?: never;
@@ -247,7 +415,7 @@ export interface paths {
          * create new title to database
          * @description added new title to the website       NOTE: Only for ADMIN Role
          */
-        post: operations["TitleController_createNewTitle"];
+        post: operations["InternalTitlesController_createNewTitle"];
         delete?: never;
         options?: never;
         head?: never;
@@ -267,7 +435,7 @@ export interface paths {
          * giver user a title
          * @description ADMIN only
          */
-        post: operations["TitleController_giveUserTitle"];
+        post: operations["InternalTitlesController_giveUserTitle"];
         delete?: never;
         options?: never;
         head?: never;
@@ -288,7 +456,7 @@ export interface paths {
          * revoke title from the user
          * @description ADMIN Only
          */
-        delete: operations["TitleController_revokeUserTitle"];
+        delete: operations["InternalTitlesController_revokeUserTitle"];
         options?: never;
         head?: never;
         patch?: never;
@@ -311,7 +479,7 @@ export interface paths {
          * update the title
          * @description update the target title id details
          */
-        patch: operations["TitleController_updateTitle"];
+        patch: operations["InternalTitlesController_updateTitle"];
         trace?: never;
     };
     "/title/delete": {
@@ -328,195 +496,7 @@ export interface paths {
          * delete a title
          * @description delele a sepecific title by title id. ADMIN ONLY
          */
-        delete: operations["TitleController_deleteTitle"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/check": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_authCheck"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/internal/admin/check": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_internalAdminAuthCheck"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/admin/check": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_adminAuthCheck"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/signup": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["AuthController_registerUser"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * User Login
-         * @description Accepts email and password, verifies credentials,     and returns a JWT.
-         */
-        post: operations["AuthController_login"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Refresh JWT Token API
-         * @description takes the refresh token from 'Authorization: Bearer refreshToken'     in the header of the request
-         */
-        post: operations["AuthController_refreshToken"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/signout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Revoke the jwt refresh token
-         * @description take the access_token from Authoriazation: Bearer header     from the POST request and set the hashedRefeshToken in the user table to     NULL
-         */
-        post: operations["AuthController_signOut"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/google/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_googleLogin"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/google/callback": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_googleCallback"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/42/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_fortyTwoLogin"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/42/callback": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_fortyTwoCallback"];
-        put?: never;
-        post?: never;
-        delete?: never;
+        delete: operations["InternalTitlesController_deleteTitle"];
         options?: never;
         head?: never;
         patch?: never;
@@ -529,7 +509,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["ChatController_getAllUserRoom"];
+        get: operations["InternalChatController_getAllUserRoom"];
         put?: never;
         post?: never;
         delete?: never;
@@ -547,7 +527,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["ChatController_dmUser"];
+        post: operations["InternalChatController_dmUser"];
         delete?: never;
         options?: never;
         head?: never;
@@ -561,7 +541,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["ChatController_getMessagesRoom"];
+        get: operations["InternalChatController_getMessagesRoom"];
         put?: never;
         post?: never;
         delete?: never;
@@ -580,7 +560,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** create your own chat room */
-        post: operations["ChatController_createChatRoom"];
+        post: operations["InternalChatController_createChatRoom"];
         delete?: never;
         options?: never;
         head?: never;
@@ -596,7 +576,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["ChatController_inviteToChatRoom"];
+        post: operations["InternalChatController_inviteToChatRoom"];
         delete?: never;
         options?: never;
         head?: never;
@@ -612,7 +592,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["ChatController_leaveTheChatRoom"];
+        post: operations["InternalChatController_leaveTheChatRoom"];
         delete?: never;
         options?: never;
         head?: never;
@@ -628,23 +608,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["ChatController_kickUserChatRoom"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/chat/public": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["PublicChatController_getAllChatMessages"];
-        put?: never;
-        post?: never;
+        post: operations["InternalChatController_kickUserChatRoom"];
         delete?: never;
         options?: never;
         head?: never;
@@ -658,7 +622,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["FriendController_getAllFriends"];
+        get: operations["InternalFriendsController_getAllFriends"];
         put?: never;
         post?: never;
         delete?: never;
@@ -676,7 +640,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["FriendController_makeFriendRequest"];
+        post: operations["InternalFriendsController_makeFriendRequest"];
         delete?: never;
         options?: never;
         head?: never;
@@ -696,7 +660,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["FriendController_acceptFriendRequest"];
+        patch: operations["InternalFriendsController_acceptFriendRequest"];
         trace?: never;
     };
     "/friend/reject": {
@@ -712,7 +676,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["FriendController_rejectFriendRequest"];
+        patch: operations["InternalFriendsController_rejectFriendRequest"];
         trace?: never;
     };
     "/friend/block": {
@@ -724,7 +688,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["FriendController_blockUser"];
+        post: operations["InternalFriendsController_blockUser"];
         delete?: never;
         options?: never;
         head?: never;
@@ -742,7 +706,7 @@ export interface paths {
          * get available lobby formats
          * @description Returns the starting stack and big blind configured for each lobby format.
          */
-        get: operations["LobbyController_getLobbyFormats"];
+        get: operations["InternalLobbyController_getLobbyFormats"];
         put?: never;
         post?: never;
         delete?: never;
@@ -764,7 +728,7 @@ export interface paths {
          * create a lobby room
          * @description Users may create or join up to five lobby rooms at a time.
          */
-        post: operations["LobbyController_createLobbyRoom"];
+        post: operations["InternalLobbyController_createLobbyRoom"];
         delete?: never;
         options?: never;
         head?: never;
@@ -784,7 +748,7 @@ export interface paths {
          * user join the lobby room
          * @description user must not in any room
          */
-        post: operations["LobbyController_joinLobbyRoom"];
+        post: operations["InternalLobbyController_joinLobbyRoom"];
         delete?: never;
         options?: never;
         head?: never;
@@ -805,7 +769,7 @@ export interface paths {
          * user leave the lobby room
          * @description user must in a lobby room to leave
          */
-        delete: operations["LobbyController_leaveLobbyRoom"];
+        delete: operations["InternalLobbyController_leaveLobbyRoom"];
         options?: never;
         head?: never;
         patch?: never;
@@ -822,7 +786,7 @@ export interface paths {
          * get all lobby rooms details
          * @description get all details of the lobby room
          */
-        get: operations["LobbyController_getAllLobbyRoom"];
+        get: operations["InternalLobbyController_getAllLobbyRoom"];
         put?: never;
         post?: never;
         delete?: never;
@@ -838,7 +802,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["LobbyController_getMyLobby"];
+        get: operations["InternalLobbyController_getMyLobby"];
         put?: never;
         post?: never;
         delete?: never;
@@ -858,7 +822,7 @@ export interface paths {
          * get the lobby player and spectator names
          * @description Only members of the lobby can view its member list.
          */
-        get: operations["LobbyController_getLobbyMembers"];
+        get: operations["InternalLobbyController_getLobbyMembers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -884,7 +848,7 @@ export interface paths {
          * update the setting of the lobby room
          * @description user must be the host of the room
          */
-        patch: operations["LobbyController_updateGameSettings"];
+        patch: operations["InternalLobbyController_updateGameSettings"];
         trace?: never;
     };
     "/game/lobby/startgame": {
@@ -900,7 +864,7 @@ export interface paths {
          * for the host to start the lobby game
          * @description the user invoke this must be inside the target lobby, and also is the host of that lobby
          */
-        post: operations["LobbyController_startGame"];
+        post: operations["InternalLobbyController_startGame"];
         delete?: never;
         options?: never;
         head?: never;
@@ -914,7 +878,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["LobbyController_oneLobby"];
+        get: operations["InternalLobbyController_oneLobby"];
         put?: never;
         post?: never;
         delete?: never;
@@ -927,6 +891,80 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        CreateUserDto: {
+            /**
+             * @description the email of the user
+             * @example user@example.com
+             */
+            email: string;
+            /**
+             * @description the hashed password of the user
+             * @example SecurePassword123
+             */
+            password: string;
+            /**
+             * @description the display name of the user
+             * @example InwZa007
+             */
+            displayName?: string | null;
+            /** @description The url to the profile image of the user */
+            avatarUrl?: string | null;
+        };
+        LoginDto: {
+            /**
+             * @description The email registered to the account
+             * @example user@example.com
+             */
+            email: string;
+            /**
+             * @description The plain-text user password.
+             * @example password123
+             */
+            password: string;
+        };
+        LoginSuccessResponseDto: {
+            /**
+             * @description The authenticated user ID
+             * @example 1
+             */
+            id: number;
+            /**
+             * @description Signed JWT access token
+             * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
+             */
+            accessToken: string;
+            /**
+             * @description Refresh JWT token
+             * @example egrsa9876sgb9788sbhuisdfhoui...
+             */
+            refreshToken: string;
+        };
+        UnauthorizedErrorDto: {
+            /**
+             * @description Http error status code
+             * @example 401
+             */
+            statusCode: number;
+            /** @example Unauthorized */
+            message: string;
+        };
+        RefreshTokenSuccessDto: {
+            /**
+             * @description The authenticated user ID
+             * @example 1
+             */
+            id: number;
+            /**
+             * @description Signed JWT access token
+             * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
+             */
+            accessToken: string;
+            /**
+             * @description Signed REFRESH access token
+             * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
+             */
+            refreshToken: string;
+        };
         UserProfileBase: {
             /**
              * @description the display name of the user
@@ -987,15 +1025,6 @@ export interface components {
             titleName: string | null;
             /** @description the profile details of the user */
             user_profile: components["schemas"]["UserProfileBase"];
-        };
-        UnauthorizedErrorDto: {
-            /**
-             * @description Http error status code
-             * @example 401
-             */
-            statusCode: number;
-            /** @example Unauthorized */
-            message: string;
         };
         BaseUserProfileDto: {
             /**
@@ -1122,25 +1151,6 @@ export interface components {
             /** @description the profile details of the user */
             user_profile: components["schemas"]["UserProfileDto"] | null;
         };
-        CreateUserDto: {
-            /**
-             * @description the email of the user
-             * @example user@example.com
-             */
-            email: string;
-            /**
-             * @description the hashed password of the user
-             * @example SecurePassword123
-             */
-            password: string;
-            /**
-             * @description the display name of the user
-             * @example InwZa007
-             */
-            displayName?: string | null;
-            /** @description The url to the profile image of the user */
-            avatarUrl?: string | null;
-        };
         GetUserTotalCountDto: {
             /**
              * @description the total amount of user
@@ -1222,52 +1232,6 @@ export interface components {
              */
             createdAt?: string;
         };
-        LoginDto: {
-            /**
-             * @description The email registered to the account
-             * @example user@example.com
-             */
-            email: string;
-            /**
-             * @description The plain-text user password.
-             * @example password123
-             */
-            password: string;
-        };
-        LoginSuccessResponseDto: {
-            /**
-             * @description The authenticated user ID
-             * @example 1
-             */
-            id: number;
-            /**
-             * @description Signed JWT access token
-             * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
-             */
-            accessToken: string;
-            /**
-             * @description Refresh JWT token
-             * @example egrsa9876sgb9788sbhuisdfhoui...
-             */
-            refreshToken: string;
-        };
-        RefreshTokenSuccessDto: {
-            /**
-             * @description The authenticated user ID
-             * @example 1
-             */
-            id: number;
-            /**
-             * @description Signed JWT access token
-             * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
-             */
-            accessToken: string;
-            /**
-             * @description Signed REFRESH access token
-             * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
-             */
-            refreshToken: string;
-        };
         ChatRoomDto: {
             /** @description the uuid of the chat room */
             id: string;
@@ -1339,12 +1303,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a1cb47-f74f-7527-ac6a-abd0fd1b58b8
+             * @example 01a1da7d-ad3f-77f9-b189-be9337e56a7a
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a1cb47-f751-70b8-9b07-a37c9eb43d90
+             * @example 01a1da7d-ad41-7513-9bfa-2ee622275fc7
              */
             chatRoomId: string;
             /**
@@ -1430,7 +1394,7 @@ export interface components {
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1cb47-f76e-73dc-8304-1aa430129251
+             * @example 01a1da7d-ad44-7247-a969-02350f9dfaa5
              */
             gameRoomId: string | null;
             /**
@@ -1519,7 +1483,7 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1cb47-f76e-73dc-8304-1aa430129251
+             * @example 01a1da7d-ad44-7247-a969-02350f9dfaa5
              */
             gameRoomId: string | null;
             /**
@@ -1624,7 +1588,169 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    AppController_getHello: {
+    InternalAuthController_authCheck: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalAuthController_internalAdminAuthCheck: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalAuthController_adminAuthCheck: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalAuthController_registerUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUserDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalAuthController_login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description User login credentials */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginDto"];
+            };
+        };
+        responses: {
+            /** @description Logged in successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginSuccessResponseDto"];
+                };
+            };
+            /** @description Invalid email or password */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
+                };
+            };
+        };
+    };
+    InternalAuthController_refreshToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description upon success would return new JWT token back */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefreshTokenSuccessDto"];
+                };
+            };
+            /** @description invalid to expired refresh token. need to re-login for new generated one. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
+                };
+            };
+        };
+    };
+    InternalAuthController_signOut: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description successfully logged out */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description invalid access_token or expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
+                };
+            };
+        };
+    };
+    InternalAuthController_googleLogin: {
         parameters: {
             query?: never;
             header?: never;
@@ -1637,13 +1763,66 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": string;
-                };
+                content?: never;
             };
         };
     };
-    UserController_getProfile: {
+    InternalAuthController_googleCallback: {
+        parameters: {
+            query: {
+                state: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalAuthController_fortyTwoLogin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalAuthController_fortyTwoCallback: {
+        parameters: {
+            query: {
+                state: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalUsersController_getProfile: {
         parameters: {
             query?: {
                 /** @description Lookup target profile by User ID (mutually exclusive with tagId) */
@@ -1684,7 +1863,7 @@ export interface operations {
             };
         };
     };
-    UserController_uploadProfilePic: {
+    InternalUsersController_uploadProfilePic: {
         parameters: {
             query?: never;
             header?: never;
@@ -1711,7 +1890,7 @@ export interface operations {
             };
         };
     };
-    UserController_update: {
+    InternalUsersController_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -1734,7 +1913,7 @@ export interface operations {
             };
         };
     };
-    UserController_setUserRole: {
+    InternalUsersController_setUserRole: {
         parameters: {
             query?: never;
             header?: never;
@@ -1757,7 +1936,7 @@ export interface operations {
             };
         };
     };
-    UserController_create: {
+    InternalUsersController_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -1788,7 +1967,7 @@ export interface operations {
             };
         };
     };
-    UserController_remove: {
+    InternalUsersController_remove: {
         parameters: {
             query: {
                 userId: string;
@@ -1824,7 +2003,7 @@ export interface operations {
             };
         };
     };
-    UserController_getBatchUsers: {
+    InternalUsersController_getBatchUsers: {
         parameters: {
             query: {
                 limit: number;
@@ -1846,7 +2025,7 @@ export interface operations {
             };
         };
     };
-    UserController_totalUserCount: {
+    InternalUsersController_totalUserCount: {
         parameters: {
             query?: never;
             header?: never;
@@ -1865,7 +2044,7 @@ export interface operations {
             };
         };
     };
-    TitleController_getAllTitles: {
+    InternalTitlesController_getAllTitles: {
         parameters: {
             query?: never;
             header?: never;
@@ -1884,7 +2063,7 @@ export interface operations {
             };
         };
     };
-    TitleController_getUserTitles: {
+    InternalTitlesController_getUserTitles: {
         parameters: {
             query?: never;
             header?: never;
@@ -1903,7 +2082,7 @@ export interface operations {
             };
         };
     };
-    TitleController_findTitle: {
+    InternalTitlesController_findTitle: {
         parameters: {
             query?: {
                 /** @description the id of the title */
@@ -1934,7 +2113,7 @@ export interface operations {
             };
         };
     };
-    TitleController_createNewTitle: {
+    InternalTitlesController_createNewTitle: {
         parameters: {
             query?: never;
             header?: never;
@@ -1957,7 +2136,7 @@ export interface operations {
             };
         };
     };
-    TitleController_giveUserTitle: {
+    InternalTitlesController_giveUserTitle: {
         parameters: {
             query: {
                 /** @description the target User to give the title */
@@ -1981,7 +2160,7 @@ export interface operations {
             };
         };
     };
-    TitleController_revokeUserTitle: {
+    InternalTitlesController_revokeUserTitle: {
         parameters: {
             query: {
                 /** @description the target User to revoke the title */
@@ -2003,7 +2182,7 @@ export interface operations {
             };
         };
     };
-    TitleController_updateTitle: {
+    InternalTitlesController_updateTitle: {
         parameters: {
             query: {
                 /** @description the title id of the title you want to change */
@@ -2027,7 +2206,7 @@ export interface operations {
             };
         };
     };
-    TitleController_deleteTitle: {
+    InternalTitlesController_deleteTitle: {
         parameters: {
             query: {
                 /** @description the title id you want to delete */
@@ -2047,241 +2226,7 @@ export interface operations {
             };
         };
     };
-    AuthController_authCheck: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_internalAdminAuthCheck: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_adminAuthCheck: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_registerUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateUserDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_login: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description User login credentials */
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LoginDto"];
-            };
-        };
-        responses: {
-            /** @description Logged in successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LoginSuccessResponseDto"];
-                };
-            };
-            /** @description Invalid email or password */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
-                };
-            };
-        };
-    };
-    AuthController_refreshToken: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description upon success would return new JWT token back */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RefreshTokenSuccessDto"];
-                };
-            };
-            /** @description invalid to expired refresh token. need to re-login for new generated one. */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
-                };
-            };
-        };
-    };
-    AuthController_signOut: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description successfully logged out */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description invalid access_token or expired */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
-                };
-            };
-        };
-    };
-    AuthController_googleLogin: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_googleCallback: {
-        parameters: {
-            query: {
-                state: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_fortyTwoLogin: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_fortyTwoCallback: {
-        parameters: {
-            query: {
-                state: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ChatController_getAllUserRoom: {
+    InternalChatController_getAllUserRoom: {
         parameters: {
             query?: never;
             header?: never;
@@ -2300,7 +2245,7 @@ export interface operations {
             };
         };
     };
-    ChatController_dmUser: {
+    InternalChatController_dmUser: {
         parameters: {
             query: {
                 targetUserId: string;
@@ -2321,7 +2266,7 @@ export interface operations {
             };
         };
     };
-    ChatController_getMessagesRoom: {
+    InternalChatController_getMessagesRoom: {
         parameters: {
             query: {
                 chatRoomId: string;
@@ -2342,7 +2287,7 @@ export interface operations {
             };
         };
     };
-    ChatController_createChatRoom: {
+    InternalChatController_createChatRoom: {
         parameters: {
             query?: never;
             header?: never;
@@ -2365,7 +2310,7 @@ export interface operations {
             };
         };
     };
-    ChatController_inviteToChatRoom: {
+    InternalChatController_inviteToChatRoom: {
         parameters: {
             query?: never;
             header?: never;
@@ -2388,7 +2333,7 @@ export interface operations {
             };
         };
     };
-    ChatController_leaveTheChatRoom: {
+    InternalChatController_leaveTheChatRoom: {
         parameters: {
             query: {
                 chatRoomId: string;
@@ -2409,7 +2354,7 @@ export interface operations {
             };
         };
     };
-    ChatController_kickUserChatRoom: {
+    InternalChatController_kickUserChatRoom: {
         parameters: {
             query?: never;
             header?: never;
@@ -2432,26 +2377,7 @@ export interface operations {
             };
         };
     };
-    PublicChatController_getAllChatMessages: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChatMessageDto"][];
-                };
-            };
-        };
-    };
-    FriendController_getAllFriends: {
+    InternalFriendsController_getAllFriends: {
         parameters: {
             query?: never;
             header?: never;
@@ -2470,7 +2396,7 @@ export interface operations {
             };
         };
     };
-    FriendController_makeFriendRequest: {
+    InternalFriendsController_makeFriendRequest: {
         parameters: {
             query: {
                 targetUserId: string;
@@ -2489,7 +2415,7 @@ export interface operations {
             };
         };
     };
-    FriendController_acceptFriendRequest: {
+    InternalFriendsController_acceptFriendRequest: {
         parameters: {
             query: {
                 targetUserId: string;
@@ -2508,7 +2434,7 @@ export interface operations {
             };
         };
     };
-    FriendController_rejectFriendRequest: {
+    InternalFriendsController_rejectFriendRequest: {
         parameters: {
             query: {
                 targetUserId: string;
@@ -2527,7 +2453,7 @@ export interface operations {
             };
         };
     };
-    FriendController_blockUser: {
+    InternalFriendsController_blockUser: {
         parameters: {
             query: {
                 targetUserId: string;
@@ -2546,7 +2472,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_getLobbyFormats: {
+    InternalLobbyController_getLobbyFormats: {
         parameters: {
             query?: never;
             header?: never;
@@ -2563,7 +2489,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_createLobbyRoom: {
+    InternalLobbyController_createLobbyRoom: {
         parameters: {
             query?: never;
             header?: never;
@@ -2586,7 +2512,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_joinLobbyRoom: {
+    InternalLobbyController_joinLobbyRoom: {
         parameters: {
             query?: never;
             header?: never;
@@ -2609,7 +2535,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_leaveLobbyRoom: {
+    InternalLobbyController_leaveLobbyRoom: {
         parameters: {
             query: {
                 lobbyPinId: string;
@@ -2628,7 +2554,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_getAllLobbyRoom: {
+    InternalLobbyController_getAllLobbyRoom: {
         parameters: {
             query?: never;
             header?: never;
@@ -2647,7 +2573,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_getMyLobby: {
+    InternalLobbyController_getMyLobby: {
         parameters: {
             query?: never;
             header?: never;
@@ -2666,7 +2592,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_getLobbyMembers: {
+    InternalLobbyController_getLobbyMembers: {
         parameters: {
             query: {
                 lobbyPinId: string;
@@ -2687,7 +2613,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_updateGameSettings: {
+    InternalLobbyController_updateGameSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -2710,7 +2636,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_startGame: {
+    InternalLobbyController_startGame: {
         parameters: {
             query: {
                 lobbyPinId: string;
@@ -2731,7 +2657,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_oneLobby: {
+    InternalLobbyController_oneLobby: {
         parameters: {
             query: {
                 lobbyPinId: string;
