@@ -94,6 +94,30 @@ function isPublicGameState(value: unknown): value is PublicGameState {
       )
     )
     && (
+      !("playerStats" in value)
+      || (
+        typeof value.playerStats === "object"
+        && value.playerStats !== null
+        && !Array.isArray(value.playerStats)
+        && Object.values(value.playerStats).every((stats: unknown) =>
+          typeof stats === "object"
+          && stats !== null
+          && "playCount" in stats
+          && typeof stats.playCount === "number"
+          && Number.isSafeInteger(stats.playCount)
+          && stats.playCount >= 0
+          && "winCount" in stats
+          && typeof stats.winCount === "number"
+          && Number.isSafeInteger(stats.winCount)
+          && stats.winCount >= 0
+          && "expEarned" in stats
+          && typeof stats.expEarned === "number"
+          && Number.isSafeInteger(stats.expEarned)
+          && stats.expEarned >= 0
+        )
+      )
+    )
+    && (
       !("winners" in value)
       || (
         Array.isArray(value.winners)
@@ -226,6 +250,7 @@ export default function Page() {
   const [lastAction, setLastAction] = useState("");
   const [isSendingAction, setIsSendingAction] = useState(false);
   const [showHandInfo, setShowHandInfo] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [error, setError] = useState("");
   const [tableInput, setTableInput] = useState("");
   const [isCreatingLobby, setIsCreatingLobby] = useState(false);
@@ -279,6 +304,7 @@ export default function Page() {
               matchStartedAt: state.matchStartedAt,
               matchEndedAt: state.matchEndedAt,
               playerPlaces: state.playerPlaces,
+              playerStats: state.playerStats ?? {},
               playerNames: state.playerNames ?? {},
             }),
           );
@@ -635,7 +661,7 @@ export default function Page() {
 
   return (
     <main className="min-h-screen w-full bg-radial from-green-900 via-green-950 via-55% to-black flex justify-center items-center relative overflow-hidden text-white">
-      <div className="absolute top-4 left-4 z-70 rounded bg-black/70 px-4 py-2 text-sm">
+      {/* <div className="absolute top-4 left-4 z-70 rounded bg-black/70 px-4 py-2 text-sm">
         <form
           className="mb-2 flex gap-2"
           onSubmit={(event) => {
@@ -752,7 +778,7 @@ export default function Page() {
         {successMessage && (
           <p role="status" className="text-emerald-300">{successMessage}</p>
         )}
-      </div>
+      </div> */}
 
       <GameTable
         gameState={gameState}
@@ -764,6 +790,28 @@ export default function Page() {
         dictionary={dictionary}
         onAction={sendAction}
       />
+
+      <aside
+        className={`fixed bottom-[3vh] left-[3vw] z-[70] w-[25vw] overflow-hidden rounded-t-xl border border-white/20 bg-black/90 shadow-2xl transition-[height] duration-300 ease-in-out ${
+          isChatOpen ? "h-[50vh]" : "h-12"
+        }`}
+      >
+        <button
+          type="button"
+          aria-expanded={isChatOpen}
+          aria-controls="game-chat-panel"
+          onClick={() => setIsChatOpen((open) => !open)}
+          className="flex h-12 w-full items-center justify-between bg-slate-900 px-4 text-left font-semibold text-white hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400"
+        >
+          <span>Chat</span>
+          <span aria-hidden="true">{isChatOpen ? "−" : "+"}</span>
+        </button>
+        <div
+          id="game-chat-panel"
+          aria-hidden={!isChatOpen}
+          className="h-[calc(100%-3rem)] border-t border-white/10 bg-slate-950/70"
+        />
+      </aside>
 
       <div className="fixed top-[3vh] right-[3vw] flex gap-2">
         <button

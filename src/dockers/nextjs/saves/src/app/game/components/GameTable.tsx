@@ -118,11 +118,23 @@ export default function GameTable({
   const myPlayer = gameState?.players.find(
     (player) => player.playerId === userId,
   );
-  const mySeatNumber = myPlayer
-    ? myPlayer.seatNumber ?? gameState?.players.indexOf(myPlayer) ?? 0
-    : null;
   const seatPositions = SEAT_POSITIONS_BY_PLAYER_COUNT[gameState?.players.length ?? 0]
     ?? SEAT_POSITIONS;
+  const playersInSeatOrder = (gameState?.players ?? [])
+    .map((player, index) => ({
+      player,
+      seatNumber: player.seatNumber ?? index,
+    }))
+    .sort((left, right) => left.seatNumber - right.seatNumber);
+  const myPlayerIndex = playersInSeatOrder.findIndex(
+    ({ player }) => player.playerId === userId,
+  );
+  const playersStartingFromMe = myPlayerIndex >= 0
+    ? [
+      ...playersInSeatOrder.slice(myPlayerIndex),
+      ...playersInSeatOrder.slice(0, myPlayerIndex),
+    ]
+    : playersInSeatOrder;
 
   const getPlayerName = (playerId: string) => {
     if (playerId === userId) return "You";
@@ -139,7 +151,7 @@ export default function GameTable({
 
   return (
     <>
-      <div className="relative w-[85vw] max-w-[1100px] aspect-[16/10] flex justify-center items-center">
+      <div className="relative w-[100vw] max-w-[1720px] aspect-[16/9] flex justify-center items-center">
         <div
           id="table"
           className="relative w-[78%] h-[58%] bg-[#0b6b3a] rounded-[160px] border-[20px] border-[#5c3a21] shadow-[inset_0_0_20px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.7)]"
@@ -148,7 +160,7 @@ export default function GameTable({
             <p className="text-xs font-semibold uppercase tracking-wide text-white/80">
               Community cards{gameState?.round ? ` · ${gameState.round}` : ""}
             </p>
-            <div className="flex h-[10vh] max-h-[76px] min-h-[48px] gap-1.5">
+            <div className="flex h-[10vh] min-h-[48px] gap-1.5">
               {[0, 1, 2, 3, 4].map((cardIndex) => {
                 const card = gameState?.poolCards[cardIndex];
                 return (
@@ -181,15 +193,8 @@ export default function GameTable({
           </div>
         </div>
 
-        {gameState?.players.map((player, playerIndex) => {
-          const seatNumber = player.seatNumber ?? playerIndex;
-          const relativeSeatNumber = mySeatNumber === null
-            ? seatNumber
-            : (
-              (seatNumber - mySeatNumber) % seatPositions.length
-              + seatPositions.length
-            ) % seatPositions.length;
-          const position = seatPositions[relativeSeatNumber];
+        {playersStartingFromMe.map(({ player, seatNumber }, playerIndex) => {
+          const position = seatPositions[playerIndex];
           if (!position) return null;
 
           const isMe = player.playerId === userId;
@@ -273,7 +278,7 @@ export default function GameTable({
       </div>
 
       {gameState && (
-        <div className="fixed bottom-[3vh] left-[3vw] bg-black border-2 border-[#444] rounded-xl px-5 py-3 text-white flex flex-col">
+        <div className="fixed bottom-[10vh] left-[53vw] bg-black border-2 border-[#444] rounded-xl px-5 py-3 text-white flex flex-col">
           <span className="text-sm text-[#aaa] uppercase tracking-wide">Your chips</span>
           <span className="text-2xl font-bold text-[#2ecc71] font-mono">
             {myPlayer?.stack ?? 0}
@@ -303,8 +308,8 @@ export default function GameTable({
             </p>
           )}
           {gameState.cycleComplete && (
-            <p className="mt-2 text-sm text-amber-100">
-              Match cycle complete.
+            <p className="mt-2 text-sm text-red-100">
+              !!!Blind Up!!!
             </p>
           )}
           {gameState.matchComplete && (

@@ -1,0 +1,96 @@
+{
+ "game": {
+    "fold": "弃牌",
+    "call": "跟注",
+    "check": "过牌",
+    "raise": "加注",
+    "cancelRaise": "取消",
+    "additionalChips": "加注筹码数",
+    "confirmRaise": "确认加注",
+    "yourTurn": "轮到你了",
+    "switchToThai": "ไทย",
+    "switchToThaiLabel": "切换至泰语",
+    "switchToEnglish": "English",
+    "switchToEnglishLabel": "切换至英语",
+    "switchToChinese": "中文",
+    "switchToChineseLabel": "切换至中文"
+  },
+
+  "common": {
+    "play": "开始游戏",
+    "login": "登录",
+    "logout": "退出登录",
+    "save": "保存",
+    "backToMain": "返回主页",
+    "goToTop": "返回顶部",
+    "join": "加入",
+    "yes": "是",
+    "no": "否"
+  },
+
+  "auth": {
+    "signInWithGoogle": "使用 Google 登录",
+    "signInWithTikTok": "使用 TikTok 登录",
+    "signInWithLine": "使用 LINE 登录",
+    "signInWithFacebook": "使用 Facebook 登录",
+    "signInWith42Intra": "使用 42 Intra 登录"
+  },
+
+  "navigation": {
+    "about": "关于",
+    "statistics": "数据统计",
+    "history": "对局记录",
+    "settings": "设置",
+    "rank": "排位赛",
+    "tournament": "锦标赛",
+    "custom": "自定义房间"
+  },
+
+  "home": {
+    "aboutUs": "关于我们",
+    "learnMore": "了解更多",
+    "description": "Transcend 888 是一款在线扑克游戏，也是 42 项目 Transcendence 的一部分。本项目为非商业项目，永久免费。",
+    "paragraph": "随时随地，和朋友轻松玩几局扑克，或登录账号记录战绩、看看自己的进步。无需金币或筹码，也无需付费。"
+  },
+
+  "profile": {
+    "joined": "加入时间",
+    "level": "等级",
+    "status": "状态",
+    "matchesPlayed": "对局数",
+    "roundsWon": "获胜局数",
+    "winRate": "胜率",
+    "signature": "个性签名",
+    "friends": "好友",
+    "trophies": "奖杯",
+    "likes": "获赞数",
+    "blackjackRate": "Blackjack 胜率",
+    "playstyle": "打法风格",
+    "displayName": "昵称",
+    "pronoun": "代词",
+    "title": "称号",
+    "id": "用户 ID"
+  },
+
+  "history": {
+    "time": "时间",
+    "mode": "模式",
+    "enemy": "对手",
+    "results": "对局结果",
+    "win": "胜利",
+    "loss": "失败",
+    "rounds": "局数",
+    "points": "积分"
+  },
+  
+  "lobby": {
+    "casual": "休闲模式",
+    "host": "房主",
+    "catchphrase": "房间宣言",
+    "private": "私密房间",
+    "players": "玩家",
+    "spectators": "观众",
+    "joinSpectators": "加入观战"
+  }
+ 
+}

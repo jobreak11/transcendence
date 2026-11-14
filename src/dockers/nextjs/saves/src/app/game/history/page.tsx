@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface MatchHistory {
@@ -9,6 +8,11 @@ interface MatchHistory {
   matchStartedAt: string;
   matchEndedAt: string;
   playerPlaces: Record<string, number>;
+  playerStats?: Record<string, {
+    playCount: number;
+    winCount: number;
+    expEarned: number;
+  }>;
   playerNames: Record<string, string>;
 }
 
@@ -57,6 +61,30 @@ function isMatchHistory(value: unknown): value is MatchHistory {
     && Object.values(value.playerPlaces).every((place) =>
       typeof place === "number" && Number.isSafeInteger(place) && place > 0
     )
+    && (
+      !("playerStats" in value)
+      || (
+        typeof value.playerStats === "object"
+        && value.playerStats !== null
+        && !Array.isArray(value.playerStats)
+        && Object.values(value.playerStats).every((stats) =>
+          typeof stats === "object"
+          && stats !== null
+          && "playCount" in stats
+          && typeof stats.playCount === "number"
+          && Number.isSafeInteger(stats.playCount)
+          && stats.playCount >= 0
+          && "winCount" in stats
+          && typeof stats.winCount === "number"
+          && Number.isSafeInteger(stats.winCount)
+          && stats.winCount >= 0
+          && "expEarned" in stats
+          && typeof stats.expEarned === "number"
+          && Number.isSafeInteger(stats.expEarned)
+          && stats.expEarned >= 0
+        )
+      )
+    )
     && "playerNames" in value
     && typeof value.playerNames === "object"
     && value.playerNames !== null
@@ -100,10 +128,9 @@ function formatPlace(place: number) {
 }
 
 export default function MatchHistoryPage() {
-  const router = useRouter();
   const [history, setHistory] = useState<MatchHistory | null>(null);
-  const [isLeaving, setIsLeaving] = useState(false);
-  const [leaveError, setLeaveError] = useState("");
+  const [isReturning, setIsReturning] = useState(false);
+  const [returnError, setReturnError] = useState("");
 
   useEffect(() => {
     const storedHistory = window.sessionStorage.getItem("gameMatchHistory");
@@ -124,20 +151,20 @@ export default function MatchHistoryPage() {
   const rankedPlayers = Object.entries(history?.playerPlaces ?? {})
     .sort(([, placeA], [, placeB]) => placeA - placeB);
 
-  async function handleLeaveMatch() {
+  async function handleReturnToLobby() {
     if (!history) {
-      router.push("/lobby");
+      window.location.assign("/lobby");
       return;
     }
 
-    setIsLeaving(true);
-    setLeaveError("");
+    setIsReturning(true);
+    setReturnError("");
     try {
       const lobbyResponse = await fetch("/api/game/lobby/my-lobby", {
         cache: "no-store",
       });
       if (lobbyResponse.status === 404) {
-        router.push("/lobby");
+        window.location.assign("/lobby");
         return;
       }
 
@@ -158,30 +185,19 @@ export default function MatchHistoryPage() {
       const matchLobby = lobbyBody.find(
         (lobby) => lobby.details.gameRoomId === history.tableSessionId,
       );
-      if (matchLobby) {
-        const leaveResponse = await fetch(
-          `/api/game/lobby/leave?lobbyPinId=${encodeURIComponent(matchLobby.details.roomPinId)}`,
-          { method: "DELETE" },
-        );
-        if (!leaveResponse.ok) {
-          const leaveBody: unknown = await leaveResponse.json().catch(() => null);
-          const message = typeof leaveBody === "object"
-              && leaveBody !== null
-              && "message" in leaveBody
-              && typeof leaveBody.message === "string"
-            ? leaveBody.message
-            : `Could not leave the lobby (${leaveResponse.status}).`;
-          throw new Error(message);
-        }
+      if (!matchLobby) {
+        throw new Error("Could not find the lobby for this match.");
       }
 
-      router.push("/lobby");
+      window.location.assign(
+        `/lobby/room?lobbyPinId=${encodeURIComponent(matchLobby.details.roomPinId)}&returnFromMatch=1`,
+      );
     } catch (error) {
-      setLeaveError(
-        error instanceof Error ? error.message : "Could not leave the match.",
+      setReturnError(
+        error instanceof Error ? error.message : "Could not return to the lobby.",
       );
     } finally {
-      setIsLeaving(false);
+      setIsReturning(false);
     }
   }
 
@@ -236,6 +252,9 @@ export default function MatchHistoryPage() {
                     <span className="rounded-full bg-red-950 px-3 py-1 font-semibold text-yellow-300">
                       {formatPlace(place)}
                     </span>
+                    <span className="font-semibold text-yellow-400">
+                      +{history.playerStats?.[playerId]?.expEarned ?? 0} XP
+                    </span>
                   </li>
                 ))}
               </ol>
@@ -249,18 +268,18 @@ export default function MatchHistoryPage() {
           </p>
         )}
 
-        {leaveError && (
+        {returnError && (
           <p role="alert" className="mt-6 text-red-400">
-            {leaveError}
+            {returnError}
           </p>
         )}
         <button
           type="button"
-          onClick={handleLeaveMatch}
-          disabled={isLeaving}
+          onClick={handleReturnToLobby}
+          disabled={isReturning}
           className="mt-8 inline-flex rounded-lg border border-red-700 bg-red-800 px-5 py-3 font-semibold text-yellow-300 transition hover:bg-red-700"
         >
-          {isLeaving ? "Leaving…" : "Leave the match"}
+          {isReturning ? "Returning…" : "Back to lobby"}
         </button>
       </section>
     </main>

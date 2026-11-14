@@ -80,6 +80,7 @@ export class GameRedisService {
         cycleComplete: false,
         matchPlayerIds: [],
         playerPlaces: {},
+        playerStats: {},
         matchComplete: false,
         totalHandsPlayed: 0,
         startedAt: null,
@@ -94,6 +95,16 @@ export class GameRedisService {
       cycleComplete: progress.cycleComplete ?? false,
       matchPlayerIds: progress.matchPlayerIds ?? [],
       playerPlaces: progress.playerPlaces ?? {},
+      playerStats: Object.fromEntries(
+        Object.entries(progress.playerStats ?? {}).map(([playerId, stats]) => [
+          playerId,
+          {
+            playCount: stats.playCount ?? 0,
+            winCount: stats.winCount ?? 0,
+            expEarned: stats.expEarned ?? 0,
+          },
+        ]),
+      ),
       matchComplete: progress.matchComplete ?? false,
       totalHandsPlayed: progress.totalHandsPlayed ?? 0,
       startedAt: progress.startedAt ?? null,

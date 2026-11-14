@@ -32,6 +32,11 @@ export interface PublicGameState {
   cycleComplete?: boolean;
   matchComplete?: boolean;
   playerPlaces?: Record<string, number>;
+  playerStats?: Record<string, {
+    playCount: number;
+    winCount: number;
+    expEarned: number;
+  }>;
   playerNames?: Record<string, string>;
   totalHandsPlayed?: number;
   matchStartedAt?: string;

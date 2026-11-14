@@ -62,6 +62,11 @@ export namespace PokerEvent {
         cycleComplete: boolean;
         matchComplete: boolean;
         playerPlaces: Record<string, number>;
+        playerStats: Record<string, {
+          playCount: number;
+          winCount: number;
+          expEarned: number;
+        }>;
         poolCards: string[];
         pot: number;
         ante: number;
