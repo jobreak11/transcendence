@@ -5,9 +5,9 @@ import jwtConfig from "../config/jwt.config.js";
 import { AuthJwtPayload } from "../types/auth-jwtPayload.js";
 import { Inject, Injectable } from "@nestjs/common";
 import refreshJwtConfig from "../config/refresh-jwt.config.js";
-import { Request } from "express";
 import { AuthService } from "../auth.service.js";
 import { StringValue } from 'ms'
+import { FastifyRequest } from "fastify";
 
 @Injectable()
 export class RefreshJwtStrategy extends PassportStrategy(Strategy, 'refresh-jwt') {
@@ -27,8 +27,8 @@ export class RefreshJwtStrategy extends PassportStrategy(Strategy, 'refresh-jwt'
     })
   }
 
-  validate(req: Request, payload: AuthJwtPayload) {
-    const refreshToken = (req.get('authorization')?.replace('Bearer', '').trim() ?? '') as StringValue;
+  validate(req: FastifyRequest, payload: AuthJwtPayload) {
+    const refreshToken = (req.headers.authorization?.replace('Bearer', '').trim() ?? '') as StringValue;
     const userId = payload.sub;
 
 

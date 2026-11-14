@@ -159,7 +159,7 @@ services:
     environment:
       - PORT=${REDIS_INSIGHT_PORT:-8081}
       - REDIS_HOSTS=transcendence:redis:${REDIS_EXPOSE_PORT}
-      - URL_PREFIX=/redis-insight
+      - URL_PREFIX=/admin/redis-insight
     command:
       - "--redis-host=redis"
       - "--redis-port=${REDIS_EXPOSE_PORT}"

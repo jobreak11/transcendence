@@ -2,7 +2,7 @@ import { useState } from "react";
 import type enDictionary from "../../../dictionaries/en.json";
 
 type PokerAction = "FOLD" | "CHECK" | "CALL" | "RAISE";
-export type GameLanguage = "en" | "th";
+export type GameLanguage = "en" | "th" | "cn";
 export type GameDictionary = typeof enDictionary.game;
 
 interface ActionButtonsProps {

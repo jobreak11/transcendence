@@ -1,4 +1,4 @@
-import type { Profile } from "./types";
+import type { Profile, Room } from "./types";
 
 export const initialProfile: Profile = {
   id: "REDACTED",
@@ -13,6 +13,29 @@ export const initialProfile: Profile = {
   roundsWon: "NaN",
   winRate: "NaN",
 };
+
+export const rooms: Room[] = [
+  {
+    id: "room-test-1",
+    host: "Test-1",
+    catchphrase: "欢迎观临",
+    isPrivate: false,
+    players: 1,
+    maxPlayers: 8,
+    spectators: 0,
+    maxSpectators: 10,
+  },
+  {
+    id: "room-test-2",
+    host: "Test-2",
+    catchphrase: "你好，泰国",
+    isPrivate: true,
+    players: 1,
+    maxPlayers: 8,
+    spectators: 0,
+    maxSpectators: 10,
+  },
+];
 
 export const rankings = [
   "Test-9",

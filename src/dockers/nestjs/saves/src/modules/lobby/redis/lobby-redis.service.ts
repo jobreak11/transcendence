@@ -1,17 +1,26 @@
-import { forwardRef, HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
+import { forwardRef, HttpStatus, Inject, Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { REDIS_CLIENT, type RedisClient } from "../../../infrastructure/redis/redis.provider.js";
 import { UsersRedisService } from "../../user/redis/users-redis.service.js";
 import { ChatService } from "../../chat/chat.service.js";
 import { LobbyGatewayService } from "../../../api/websocket/main-gateway/lobby-gateway/lobby-gateway.service.js";
 import { GameGatewayService } from "../../../api/websocket/game-gateway/game-gameway.service.js";
 import { GameRedisService } from "../../game/redis/game-redis.service.js";
-import * as crypto from "node:crypto"
+import * as crypto from "node:crypto";
 import { Lobby } from "./schemas/lobby.redis.schema.js";
 import { LobbyRecordsDto } from "./dtos/lobby-records.dto.js";
 import { LobbyRoomStatus } from "./schemas/lobby-details.redis.schema.js";
 import { GameSettingFormat } from "./schemas/lobby-gameSettings.redis.schema.js";
 import { LobbyRoomType } from "./schemas/lobby-generalSettings.redis.schema.js";
-import { redis_lobby_all_keys, redis_lobby_details, redis_lobby_game_settings, redis_lobby_general_settings, redis_lobby_global_details_lobby_lists, redis_lobby_player_member_list, redis_lobby_ready_player_list, redis_lobby_spectator_member_list } from "./lobby-redis.namespace.js";
+import {
+  redis_lobby_all_keys,
+  redis_lobby_details,
+  redis_lobby_game_settings,
+  redis_lobby_general_settings,
+  redis_lobby_global_details_lobby_lists,
+  redis_lobby_player_member_list,
+  redis_lobby_ready_player_list,
+  redis_lobby_spectator_member_list,
+} from "./lobby-redis.namespace.js";
 import { logErrorRedisError, logErrorRedisPipeLine } from "../../../infrastructure/redis/utility/redis-logError.js";
 import { errorWithCode } from "../../../utility/errorWithCode.js";
 import { LobbyDto } from "./dtos/lobby.dto.js";
@@ -28,8 +37,7 @@ import { ChatRoomVisibilityType } from "../../../infrastructure/drizzle/schema/c
 import { type WrapperType } from "../../../types/wrapperType.js";
 
 @Injectable()
-export class LobbyRedisService {
-
+export class LobbyRedisService implements OnModuleInit {
   private readonly logger = new Logger(LobbyRedisService.name);
 
   constructor(
@@ -37,20 +45,18 @@ export class LobbyRedisService {
     private readonly userRedisService: UsersRedisService,
     private readonly chatService: ChatService,
     private readonly gameRedisService: GameRedisService,
-    @Inject(forwardRef(() => LobbyGatewayService)) private readonly lobbyGatewayService: WrapperType<LobbyGatewayService>,
+    @Inject(forwardRef(() => LobbyGatewayService))
+    private readonly lobbyGatewayService: WrapperType<LobbyGatewayService>,
     private readonly gameGatewayService: GameGatewayService,
-  ) {
-
-  }
+  ) {}
 
   async onModuleInit() {
-    await this.redis.defineCommand('lobbyRoomCreate', {
+    await this.redis.defineCommand("lobbyRoomCreate", {
       numberOfKeys: 2,
       readOnly: false,
       lua: `
         local allLobbyListsKey = KEYS[1]
         local creatorUserLobbyListKey = KEYS[2]
-
 
         local lobbyRoomMax = tonumber(ARGV[1])
         local newLobbyPinId = ARGV[2]
@@ -63,7 +69,6 @@ export class LobbyRedisService {
           end
         end
 
-
         if redis.call('SCARD', allLobbyListsKey) >= lobbyRoomMax then
           return 1
         end
@@ -73,10 +78,8 @@ export class LobbyRedisService {
         end
 
         return 0
-      `
-    })
-
-// #########################################################################
+      `,
+    });
 
     await this.redis.defineCommand("lobbyRoomJoin", {
       numberOfKeys: 7,
@@ -97,39 +100,33 @@ export class LobbyRedisService {
         local joinedAt = tonumber(ARGV[5])
         local userLobbyListLimit = tonumber(ARGV[6])
 
-        -- check first if the targeted user already max the lobby
         if redis.call('SCARD', userLobbyListKey) >= userLobbyListLimit then
           return 1
         end
 
-        -- check if user already in this lobby
         if redis.call('SISMEMBER', userLobbyListKey, lobbyPinId) ~= 0 then
           return 2
         end
 
-
-        -- check if the target lobby exist
         if redis.call('SISMEMBER', allLobbyListsKey, lobbyPinId) == 0 then
           return 3
         end
 
-        -- check if the target lobby current status is allowed to join
         local currentLobbyStatus = redis.call('HGET', lobbyDetailsKey, 'roomStatus')
-        if currentLobbyStatus == 'UNAVAILABLE' then
+        if not currentLobbyStatus or currentLobbyStatus == 'UNAVAILABLE' then
           return 4
-        elseif isSpectator == "false" and currentLobbyStatus ~= 'WAITING' then
+        elseif isSpectator == 'false' and currentLobbyStatus ~= 'WAITING' then
           return 5
         end
 
         local lobbyPassword = redis.call('HGET', lobbyGeneralSettingsKey, 'password')
-        if lobbyPassword then
+        if lobbyPassword and lobbyPassword ~= '' then
           if password ~= lobbyPassword then
-           return 6
+            return 6
           end
         end
 
-        if isSpectator == "true" then
-
+        if isSpectator == 'true' then
           local currentSpectatorCount = redis.call('ZCARD', spectatorMemberListKey)
           local maxSpectator = tonumber(redis.call('HGET', lobbyGameSettingsKey, 'maxSpectator') or 0)
 
@@ -141,7 +138,7 @@ export class LobbyRedisService {
             return 8
           end
 
-
+          redis.call('HSET', lobbyDetailsKey, 'currentSpectatorCount', currentSpectatorCount + 1)
         else
           local currentPlayerCount = redis.call('ZCARD', playerMemberListKey)
           local maxPlayer = tonumber(redis.call('HGET', lobbyGameSettingsKey, 'maxPlayer') or 0)
@@ -150,17 +147,17 @@ export class LobbyRedisService {
             return 7
           end
 
-
           if redis.call('ZADD', playerMemberListKey, joinedAt, joinUserId) ~= 1 then
             return 8
           end
 
+          redis.call('HSET', lobbyDetailsKey, 'currentPlayerCount', currentPlayerCount + 1)
         end
 
         redis.call('SADD', userLobbyListKey, lobbyPinId)
 
         return 0
-      `
+      `,
     });
 
     await this.redis.defineCommand("lobbyRoomLeave", {
@@ -188,49 +185,40 @@ export class LobbyRedisService {
           return 1
         end
 
-        local isUserHost = 0
-        local hostUserId = redis.call('HGET', generalSettingsKey, 'hostUserId')
-
-        if hostUserId and hostUserId == leaveUserId then
-          isUserHost = 1
-        end
-
-        local isSpectator = 0
-        if redis.call('ZREM', playerMemberListKey, leaveUserId) == 0 then
-          if redis.call('ZREM', spectatorMemberListKey, leaveUserId) == 0 then
-            return 2
-          end
-          isSpectator = 1
-        end
-
-        -- If player leaves, room must be in WAITING state
-        local currentState = redis.call('HGET', lobbyDetailsKey, 'roomStatus')
         local isPlayer = redis.call('ZSCORE', playerMemberListKey, leaveUserId) ~= false
         local isSpectator = redis.call('ZSCORE', spectatorMemberListKey, leaveUserId) ~= false
 
         if not isPlayer and not isSpectator then
           return 2
         end
+
+        local currentState = redis.call('HGET', lobbyDetailsKey, 'roomStatus')
         if currentState == 'UNAVAILABLE' then
           return 5
-        elseif isSpectator == 0 and currentState ~= 'WAITING' then
+        elseif isPlayer and currentState ~= 'WAITING' and not matchComplete then
           return 6
         end
 
-        -- Remove lobby pin from user's active lobby list
+        if isPlayer then
+          redis.call('ZREM', playerMemberListKey, leaveUserId)
+          redis.call('SREM', readyPlayerListKey, leaveUserId)
+        else
+          redis.call('ZREM', spectatorMemberListKey, leaveUserId)
+        end
+
         redis.call('SREM', userLobbyListKey, lobbyPinId)
 
-        -- Get current member counts
         local curPCount = tonumber(redis.call('ZCARD', playerMemberListKey))
         local curSCount = tonumber(redis.call('ZCARD', spectatorMemberListKey))
 
-        -- Destroy the lobby room if completely empty
+        redis.call('HSET', lobbyDetailsKey, 'currentPlayerCount', curPCount, 'currentSpectatorCount', curSCount)
+
         if curPCount <= 0 and curSCount <= 0 then
           return 4
         end
 
-        -- If the leaving user was the host, transfer host to the oldest member (by score/timestamp)
-        if isUserHost == 1 then
+        local hostUserId = redis.call('HGET', lobbyDetailsKey, 'hostUserId')
+        if hostUserId and hostUserId == leaveUserId then
           local oldestPlayerMember = redis.call('ZRANGE', playerMemberListKey, 0, 0, 'WITHSCORES')
           local oldestSpectatorMember = redis.call('ZRANGE', spectatorMemberListKey, 0, 0, 'WITHSCORES')
 
@@ -249,76 +237,66 @@ export class LobbyRedisService {
             newHostId = oldestSpectatorMember[1]
           end
 
-          redis.call('HSET', generalSettingsKey, 'hostUserId', newHostId)
+          redis.call('HSET', lobbyDetailsKey, 'hostUserId', newHostId)
           return newHostId
         end
 
         return 0
-      `
+      `,
     });
 
-    await this.redis.defineCommand('lobbyRoomSetStatus',
-      {
-        numberOfKeys: 2,
-        readOnly: false,
-        lua: `
-          local allLobbyListKey = KEYS[1]
-          local lobbyDetailsKey = KEYS[2]
+    await this.redis.defineCommand("lobbyRoomSetStatus", {
+      numberOfKeys: 2,
+      readOnly: false,
+      lua: `
+        local allLobbyListKey = KEYS[1]
+        local lobbyDetailsKey = KEYS[2]
 
-          local lobbyPinId = ARGV[1]
-          local setStatus = ARGV[2]
+        local lobbyPinId = ARGV[1]
+        local setStatus = ARGV[2]
 
-          -- check first if the lobby is exist
-          if tonumber(redis.call('SISMEMBER', allLobbyListKey, lobbyPinId)) == 0 then
-            return 1
-          end
+        if tonumber(redis.call('SISMEMBER', allLobbyListKey, lobbyPinId)) == 0 then
+          return 1
+        end
 
-          -- lobby exist then should set
+        local currentStatus = redis.call('HGET', lobbyDetailsKey, 'roomStatus')
 
-          local currentStatus = redis.call('HGET', lobbyDetailsKey, 'roomStatus')
+        if not currentStatus or currentStatus == setStatus then
+          return 2
+        end
 
-          if not currentStatus or currentStatus == setStatus then
-            return 2
-          end
-
-          redis.call('HSET', lobbyDetailsKey, 'roomStatus', setStatus)
-          return 0
-        `
-      }
-    );
-
+        redis.call('HSET', lobbyDetailsKey, 'roomStatus', setStatus)
+        return 0
+      `,
+    });
   }
 
   generateNewLobbyPinId(): string {
-    return crypto.randomInt(0, 1000000).toString().padStart(6, '0');
-
+    return crypto.randomInt(0, 1000000).toString().padStart(6, "0");
   }
 
   private lobbyToRecord(fullLobbyDto: Lobby.FullDto): LobbyRecordsDto {
-
     const detailsRecord = Object.fromEntries(
-      Object.entries(fullLobbyDto.details)
-      .map(([key, value]) => [key, value instanceof Date ? value.toISOString() : String(value ?? "")])
-    )
+      Object.entries(fullLobbyDto.details).map(([key, value]) => [
+        key,
+        value instanceof Date ? value.toISOString() : String(value ?? ""),
+      ]),
+    );
     const generalSettingsRecord = Object.fromEntries(
-      Object.entries(fullLobbyDto.generalSettings)
-      .map(([key, value]) => [key, String(value ?? "")])
-    )
+      Object.entries(fullLobbyDto.generalSettings).map(([key, value]) => [key, String(value ?? "")]),
+    );
     const gameSettingsRecord = Object.fromEntries(
-      Object.entries(fullLobbyDto.gameSettings)
-      .map(([key, value]) => [key, String(value ?? "")])
-    )
+      Object.entries(fullLobbyDto.gameSettings).map(([key, value]) => [key, String(value ?? "")]),
+    );
 
     return {
       lobbyDetails: detailsRecord,
       generalSettings: generalSettingsRecord,
-      gameSettings: gameSettingsRecord
-    }
+      gameSettings: gameSettingsRecord,
+    };
   }
 
   private recordToLobby(records: LobbyRecordsDto): Lobby.FullDto {
-
-
     return {
       details: {
         chatRoomId: records.lobbyDetails.chatRoomId,
@@ -328,63 +306,48 @@ export class LobbyRedisService {
         hostUserId: records.lobbyDetails.hostUserId ? records.lobbyDetails.hostUserId : null,
         roomPinId: records.lobbyDetails.roomPinId,
         roomStatus: records.lobbyDetails.roomStatus as LobbyRoomStatus,
-        currentPlayerCount: parseInt(records.lobbyDetails.currentPlayerCount),
-        currentSpectatorCount: parseInt(records.lobbyDetails.currentSpectatorCount)
+        currentPlayerCount: parseInt(records.lobbyDetails.currentPlayerCount, 10),
+        currentSpectatorCount: parseInt(records.lobbyDetails.currentSpectatorCount, 10),
       },
       gameSettings: {
-        maxPlayer: parseInt(records.gameSettings.maxPlayer),
-        maxSpectator: parseInt(records.gameSettings.maxSpectator),
+        maxPlayer: parseInt(records.gameSettings.maxPlayer, 10),
+        maxSpectator: parseInt(records.gameSettings.maxSpectator, 10),
         format: records.gameSettings.format as GameSettingFormat,
-        startingChips: parseInt(records.gameSettings.startingChips),
-        bigBlind: parseInt(records.gameSettings.bigBlind),
-        ante: records.gameSettings.ante ? parseInt(records.gameSettings.ante) : null ,
+        startingChips: parseInt(records.gameSettings.startingChips, 10),
+        bigBlind: parseInt(records.gameSettings.bigBlind, 10),
+        ante: records.gameSettings.ante ? parseInt(records.gameSettings.ante, 10) : null,
       },
       generalSettings: {
         catchPhrase: records.generalSettings.catchPhrase ? records.generalSettings.catchPhrase : null,
         password: records.generalSettings.password ? records.generalSettings.password : null,
-        roomType: records.generalSettings.roomType as LobbyRoomType
-      }
-    }
+        roomType: records.generalSettings.roomType as LobbyRoomType,
+      },
+    };
   }
 
   async lobbyRemove(lobbyPinId: string) {
-
-    const [
-      lobbyMemberList,
-      lobbyData,
-    ] = await Promise.all([
+    const [lobbyMemberList, lobbyData] = await Promise.all([
       this.getLobbyMemberList(lobbyPinId),
-      this.getLobbyFull(lobbyPinId)
+      this.getLobbyFull(lobbyPinId),
     ]);
 
-    const promisePlayer = lobbyMemberList.playerList.map((value) => {
-      return this.lobbyUserLeave(value, lobbyPinId).catch(() => null);
-    })
+    const pipeline = this.redis.pipeline();
 
-    const promiseSpectator = lobbyMemberList.spectatorList.map((value) => {
-      return this.lobbyUserLeave(value, lobbyPinId).catch(() => null);
-    });
+    for (const playerId of lobbyMemberList.playerList) {
+      pipeline.srem(redis_user_lobby_list(playerId), lobbyPinId);
+    }
+    for (const spectatorId of lobbyMemberList.spectatorList) {
+      pipeline.srem(redis_user_lobby_list(spectatorId), lobbyPinId);
+    }
 
-    const combined = [...promisePlayer, ...promiseSpectator];
+    pipeline
+      .srem(redis_lobby_global_details_lobby_lists(), lobbyPinId)
+      .del(redis_lobby_all_keys(lobbyPinId));
 
-    await Promise.all(combined);
-
-    const res = await this.redis
-      .pipeline()
-      .srem(
-        redis_lobby_global_details_lobby_lists(),
-        lobbyPinId
-      )
-      .del(
-        redis_lobby_all_keys(lobbyPinId)
-      )
-      .exec();
+    const res = await pipeline.exec();
 
     if (!res) {
-      throw logErrorRedisPipeLine(
-        this.logger,
-        "lobbyRemove()"
-      );
+      throw logErrorRedisPipeLine(this.logger, "lobbyRemove()");
     }
 
     const errObj: Error[] = [];
@@ -394,191 +357,180 @@ export class LobbyRedisService {
       }
     }
     if (errObj.length !== 0) {
-      throw logErrorRedisError(
-        this.logger,
-        "lobbyRemove()",
-        errObj
-      )
+      throw logErrorRedisError(this.logger, "lobbyRemove()", errObj);
     }
 
-    return (lobbyData);
+    await this.chatService.removeRoom(lobbyData.details.chatRoomId).catch(() => null);
+
+    const allMembers = [
+      ...lobbyMemberList.playerList.map((id) => ({ id, role: LobbyMemberNotifyRole.PLAYER })),
+      ...lobbyMemberList.spectatorList.map((id) => ({ id, role: LobbyMemberNotifyRole.SPECTATOR })),
+    ];
+
+    for (const member of allMembers) {
+      if (lobbyData.details.roomStatus === LobbyRoomStatus.PLAYING && lobbyData.details.gameRoomId) {
+        this.gameGatewayService.leaveGameSession(member.id, lobbyData.details.gameRoomId);
+      }
+      this.lobbyGatewayService.leaveLobbySession(member.id, lobbyPinId, member.role);
+    }
+
+    return lobbyData;
   }
 
   async lobbyCreate(lobbyCreateDto: LobbyCreate.InputDto) {
-
     const inputPayload = LobbyCreate.schema.input.safeParse(lobbyCreateDto);
 
     if (!inputPayload.success) {
       throw errorWithCode(
         HttpStatus.BAD_REQUEST,
         "payload validation failed",
-        z.treeifyError(inputPayload.error)
+        z.treeifyError(inputPayload.error),
       );
     }
 
     let redisReturnValue = 0;
-    let newLobbyPinId: string = "";
-    let addNewLobbyRes: boolean = true;
+    let newLobbyPinId = "";
     const retriesLimit = 10;
+
     for (let i = 0; i < retriesLimit; i++) {
       newLobbyPinId = this.generateNewLobbyPinId();
-      ////if (inputPayload.data.details.createdByUserId) {
-      ////  addNewLobbyRes = await this.userRedisService.addNewLobby(inputPayload.data.details.createdByUserId, newLobbyPinId);
-      ////}
-      //if (addNewLobbyRes === false) {
-      //  redisReturnValue = 3;
-      //  break ;
-      //}
-
-      //redisReturnValue = await this.redis.setWithLimitAdd(
-      //  redis_lobby_global_details_lobby_lists(),
-      //  newLobbyPinId,
-      //  LOBBY_ROOM_MAX,
-      //)
       redisReturnValue = await this.redis.lobbyRoomCreate(
         redis_lobby_global_details_lobby_lists(),
         redis_user_lobby_list(inputPayload.data.details.createdByUserId ?? ""),
         LOBBY_ROOM_MAX,
         newLobbyPinId,
         inputPayload.data.details.createdByUserId === null ? "false" : "true",
-        REDIS_USER_LOBBY_LIST_LIMIT
+        REDIS_USER_LOBBY_LIST_LIMIT,
       );
 
       if (redisReturnValue !== 2) {
-        // if the return code if not 2 then no need to retries
-        break ;
+        break;
       }
-      //if (inputPayload.data.details.createdByUserId) {
-      //  await this.userRedisService.removeUserLobbyList(inputPayload.data.details.createdByUserId, newLobbyPinId);
-      //}
     }
 
-    if (redisReturnValue !== 0 ) {
+    if (redisReturnValue !== 0) {
       if (redisReturnValue === 1) {
         throw errorWithCode(
           HttpStatus.SERVICE_UNAVAILABLE,
-          "the lobby is full and cannot insert any more room"
+          "the lobby is full and cannot insert any more room",
         );
-      }
-      else if (redisReturnValue === 2) {
+      } else if (redisReturnValue === 2) {
         throw errorWithCode(
           HttpStatus.INTERNAL_SERVER_ERROR,
-          "cannot insert the room within the amout of retires"
-        )
-      }
-      else {
+          "cannot insert the room within the amount of retries",
+        );
+      } else {
         throw errorWithCode(
           HttpStatus.FORBIDDEN,
-          "this user cannot create or join anymore lobby room, try to leave from another lobby room first"
+          "this user cannot create or join anymore lobby room, try to leave from another lobby room first",
         );
       }
     }
 
-    const newChatRoomData = await this.chatService.createNewChatRoom({
-      createdByUserId: null,
-      isTemporary: true,
-      roomName: `lobby ${newLobbyPinId}`,
-      visibilityType: ChatRoomVisibilityType.PRIVATE
-    })
+    let chatRoomCreatedId: string | null = null;
+    try {
+      const newChatRoomData = await this.chatService.createNewChatRoom({
+        createdByUserId: null,
+        isTemporary: true,
+        roomName: `lobby ${newLobbyPinId}`,
+        visibilityType: ChatRoomVisibilityType.PRIVATE,
+      });
+      chatRoomCreatedId = newChatRoomData.id;
 
-    const lobbyDto: z.input<typeof Lobby.schema.insert> = {
-      generalSettings: inputPayload.data.generalSettings,
-      details: {
-        ...inputPayload.data.details,
-        roomPinId: newLobbyPinId,
-        currentPlayerCount: 0,
-        currentSpectatorCount: 0,
-        chatRoomId: newChatRoomData.id
-      },
-      gameSettings: inputPayload.data.gameSettings
+      const lobbyDto: z.input<typeof Lobby.schema.insert> = {
+        generalSettings: inputPayload.data.generalSettings,
+        details: {
+          ...inputPayload.data.details,
+          roomPinId: newLobbyPinId,
+          currentPlayerCount: 0,
+          currentSpectatorCount: 0,
+          chatRoomId: newChatRoomData.id,
+        },
+        gameSettings: inputPayload.data.gameSettings,
+      };
+
+      const lobbyPayload = Lobby.schema.insert.safeParse(lobbyDto);
+
+      if (!lobbyPayload.success) {
+        const errorObj = z.treeifyError(lobbyPayload.error);
+        throw logError(
+          this.logger,
+          "error from lobbyCreate()",
+          "lobby payload invalid",
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          errorObj,
+        );
+      }
+
+      const fullLobbyPayload: z.infer<typeof Lobby.schema.full> = {
+        details: { ...lobbyPayload.data.details },
+        gameSettings: lobbyPayload.data.gameSettings,
+        generalSettings: lobbyPayload.data.generalSettings,
+      };
+
+      const records = this.lobbyToRecord(fullLobbyPayload);
+
+      const allRes = await this.redis
+        .pipeline()
+        .hset(redis_lobby_general_settings(newLobbyPinId), records.generalSettings)
+        .hset(redis_lobby_game_settings(newLobbyPinId), records.gameSettings)
+        .hset(redis_lobby_details(newLobbyPinId), records.lobbyDetails)
+        .exec();
+
+      if (!allRes) {
+        throw logErrorRedisPipeLine(this.logger, "lobbyCreate()");
+      }
+
+      const errs: Error[] = [];
+      for (const [err] of allRes) {
+        if (err) {
+          errs.push(err);
+        }
+      }
+      if (errs.length !== 0) {
+        throw logErrorRedisError(this.logger, "lobbyCreate()", errs);
+      }
+
+      if (inputPayload.data.details.createdByUserId) {
+        await this.lobbyUserJoin(
+          inputPayload.data.details.createdByUserId,
+          newLobbyPinId,
+          false,
+          inputPayload.data.generalSettings.password ?? undefined,
+        );
+
+        await this.lobbySetHost(inputPayload.data.details.createdByUserId, newLobbyPinId).catch(() => {});
+
+        return this.getLobbyFull(newLobbyPinId);
+      }
+
+      return fullLobbyPayload;
+    } catch (error) {
+      await this.redis
+        .pipeline()
+        .srem(redis_lobby_global_details_lobby_lists(), newLobbyPinId)
+        .del(redis_lobby_all_keys(newLobbyPinId))
+        .exec()
+        .catch(() => null);
+
+      if (chatRoomCreatedId) {
+        await this.chatService.removeRoom(chatRoomCreatedId).catch(() => null);
+      }
+      throw error;
     }
-
-    const lobbyPayload = Lobby.schema.insert.safeParse(lobbyDto);
-
-    if (!lobbyPayload.success) {
-
-      const errorObj = z.treeifyError(lobbyPayload.error);
-
-      throw logError(
-        this.logger,
-        "error from lobbyCreate()",
-        "lobby payload invalid",
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        errorObj
-      );
-
-    }
-
-    const fullLobbyPayload: z.infer<typeof Lobby.schema.full> = {
-      details: {
-        ...lobbyPayload.data.details,
-
-      },
-      gameSettings: lobbyPayload.data.gameSettings,
-      generalSettings: lobbyPayload.data.generalSettings
-    }
-
-    const records = this.lobbyToRecord(fullLobbyPayload);
-
-    const allRes = await this.redis
-      .pipeline()
-      .hset(
-        redis_lobby_general_settings(newLobbyPinId),
-        records.generalSettings
-      )
-      .hset(
-        redis_lobby_game_settings(newLobbyPinId), 
-        records.gameSettings
-      )
-      .hset(
-        redis_lobby_details(newLobbyPinId), 
-        records.lobbyDetails
-      )
-      //.zadd(
-      //  redis_lobby_player_member_list(newLobbyPinId),
-      //  new Date().getTime(),
-
-      //)
-      .exec();
-
-    if (!allRes) {
-      throw logErrorRedisPipeLine(
-        this.logger,
-        "lobbyCreate()",
-      )
-      // 
-    }
-
-    if (inputPayload.data.details.createdByUserId) {
-      await Promise.all([
-        //this.chatService.joinRoom(inputPayload.data.details.createdByUserId, newChatRoomData.id, ChatRoomMemberRole.MEMBER),
-        this.lobbyUserJoin(inputPayload.data.details.createdByUserId, newLobbyPinId, false, inputPayload.data.generalSettings.password ?? undefined).catch((error: any) => {this.logger.error({message:"from create lobby", error: error});throw error;}),
-      ])
-
-      await this.lobbySetHost(inputPayload.data.details.createdByUserId, newLobbyPinId).catch(() => {})
-      //this.lobbyGatewayService.joinLobbySession(inputPayload.data.details.createdByUserId, newLobbyPinId, LobbyMemberNotifyRole.PLAYER);
-      //this.lobbyGatewayService.memberNotifyChangeHost(inputPayload.data.details.createdByUserId, newLobbyPinId, LobbyMemberNotifyRole.PLAYER);
-    }
-
-    if (inputPayload.data.details.createdByUserId) {
-    }
-
-    return fullLobbyPayload;
   }
 
   async getLobbyMemberList(lobbyPinId: string) {
-    const res = await this.redis.pipeline()
+    const res = await this.redis
+      .pipeline()
       .sismember(redis_lobby_global_details_lobby_lists(), lobbyPinId)
       .zrange(redis_lobby_player_member_list(lobbyPinId), 0, "-1")
       .zrange(redis_lobby_spectator_member_list(lobbyPinId), 0, "-1")
       .smembers(redis_lobby_ready_player_list(lobbyPinId))
-      .exec()
+      .exec();
 
     if (!res) {
-      throw logErrorRedisPipeLine(
-        this.logger,
-        "getLobbyMemberList()",
-      );
+      throw logErrorRedisPipeLine(this.logger, "getLobbyMemberList()");
     }
 
     const errObj: Error[] = [];
@@ -589,68 +541,49 @@ export class LobbyRedisService {
     }
 
     if (errObj.length !== 0) {
-      throw logErrorRedisError(
-        this.logger,
-        "getLobbyMemberList()",
-        errObj
-      )
+      throw logErrorRedisError(this.logger, "getLobbyMemberList()", errObj);
     }
 
-    const [
-      [, isLobbyExist],
-      [, playerMemberList],
-      [, spectatorMemberList],
-      [, readyPlayerList]
-    ] = res as [
+    const [[, isLobbyExist], [, playerMemberList], [, spectatorMemberList], [, readyPlayerList]] = res as [
       [Error | null, number],
       [Error | null, string[]],
       [Error | null, string[]],
       [Error | null, string[]],
-    ]
+    ];
 
     if (isLobbyExist === 0) {
-      throw errorWithCode(
-        HttpStatus.NOT_FOUND,
-        "the lobby not found"
-      )
+      throw errorWithCode(HttpStatus.NOT_FOUND, "the lobby not found");
     }
 
     return {
       playerList: playerMemberList,
       spectatorList: spectatorMemberList,
-      readyPlayerList: readyPlayerList
-    }
+      readyPlayerList: readyPlayerList,
+    };
   }
 
   getPlayerMemberList(lobbyPinId: string) {
-    return this.redis
-      .zrange(redis_lobby_player_member_list(lobbyPinId), 0, "-1")
+    return this.redis.zrange(redis_lobby_player_member_list(lobbyPinId), 0, "-1");
   }
 
   getSpectatorMemberList(lobbyPinId: string) {
-    return this.redis
-    .zrange(redis_lobby_spectator_member_list(lobbyPinId), 0, "-1")
+    return this.redis.zrange(redis_lobby_spectator_member_list(lobbyPinId), 0, "-1");
   }
 
   getReadyPlayerList(lobbyPinId: string) {
-    return this.redis
-    .smembers(redis_lobby_ready_player_list(lobbyPinId));
+    return this.redis.smembers(redis_lobby_ready_player_list(lobbyPinId));
   }
 
-
   async getLobbyFull(lobbyPinId: string): Promise<LobbyDto> {
-
-    const allRes = await this.redis.pipeline()
+    const allRes = await this.redis
+      .pipeline()
       .hgetall(redis_lobby_details(lobbyPinId))
       .hgetall(redis_lobby_general_settings(lobbyPinId))
       .hgetall(redis_lobby_game_settings(lobbyPinId))
-      .exec()
+      .exec();
 
     if (!allRes) {
-      throw logErrorRedisPipeLine(
-        this.logger,
-        "getLobbyFull()"
-      );
+      throw logErrorRedisPipeLine(this.logger, "getLobbyFull()");
     }
 
     const errObj: Error[] = [];
@@ -658,125 +591,53 @@ export class LobbyRedisService {
       if (err) {
         errObj.push(err);
       }
-
     }
 
     if (errObj.length !== 0) {
-      throw logErrorRedisError(
-        this.logger,
-        "getLobbyFull()",
-        errObj
-      )
+      throw logErrorRedisError(this.logger, "getLobbyFull()", errObj);
     }
 
-    const [
-      [, details],
-      [, generalSettings],
-      [, gameSettings]
-    ] = allRes as [
-      [Error | null, Record<string,string>],
-      [Error | null, Record<string,string>],
-      [Error | null, Record<string,string>],
-    ]
+    const [[, details], [, generalSettings], [, gameSettings]] = allRes as [
+      [Error | null, Record<string, string>],
+      [Error | null, Record<string, string>],
+      [Error | null, Record<string, string>],
+    ];
+
+    if (!details || Object.keys(details).length === 0) {
+      throw errorWithCode(HttpStatus.NOT_FOUND, "the target lobby is not found");
+    }
 
     return this.recordToLobby({
       lobbyDetails: details,
       gameSettings: gameSettings,
-      generalSettings: generalSettings
-    })
+      generalSettings: generalSettings,
+    });
   }
 
-  // get all info of all lobby
   async getAllLobby() {
-    const allLobbyList = await this.redis.smembers(
-      redis_lobby_global_details_lobby_lists()
-    )
+    const allLobbyList = await this.redis.smembers(redis_lobby_global_details_lobby_lists());
 
     const allPromise = allLobbyList.map((id) => {
-      return this.getLobbyFull(id).catch(() => null)
-    })
+      return this.getLobbyFull(id).catch(() => null);
+    });
 
     const result = (await Promise.all(allPromise)).filter((data) => data !== null);
 
     return result;
   }
 
-
-  //// ready toggle state, just flip
-  //// true means ready and false mean not ready
-  //async lobbyUserReadyState(userId: string, lobbyRoomId: string) {
-    
-  //  // check if user really in this lobby room
-  //  const [
-  //    isUserinLobby,
-  //    lobbyData
-  //  ] = await Promise.all([
-  //    this.userRedisService.isUserInLobby(userId, lobbyRoomId),
-  //    this.getLobbyFull(lobbyRoomId)
-  //  ])
-
-  //  if (isUserinLobby === false) {
-  //    throw errorWithCode(
-  //      HttpStatus.FORBIDDEN,
-  //      "must be in the lobby to press ready button"
-  //    )
-  //  }
-
-  //  // 1. the lobby must be in WAITING state for user to press ready button
-  //  if (lobbyData.details.roomStatus !== LobbyRoomStatus.WAITING) {
-  //    throw new Error("lobby must be in waiting state to press ready", {
-  //      cause: {
-  //        code: HttpStatus.FORBIDDEN,
-  //        message: "lobby must be in waiting state to perform action"
-  //      }
-  //    })
-  //  }
-
-  //  // 2. user must be player and not spectator to be able to press ready button
-  //  const lobbyMemberList = await this.getPlayerMemberList(lobbyRoomId);
-
-  //  if (lobbyMemberList.includes(userId) !== true)  {
-  //    throw new Error("only player can press ready button", {
-  //      cause: {
-  //        code: HttpStatus.FORBIDDEN,
-  //        message: "only player in the lobby can perform this action while in waiting state"
-  //      }
-  //    })
-  //  }
-
-  //  // 3. host user Id doesn't need to press ready button
-  //  if (userId === lobbyData.details.hostUserId) {
-  //    throw new Error("Host can start game, but cannot press ready button", {
-  //      cause: {
-  //        code: HttpStatus.FORBIDDEN,
-  //        message: "Host can start game, but cannot press ready button"
-  //      }
-  //    })
-  //  }
-
-  //  const readyPlayerList = await this.getReadyPlayerList(lobbyRoomId);
-
-  //  if (readyPlayerList.includes(userId)) {
-  //    await this.redis.srem(redis_lobby_ready_player_list(lobbyRoomId), userId);
-  //    return false;
-  //  }
-  //  else {
-  //    await this.redis.sadd(redis_lobby_ready_player_list(lobbyRoomId), userId);
-  //    return true;
-  //  }
-  //}
-
   async lobbyUserLeave(userId: string, lobbyPinId: string) {
     const [lobbyData, lobbyMembers] = await Promise.all([
       this.getLobbyFull(lobbyPinId),
-      this.getLobbyMemberList(lobbyPinId)
-    ])
+      this.getLobbyMemberList(lobbyPinId),
+    ]);
 
-    const matchComplete = lobbyData.details.roomStatus === LobbyRoomStatus.PLAYING
-      && lobbyData.details.gameRoomId !== null
-      && lobbyMembers.playerList.includes(userId)
-      ? (await this.gameRedisService.loadMatchProgress(lobbyData.details.gameRoomId)).matchComplete
-      : false;
+    const matchComplete =
+      lobbyData.details.roomStatus === LobbyRoomStatus.PLAYING &&
+      lobbyData.details.gameRoomId !== null &&
+      lobbyMembers.playerList.includes(userId)
+        ? (await this.gameRedisService.loadMatchProgress(lobbyData.details.gameRoomId)).matchComplete
+        : false;
 
     const res = await this.redis.lobbyRoomLeave(
       redis_lobby_player_member_list(lobbyPinId),
@@ -789,103 +650,73 @@ export class LobbyRedisService {
       redis_lobby_ready_player_list(lobbyPinId),
       userId,
       lobbyPinId,
-      String(matchComplete)
+      String(matchComplete),
     );
 
     let lobbyDestroyed = false;
     if (typeof res === "string") {
-      const hostRole = lobbyMembers.playerList.includes(res) ? LobbyMemberNotifyRole.PLAYER : LobbyMemberNotifyRole.SPECTATOR
+      const hostRole = lobbyMembers.playerList.includes(res)
+        ? LobbyMemberNotifyRole.PLAYER
+        : LobbyMemberNotifyRole.SPECTATOR;
       this.lobbyGatewayService.memberNotifyChangeHost(res, lobbyPinId, hostRole);
-    }
-    else {
+    } else {
       switch (res) {
-        case 0: {
+        case 0:
           break;
-        }
-        case 1: {
-          throw errorWithCode(
-            HttpStatus.NOT_FOUND,
-            "target lobby is not found"
-          )
-        }
-        case 2: {
+        case 1:
+          throw errorWithCode(HttpStatus.NOT_FOUND, "target lobby is not found");
+        case 2:
           throw logError(
             this.logger,
-            "error from LobbyUserLeave()",
+            "error from lobbyUserLeave()",
             "the user is not in player member list, or spectator member list",
-            HttpStatus.INTERNAL_SERVER_ERROR
+            HttpStatus.INTERNAL_SERVER_ERROR,
           );
-        }
-        case 3: {
-          throw errorWithCode(
-            HttpStatus.NOT_FOUND,
-            "the user is not in the targeted lobby"
-          )
-        }
-        case 4: {
+        case 3:
+          throw errorWithCode(HttpStatus.NOT_FOUND, "the user is not in the targeted lobby");
+        case 4:
           lobbyDestroyed = true;
-          await this.chatService.removeRoom(lobbyData.details.chatRoomId);
-          break ;
-        }
-        case 5: {
-          // 5 is lobby is in unavailable state and user can't leave the room at the moment
+          await this.lobbyRemove(lobbyPinId);
+          break;
+        case 5:
           throw errorWithCode(
             HttpStatus.SERVICE_UNAVAILABLE,
-            "the lobby room is currently in unavailable state to perform the leave room, tryagain later"
-          )
-        }
-        case 6: {
-          // 6 is player member trying to leave the room while lobby is not in WAITING state
+            "the lobby room is currently in unavailable state to perform the leave room, try again later",
+          );
+        case 6:
           throw errorWithCode(
             HttpStatus.FORBIDDEN,
-            "player cannot leave the room while lobby is not in WAITING STATE"
-          )
-        }
-        default: {
+            "player cannot leave the room while lobby is not in WAITING STATE",
+          );
+        default:
           throw logError(
             this.logger,
             "error from lobbyUserLeave()",
             "ioredis defineCommand unknown return value",
             HttpStatus.INTERNAL_SERVER_ERROR,
-            {
-              res: res
-            }
-          )
-        }
+            { res },
+          );
       }
     }
 
-    if (!lobbyDestroyed) {
-      const isSpectator = lobbyMembers.spectatorList.includes(userId);
-      const countField = isSpectator ? "currentSpectatorCount" : "currentPlayerCount";
-      const currentCount = isSpectator
-        ? (lobbyData.details.currentSpectatorCount ?? 0)
-        : lobbyData.details.currentPlayerCount;
-      const newValue = Math.max(0, currentCount - 1);
-      await this.redis.hset(
-        redis_lobby_details(lobbyPinId),
-        countField,
-        newValue
-      );
-    }
-
     if (lobbyData.details.roomStatus === LobbyRoomStatus.PLAYING && lobbyData.details.gameRoomId) {
-      this.gameGatewayService.leaveGameSession(userId, lobbyData.details.gameRoomId)
+      this.gameGatewayService.leaveGameSession(userId, lobbyData.details.gameRoomId);
     }
     if (!lobbyDestroyed) {
       await this.chatService.leaveRoom(userId, lobbyData.details.chatRoomId);
     }
-    const role = lobbyMembers.playerList.includes(userId) ? LobbyMemberNotifyRole.PLAYER : LobbyMemberNotifyRole.SPECTATOR;
+    const role = lobbyMembers.playerList.includes(userId)
+      ? LobbyMemberNotifyRole.PLAYER
+      : LobbyMemberNotifyRole.SPECTATOR;
     this.lobbyGatewayService.leaveLobbySession(userId, lobbyPinId, role);
   }
 
-  async lobbyUserJoin(userId: string, lobbyPinId:string, isSpectator: boolean = false,password?: string) {
+  async lobbyUserJoin(userId: string, lobbyPinId: string, isSpectator: boolean = false, password?: string) {
+    this.logger.debug("redis lobby user join called");
 
-    this.logger.debug("redis lobby user join called")
+    await this.getLobbyFull(lobbyPinId);
 
-    const lobbyData = await this.getLobbyFull(lobbyPinId);
-
-    let res: number = 0;
+    let res: number;
     try {
       res = await this.redis.lobbyRoomJoin(
         redis_user_lobby_list(userId),
@@ -900,148 +731,92 @@ export class LobbyRedisService {
         password ?? "",
         lobbyPinId,
         Date.now(),
-        REDIS_USER_LOBBY_LIST_LIMIT
+        REDIS_USER_LOBBY_LIST_LIMIT,
       );
     } catch (error: any) {
-      this.logger.error({
-        message: "ioredis error",
-        error: error
-      })
+      throw logError(
+        this.logger,
+        "error from lobbyUserJoin",
+        "ioredis error",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        error,
+      );
     }
 
-    this.logger.debug({
-      "message": `res return ${res}`
-    })
+    this.logger.debug({ message: `res return ${res}` });
 
     if (res !== 0) {
       if (res === 1) {
-        throw errorWithCode(
-          HttpStatus.CONFLICT,
-          "user cannot join any more new lobby"
-        )
-      }
-      else if (res === 2) {
-        throw errorWithCode(
-          HttpStatus.CONFLICT,
-          "user is already in the target lobby room"
-        )
-      }
-      else if (res === 3) {
-        throw errorWithCode(
-          HttpStatus.NOT_FOUND,
-          "the target lobby is not found"
-        )
-      }
-      else if (res === 4) {
+        throw errorWithCode(HttpStatus.CONFLICT, "user cannot join any more new lobby");
+      } else if (res === 2) {
+        throw errorWithCode(HttpStatus.CONFLICT, "user is already in the target lobby room");
+      } else if (res === 3) {
+        throw errorWithCode(HttpStatus.NOT_FOUND, "the target lobby is not found");
+      } else if (res === 4) {
+        throw errorWithCode(HttpStatus.FORBIDDEN, "the lobby room is unavailable to join");
+      } else if (res === 5) {
         throw errorWithCode(
           HttpStatus.FORBIDDEN,
-          "the lobby room is unavailable to join"
-        )
-      }
-      else if (res === 5) {
-        throw errorWithCode(
-          HttpStatus.FORBIDDEN,
-          "the lobby room must be in waiting state for user to join as pleyer member"
+          "the lobby room must be in waiting state for user to join as player member",
         );
-      }
-      else if (res === 6) {
-        throw errorWithCode(
-          HttpStatus.FORBIDDEN,
-          "Invalid lobby password"
-        )
-      }
-      else if (res === 7) {
-        throw errorWithCode(
-          HttpStatus.SERVICE_UNAVAILABLE,
-          "the lobby room is now full. try again later"
-        )
-      }
-      else if (res === 8) {
+      } else if (res === 6) {
+        throw errorWithCode(HttpStatus.FORBIDDEN, "Invalid lobby password");
+      } else if (res === 7) {
+        throw errorWithCode(HttpStatus.SERVICE_UNAVAILABLE, "the lobby room is now full. try again later");
+      } else if (res === 8) {
         throw logError(
           this.logger,
           "error from lobbyUserJoin",
-          "the  user cannot be added to member of the lobby",
+          "the user cannot be added to member of the lobby",
           HttpStatus.INTERNAL_SERVER_ERROR,
-          {
-            message: `user ${userId}. to lobby ${lobbyPinId}`
-          }
-        )
-      }
-      else {
+          { message: `user ${userId} to lobby ${lobbyPinId}` },
+        );
+      } else {
         throw logError(
           this.logger,
           "error from lobbyUserJoin",
           "unknown res return from ioredis define command",
           HttpStatus.INTERNAL_SERVER_ERROR,
-          {
-            res: res
-          }
+          { res },
         );
       }
     }
 
-    // if join success then this user join the chat room
+    const updatedLobbyData = await this.getLobbyFull(lobbyPinId);
 
-    // set new lobby value
-    if (isSpectator) {
-      const newValue = lobbyData.details.currentSpectatorCount === undefined ? 1 : lobbyData.details.currentSpectatorCount + 1
-      await this.redis.hset(
-        redis_lobby_details(lobbyPinId),
-        "currentSpectatorCount",
-        newValue
-      )
-      lobbyData.details.currentSpectatorCount = newValue;
-    }
-    else {
-      const newValue = lobbyData.details.currentPlayerCount + 1;
-      await this.redis.hset(
-        redis_lobby_details(lobbyPinId),
-        "currentPlayerCount",
-        newValue
-      )
-      lobbyData.details.currentSpectatorCount = newValue;
+    if (updatedLobbyData.details.roomStatus === LobbyRoomStatus.PLAYING && updatedLobbyData.details.gameRoomId) {
+      this.gameGatewayService.joinGameSession(userId, updatedLobbyData.details.gameRoomId);
     }
 
-    if (lobbyData.details.roomStatus === LobbyRoomStatus.PLAYING && lobbyData.details.gameRoomId) {
-      this.gameGatewayService.joinGameSession(userId, lobbyData.details.gameRoomId)
-    }
+    await this.chatService.joinRoom(userId, updatedLobbyData.details.chatRoomId);
+    this.lobbyGatewayService.joinLobbySession(
+      userId,
+      lobbyPinId,
+      isSpectator ? LobbyMemberNotifyRole.SPECTATOR : LobbyMemberNotifyRole.PLAYER,
+    );
 
-    await this.chatService.joinRoom(userId, lobbyData.details.chatRoomId),
-    this.lobbyGatewayService.joinLobbySession(userId, lobbyPinId, isSpectator ? LobbyMemberNotifyRole.SPECTATOR: LobbyMemberNotifyRole.PLAYER);
-
-
-    return lobbyData;
+    return updatedLobbyData;
   }
 
   async lobbySetHost(userId: string, lobbyPinId: string) {
-    // promote the target user Id to 
-
-    const [
-      isUserInLobby,
-      lobbyData,
-      lobbyMembers
-    ] = await Promise.all([
+    const [isUserInLobby, lobbyData, lobbyMembers] = await Promise.all([
       this.userRedisService.isUserInLobby(userId, lobbyPinId),
       this.getLobbyFull(lobbyPinId),
-      this.getLobbyMemberList(lobbyPinId)
+      this.getLobbyMemberList(lobbyPinId),
     ]);
 
     if (isUserInLobby === false) {
-      throw errorWithCode(
-        HttpStatus.NOT_FOUND,
-        "not found user in the target lobby"
-      )
+      throw errorWithCode(HttpStatus.NOT_FOUND, "not found user in the target lobby");
     }
 
     if (lobbyData.details.hostUserId === userId) {
-      throw errorWithCode(
-        HttpStatus.CONFLICT,
-        "this user is already be the host of this lobby"
-      )
+      throw errorWithCode(HttpStatus.CONFLICT, "this user is already the host of this lobby");
     }
 
     await this.redis.hset(redis_lobby_details(lobbyPinId), "hostUserId", userId);
-    const role = lobbyMembers.playerList.includes(userId) ? LobbyMemberNotifyRole.PLAYER : LobbyMemberNotifyRole.SPECTATOR;
+    const role = lobbyMembers.playerList.includes(userId)
+      ? LobbyMemberNotifyRole.PLAYER
+      : LobbyMemberNotifyRole.SPECTATOR;
     this.lobbyGatewayService.memberNotifyChangeHost(userId, lobbyPinId, role);
     return this.getLobbyFull(lobbyPinId);
   }
@@ -1051,65 +826,26 @@ export class LobbyRedisService {
       redis_lobby_global_details_lobby_lists(),
       redis_lobby_details(lobbyPinId),
       lobbyPinId,
-      status.toString()
+      status.toString(),
     );
-    
+
     if (res !== 0) {
       if (res === 1) {
-        throw errorWithCode(
-          HttpStatus.NOT_FOUND,
-          "the lobby if not found"
-        )
-      }
-      else if (res === 2) {
-        throw errorWithCode(
-          HttpStatus.CONFLICT,
-          " the lobby is already on the set state"
-        )
-      }
-      else {
+        throw errorWithCode(HttpStatus.NOT_FOUND, "the lobby is not found");
+      } else if (res === 2) {
+        throw errorWithCode(HttpStatus.CONFLICT, "the lobby is already on the set state");
+      } else {
         throw logError(
           this.logger,
           "error from setLobbyRoomStatus",
           "unknown res return from ioredis define command",
-          HttpStatus.INTERNAL_SERVER_ERROR
+          HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
     }
   }
 
-
   async updateLobby(lobbyPinId: string, updateInputDto: LobbyUpdateDto) {
-
-    // must be in waiting state
-
-    const lobbyData = await this.getLobbyFull(lobbyPinId);
-
-    if (lobbyData.details.roomStatus !== LobbyRoomStatus.WAITING) {
-      throw errorWithCode(
-        HttpStatus.FORBIDDEN,
-        "lobby must be in waiting stage to update the lobby settings"
-      )
-    }
-
-    if (updateInputDto.gameSettings.maxPlayer) {
-      if (lobbyData.details.currentPlayerCount > updateInputDto.gameSettings.maxPlayer) {
-        throw errorWithCode(
-          HttpStatus.CONFLICT,
-          "cannot update the lobby setting max player to less then current player in the lobby"
-        )
-      }
-    }
-
-    if (updateInputDto.gameSettings.maxSpectator) {
-      if (lobbyData.details.currentSpectatorCount ?? 0 > updateInputDto.gameSettings.maxSpectator) {
-        throw errorWithCode(
-          HttpStatus.CONFLICT,
-          "cannot update the lobby setting max spectator to less then current spectator in the lobby"
-        )
-      }
-    }
-
     const parsePayload = lobbyUpdateSchema.safeParse(updateInputDto);
 
     if (!parsePayload.success) {
@@ -1118,21 +854,48 @@ export class LobbyRedisService {
         "error from updateLobby()",
         "update payload invalid",
         HttpStatus.BAD_REQUEST,
-        z.treeifyError(parsePayload.error)
-      )
+        z.treeifyError(parsePayload.error),
+      );
+    }
+
+    const lobbyData = await this.getLobbyFull(lobbyPinId);
+
+    if (lobbyData.details.roomStatus !== LobbyRoomStatus.WAITING) {
+      throw errorWithCode(
+        HttpStatus.FORBIDDEN,
+        "lobby must be in waiting stage to update the lobby settings",
+      );
+    }
+
+    if (parsePayload.data.gameSettings?.maxPlayer !== undefined) {
+      if (lobbyData.details.currentPlayerCount > parsePayload.data.gameSettings.maxPlayer) {
+        throw errorWithCode(
+          HttpStatus.CONFLICT,
+          "cannot update the lobby setting max player to less than current player in the lobby",
+        );
+      }
+    }
+
+    if (parsePayload.data.gameSettings?.maxSpectator !== undefined) {
+      if ((lobbyData.details.currentSpectatorCount ?? 0) > parsePayload.data.gameSettings.maxSpectator) {
+        throw errorWithCode(
+          HttpStatus.CONFLICT,
+          "cannot update the lobby setting max spectator to less than current spectator in the lobby",
+        );
+      }
     }
 
     const newLobbyInsert: z.input<typeof Lobby.schema.insert> = {
       details: lobbyData.details,
       gameSettings: {
         ...lobbyData.gameSettings,
-        ...updateInputDto.gameSettings,
+        ...parsePayload.data.gameSettings,
       },
       generalSettings: {
         ...lobbyData.generalSettings,
-        ...updateInputDto.generalSettings
-      }
-    }
+        ...parsePayload.data.generalSettings,
+      },
+    };
 
     const parseLobbyInsert = Lobby.schema.insert.safeParse(newLobbyInsert);
 
@@ -1140,29 +903,27 @@ export class LobbyRedisService {
       throw errorWithCode(
         HttpStatus.BAD_REQUEST,
         "update lobby invalid payload",
-        z.treeifyError(parseLobbyInsert.error)
-      )
+        z.treeifyError(parseLobbyInsert.error),
+      );
     }
     const data = parseLobbyInsert.data;
 
     const fullLobby: Lobby.FullDto = {
       details: data.details,
       gameSettings: data.gameSettings,
-      generalSettings: data.generalSettings
+      generalSettings: data.generalSettings,
     };
 
     const records = this.lobbyToRecord(fullLobby);
-    const res = await this.redis.pipeline()
+    const res = await this.redis
+      .pipeline()
       .hset(redis_lobby_details(lobbyPinId), records.lobbyDetails)
       .hset(redis_lobby_general_settings(lobbyPinId), records.generalSettings)
       .hset(redis_lobby_game_settings(lobbyPinId), records.gameSettings)
       .exec();
 
     if (!res) {
-      throw logErrorRedisPipeLine(
-        this.logger,
-        "updateLobby()"
-      );
+      throw logErrorRedisPipeLine(this.logger, "updateLobby()");
     }
 
     const errs: Error[] = [];
@@ -1172,136 +933,92 @@ export class LobbyRedisService {
       }
     }
     if (errs.length !== 0) {
-      throw logErrorRedisError(
-        this.logger,
-        "updateLobby()",
-        errs
-      );
+      throw logErrorRedisError(this.logger, "updateLobby()", errs);
     }
 
     return fullLobby;
   }
 
   async toggleReady(userId: string, lobbyPinId: string) {
-    const [
-      lobbyMemberList,
-      lobbyData,
-      isUserInLobby,
-    ] = await Promise.all([
+    const [lobbyMemberList, lobbyData, isUserInLobby] = await Promise.all([
       this.getLobbyMemberList(lobbyPinId),
       this.getLobbyFull(lobbyPinId),
-      this.userRedisService.isUserInLobby(userId, lobbyPinId)
-    ])
+      this.userRedisService.isUserInLobby(userId, lobbyPinId),
+    ]);
 
     if (lobbyData.details.roomStatus !== LobbyRoomStatus.WAITING) {
       throw errorWithCode(
         HttpStatus.FORBIDDEN,
-        "lobby must be in waiting status to be able to press ready"
+        "lobby must be in waiting status to be able to press ready",
       );
     }
 
     if (isUserInLobby === false) {
-      throw errorWithCode(
-        HttpStatus.FORBIDDEN,
-        "must be in the lobby to press ready button"
-      );
+      throw errorWithCode(HttpStatus.FORBIDDEN, "must be in the lobby to press ready button");
     }
 
     if (lobbyMemberList.playerList.includes(userId) === false) {
-      throw errorWithCode(
-        HttpStatus.FORBIDDEN,
-        "user must be player to press ready"
-      );
+      throw errorWithCode(HttpStatus.FORBIDDEN, "user must be player to press ready");
+    }
+
+    if (userId === lobbyData.details.hostUserId) {
+      throw errorWithCode(HttpStatus.FORBIDDEN, "host can start game, but cannot press ready button");
     }
 
     if (lobbyMemberList.readyPlayerList.includes(userId)) {
       await this.redis.srem(redis_lobby_ready_player_list(lobbyPinId), userId);
-
-      return false
-    }
-    else {
+      return false;
+    } else {
       await this.redis.sadd(redis_lobby_ready_player_list(lobbyPinId), userId);
-
       return true;
     }
   }
 
   async startGameRoom(lobbyPinId: string): Promise<LobbyDto> {
-
-    // NOTE: must perform as atomic on lua script on redis
-
-    // 1. retrieve the lobby data from redis
-    //
-    const [
-      lobbyData,
-      lobbyMemberList
-    ] = await Promise.all([
+    const [lobbyData, lobbyMemberList] = await Promise.all([
       this.getLobbyFull(lobbyPinId),
-      this.getLobbyMemberList(lobbyPinId)
+      this.getLobbyMemberList(lobbyPinId),
     ]);
 
-    // checks
-    // 1. check if the lobby is on WAITNG state
     if (lobbyData.details.roomStatus !== LobbyRoomStatus.WAITING) {
-      throw errorWithCode(HttpStatus.FORBIDDEN, "the lobby must be in waiting state to start a game")
+      throw errorWithCode(HttpStatus.FORBIDDEN, "the lobby must be in waiting state to start a game");
     }
-    // 2. check that all player user in the room is ready
-    if (
-      lobbyMemberList.playerList.length === lobbyMemberList.readyPlayerList.length
-      || (lobbyData.details.hostUserId !== null && lobbyMemberList.playerList.includes(lobbyData.details.hostUserId) === true
-        && lobbyMemberList.readyPlayerList.length + 1 >= lobbyMemberList.playerList.length)
-    ) {
 
-      await this.setLobbyRoomStatus(lobbyPinId,
-        LobbyRoomStatus.UNAVAILABLE
-      );
+    if (lobbyMemberList.playerList.length < 2) {
+      throw errorWithCode(HttpStatus.FORBIDDEN, "at least 2 players are required to start a poker game");
+    }
 
-      //const res = await this.gameRedisService.gameRoomCreate({
-      //  lobbyData: await this.getLobbyFull(lobbyPinId),
-      //  lobbyMemberList: lobbyMemberList
-      //});
+    const readySet = new Set(lobbyMemberList.readyPlayerList);
+    const allPlayersReady = lobbyMemberList.playerList.every(
+      (playerId) => playerId === lobbyData.details.hostUserId || readySet.has(playerId),
+    );
 
+    if (!allPlayersReady) {
+      throw errorWithCode(HttpStatus.FORBIDDEN, "all players must be ready to start a poker game");
+    }
 
+    await this.setLobbyRoomStatus(lobbyPinId, LobbyRoomStatus.UNAVAILABLE);
 
+    try {
       const res = await this.gameGatewayService.startHand(lobbyPinId);
 
-      // gonna set the game room id of the lobby room to be linkable
-      await this.redis.hset(redis_lobby_details(lobbyPinId), "gameRoomId", res.tableSessionId);
+      await this.redis
+        .pipeline()
+        .hset(redis_lobby_details(lobbyPinId), "gameRoomId", res.tableSessionId)
+        .del(redis_lobby_ready_player_list(lobbyPinId))
+        .exec();
 
       await this.setLobbyRoomStatus(lobbyPinId, LobbyRoomStatus.PLAYING);
       this.lobbyGatewayService.gameStarted(lobbyPinId, res.tableSessionId);
       return this.getLobbyFull(lobbyPinId);
+    } catch (error) {
+      await this.setLobbyRoomStatus(lobbyPinId, LobbyRoomStatus.WAITING).catch(() => null);
+      throw error;
     }
-    else {
-      throw errorWithCode(
-        HttpStatus.FORBIDDEN,
-        "all player must ready to start a poker game"
-      )
-    }
-
-    // then
-    // 1. create payload data ready for create game room
-    // 2. instantiate game room initial data on redis using that payload
-    // 3. change the state of the lobby room to PLAYING
-    // 4. change the state of the user in redis data into playing game.
-    //    so that we can implement to the user service which would return the current state
-    //    of the user that is it currently in a game and can redirect directly to game room
-    //    and continue to be in game room whether the user is spectator or player
-
-
-    // NOTE: the poker game room will not start if any of players are not once connect into
-    //        the game yet. or the time need to pass the waiting connection time then the game
-    //        will start anyway and do not wait any unconnected player
-  
   }
 
   async isLobbyExist(lobbyPinId: string) {
     const res = await this.redis.sismember(redis_lobby_global_details_lobby_lists(), lobbyPinId);
-    if (res === 0) {
-      return false;
-    }
-    return true;
+    return res !== 0;
   }
-
-
 }

@@ -61,6 +61,7 @@ const allowedPaths = new Set([
   '/friend/block',
 
   // lobby api
+  '/game/lobby/formats',
   '/game/lobby/create',
   '/game/lobby/join',
   '/game/lobby/leave',
@@ -68,6 +69,7 @@ const allowedPaths = new Set([
   '/game/lobby/my-lobby',
   '/game/lobby/update',
   '/game/lobby/startgame',
+  '/game/lobby/members',
   '/game/lobby',
 
 

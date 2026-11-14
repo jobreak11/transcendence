@@ -1,8 +1,10 @@
 import RadarChart from "./RadarChart";
 
 import { mockPlayerStatisticsData } from "../../../lib/mock-data";
+import { useLanguage } from "../language/LanguageProvider";
 
 export default function PlayerStatistics() {
+  const { dictionary } = useLanguage();
   return (
     <section className="content active">
       <div className="blogbox">
@@ -12,53 +14,53 @@ export default function PlayerStatistics() {
               <tbody>
                 <tr>
                   <td>
-                    Join:{" "}
+                    {dictionary.profile.joined}:{" "}
                     {mockPlayerStatisticsData.joinedAt}
                   </td>
 
                   <td>
-                    Level:{" "}
+                    {dictionary.profile.level}:{" "}
                     {mockPlayerStatisticsData.level}
                   </td>
 
                   <td>
-                    Likes:{" "}
+                    {dictionary.profile.likes}:{" "}
                     {mockPlayerStatisticsData.likes}
                   </td>
                 </tr>
 
                 <tr>
                   <td>
-                    Matches Played:{" "}
+                    {dictionary.profile.matchesPlayed}:{" "}
                     {
                       mockPlayerStatisticsData.matchesPlayed
                     }
                   </td>
 
                   <td>
-                    Rounds Won:{" "}
+                    {dictionary.profile.roundsWon}:{" "}
                     {mockPlayerStatisticsData.roundsWon}
                   </td>
 
                   <td>
-                    Win Rate:{" "}
+                    {dictionary.profile.winRate}:{" "}
                     {mockPlayerStatisticsData.winRate}
                   </td>
                 </tr>
 
                 <tr>
                   <td>
-                    Highest Gain:{" "}
+                    {dictionary.profile.highestGain}:{" "}
                     {mockPlayerStatisticsData.highestGain}
                   </td>
 
                   <td>
-                    Highest Loss:{" "}
+                    {dictionary.profile.highestLoss}:{" "}
                     {mockPlayerStatisticsData.highestLoss}
                   </td>
 
                   <td>
-                    Highest Bank:{" "}
+                    {dictionary.profile.highestRank}:{" "}
                     {mockPlayerStatisticsData.highestBank}
                   </td>
                 </tr>
@@ -71,7 +73,7 @@ export default function PlayerStatistics() {
           <br />
 
           <div className="chart-panel">
-            Playstyle
+            {dictionary.profile.playstyle}
             <RadarChart />
           </div>
         </div>

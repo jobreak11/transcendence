@@ -241,6 +241,7 @@ export class InternalLobbyController {
     @Req() req: any,
     @Query('lobbyPinId') lobbyPinId: string
   ): Promise<GetLobbyPublicDto> {
+
     const lobbyData = await this.lobbyService.getLobbyDto(lobbyPinId);
 
     const {password, ...publicGeneralSettings} = lobbyData.generalSettings;

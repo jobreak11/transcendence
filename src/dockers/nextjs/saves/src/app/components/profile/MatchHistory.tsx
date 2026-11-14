@@ -1,6 +1,7 @@
 import Image from "next/image";
 import ProfileImage from "./ProfileImage";
 import defaultProfilePic from "../../../public/defaultProfilePic.svg"
+import { useLanguage } from "../language/LanguageProvider";
 
 const matches = [
   { mode: "Casual", result: "Loss", rounds: "2/7", points: "" },
@@ -8,6 +9,7 @@ const matches = [
 ];
 
 export default function MatchHistory() {
+  const { dictionary } = useLanguage();
   return (
     <section className="content active">
       <div className="blogbox history-card">
@@ -18,14 +20,14 @@ export default function MatchHistory() {
               <table className="history-table">
                 <tbody>
                   <tr>
-                    <td>Time: TBD</td>
-                    <td>Mode: {match.mode}</td>
-                    <td>Enemy: TBD</td>
+                    <td>{dictionary.history.time}: TBD</td>
+                    <td>{dictionary.history.mode}: {match.mode}</td>
+                    <td>{dictionary.history.enemy}: TBD</td>
                   </tr>
                   <tr>
-                    <td>Results: {match.result}</td>
-                    <td>Rounds: {match.rounds}</td>
-                    <td>{match.points}</td>
+                    <td>{dictionary.history.results}: {match.result}</td>
+                    <td>{dictionary.history.rounds}: {match.rounds}</td>
+                    <td>{dictionary.history.points}: {match.points}</td>
                   </tr>
                 </tbody>
               </table>

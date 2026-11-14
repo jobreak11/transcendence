@@ -14,6 +14,7 @@ import { UserModule } from './modules/user/user.module.js';
 import { ChatModule } from './modules/chat/chat.module.js';
 import { InternalModule } from './api/internal/internal.module.js';
 import { PublicModule } from './api/public/public.module.js';
+import { ApiModule } from './api/api.module.js';
 
 @Module({
   controllers: [AppController],
@@ -35,9 +36,7 @@ import { PublicModule } from './api/public/public.module.js';
     ChatModule,
     FriendModule,
     GameModule,
-    WebsocketModule,
-    InternalModule,
-    PublicModule
+    ApiModule,
   ],
 })
 export class AppModule {}
