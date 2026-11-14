@@ -540,6 +540,7 @@ export class GameGatewayService implements OnModuleInit {
         playCount: 0,
         winCount: 0,
         expEarned: 0,
+        rankEarned: 0,
       };
       stats.playCount += 1;
       if (revealCards && !player.folded && showdownWinnerIds.has(player.playerId)) {
@@ -557,6 +558,7 @@ export class GameGatewayService implements OnModuleInit {
           playCount: 0,
           winCount: 0,
           expEarned: 0,
+          rankEarned: 0,
         };
         const placementExp = playerCount <= 1
           ? 80

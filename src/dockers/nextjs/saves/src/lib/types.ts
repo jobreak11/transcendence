@@ -1,13 +1,8 @@
-export type ProfileTab = "main" | "statistics" | "history" | "settings";
-export type GameTab = "casual" | "ranked" | "tournament" | "custom";
-export type CustomTab = "casual-settings" | "tournament-settings";
-export type JoinRole = "player" | "spectator";
-
 export type Profile = {
   id: string;
   username: string;
   title: string;
-  pronoun: "he" | "she" | "they";
+  pronoun: string;
   signature: string;
   joinedAt: string;
   level: string;
@@ -27,3 +22,6 @@ export type Room = {
   spectators: number;
   maxSpectators: number;
 };
+
+export type JoinRole = "player" | "spectator";
+export type GameTab = "casual" | "ranked" | "tournament" | "custom";

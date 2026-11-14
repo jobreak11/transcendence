@@ -715,26 +715,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/game/lobby/formats": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * get available lobby formats
-         * @description Returns the starting stack and big blind configured for each lobby format.
-         */
-        get: operations["LobbyController_getLobbyFormats"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/game/lobby/create": {
         parameters: {
             query?: never;
@@ -1323,12 +1303,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a1da7d-ad3f-77f9-b189-be9337e56a7a
+             * @example 01a1db12-696b-7618-a116-54ea017c71a5
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a1da7d-ad41-7513-9bfa-2ee622275fc7
+             * @example 01a1db12-696d-746a-a233-9d573e1c01b2
              */
             chatRoomId: string;
             /**
@@ -1414,7 +1394,7 @@ export interface components {
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1da7d-ad44-7247-a969-02350f9dfaa5
+             * @example 01a1db12-696f-718a-915d-caf0387056c2
              */
             gameRoomId: string | null;
             /**
@@ -1503,7 +1483,7 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1da7d-ad44-7247-a969-02350f9dfaa5
+             * @example 01a1db12-696f-718a-915d-caf0387056c2
              */
             gameRoomId: string | null;
             /**

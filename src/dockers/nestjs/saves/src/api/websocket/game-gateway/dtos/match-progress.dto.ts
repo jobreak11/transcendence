@@ -11,6 +11,7 @@ export interface MatchProgress {
     playCount: number;
     winCount: number;
     expEarned: number;
+    rankEarned: number;
   }>;
   matchComplete: boolean;
   totalHandsPlayed: number;

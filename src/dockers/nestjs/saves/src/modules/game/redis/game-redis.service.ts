@@ -93,6 +93,7 @@ export class GameRedisService {
             playCount: stats.playCount ?? 0,
             winCount: stats.winCount ?? 0,
             expEarned: stats.expEarned ?? 0,
+            rankEarned: stats.rankEarned ?? 0,
           },
         ]),
       ),

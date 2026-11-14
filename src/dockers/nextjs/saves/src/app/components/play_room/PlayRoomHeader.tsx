@@ -24,7 +24,7 @@ export default function PlayRoomHeader({
           href="/"
           className="font-serif text-[clamp(28px,calc(16px+2vw),40px)] font-bold text-[#ffd700] no-underline max-[800px]:text-[clamp(24px,7vw,34px)]"
         >
-          Play Room
+          Lobby
         </Link>
         <div className="ml-auto mr-[4%] max-w-[25vw] [overflow-wrap:anywhere] font-serif text-[clamp(14px,calc(6px+2vw),30px)] font-bold text-[#ffd700] max-[800px]:mr-4 max-[800px]:max-w-[32vw] max-[800px]:text-[clamp(14px,4vw,20px)]">
           USERNAME
