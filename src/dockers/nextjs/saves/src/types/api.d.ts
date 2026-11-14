@@ -1159,12 +1159,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a1da53-d825-755f-afcb-1c4fe2cccace
+             * @example 01a1da9c-21b0-73e6-9066-b7e36a8bb7a5
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a1da53-d82b-7775-9150-3afe05ae4cd8
+             * @example 01a1da9c-21b7-741e-aa82-4146758a8cd4
              */
             chatRoomId: string;
             /**
@@ -1250,7 +1250,7 @@ export interface components {
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1da53-d87c-7443-9166-29ade27a2183
+             * @example 01a1da9c-2210-7663-9404-ab34a084d558
              */
             gameRoomId: string | null;
             /**
@@ -1339,7 +1339,7 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1da53-d87c-7443-9166-29ade27a2183
+             * @example 01a1da9c-2210-7663-9404-ab34a084d558
              */
             gameRoomId: string | null;
             /**
