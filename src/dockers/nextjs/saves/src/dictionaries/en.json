@@ -100,7 +100,85 @@
     "private": "Private",
     "players": "Players",
     "spectators": "Spectators",
-    "joinSpectators": "Join as Spectator"
+    "joinSpectators": "Join as Spectator",
+    "rank": "Rank",
+    "rankMode": "Rank Mode",
+    "point": "Point",
+    "position": "Position",
+    "winstreak": "Winstreak",
+    "highestStreak": "Highest Streak",
+    "topRanking": "Top Ranking",
+    "tournament": "Tournament",
+    "findMatch": "Find Match",
+    "custom": "Custom",
+    "room": "Room",
+    "searchById": "Search by ID",
+    "search": "Search",
+    "createRoom": "Create Room",
+    "jumpIn": "Jump in",
+    "password": "Password",
+    "maxPlayer": "Max Player",
+    "maxSpectator": "Max Spectator",
+    "format": "Format",
+    "startingStack": "Starting Stack",
+    "searchingRankedMatch": "Searching for a ranked match…",
+    "joined": "Joined",
+    "beginner": "Beginner",
+    "pro": "Pro",
+    "turbo": "Turbo",
+    "bigBlind": "Big Blind",
+    "loadingFormats": "Loading game formats…",
+    "loadFormatsFailed": "Could not load game formats.",
+    "invalidFormatSettings": "The server returned invalid game format settings.",
+    "createLobbyFailed": "Could not create the lobby.",
+    "missingLobbyId": "The server response did not include a lobby ID.",
+    "creating": "Creating…"
+  },
+
+  "tournament": {
+    "status": "Status",
+    "registrationDate": "Registration Date",
+    "competitionDate": "Competition Date",
+    "host": "Host",
+    "registered": "Registered",
+    "register": "Register",
+    "details": "Details",
+    "requirements": "Requirements",
+    "prizePools": "Prize Pools",
+    "registeredFor": "Registered for",
+    "open": "Open",
+    "announced": "Announced",
+    "requiredPlayer": "Required Player",
+    "create": "Create",
+
+    "tournament42": {
+      "requirements": [
+        "Participants must be level 30 or above",
+        "Participants must have between 1000 and 3000 rank points",
+        "Participants must have their account linked to 42 Intra"
+      ],
+      "prizes": [
+        "First, second, and third place will receive Gold, Silver, and Bronze Medal Trophies respectively, together with an exclusive title",
+        "The top 8 players will receive a 42 Tournament Trophy and the finalists' exclusive title",
+        "Every participating player will receive a participation title",
+        "The Tournament Host reserves the right to withhold awards from players disqualified from the tournament"
+      ]
+    },
+
+    "transcendOpen": {
+      "requirements": [
+        "Participants must be level 10 or above",
+        "There are no rank requirements"
+      ],
+      "prizes": [
+        "First place will receive a Gold Medal Trophy, a gold card sleeve, and an exclusive profile picture",
+        "Second place will receive a Silver Medal Trophy and a silver card sleeve",
+        "Third place will receive a Bronze Medal Trophy and a bronze card sleeve",
+        "The top 16 players will receive a Transcend Open card sleeve",
+        "Every participating player will receive a participation trophy",
+        "The Tournament Host reserves the right to withhold awards from players disqualified from the tournament"
+      ]
+    }
   }
 
 }

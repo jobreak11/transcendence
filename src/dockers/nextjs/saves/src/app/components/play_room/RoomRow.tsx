@@ -1,6 +1,6 @@
 import Image from "next/image";
 import type { JoinRole, Room } from "../../../lib/types";
-// import defaultProfilePic from "../../../public/defaultProfilePic.svg"
+import { useLanguage } from "../language/LanguageProvider";
 
 type RoomRowProps = {
   room: Room;
@@ -15,6 +15,9 @@ export default function RoomRow({
   onJoin,
   onJumpIn,
 }: RoomRowProps) {
+
+  const {dictionary} = useLanguage();
+
   return (
     <div className="flex items-center gap-4 border-b border-[#aaa] py-[1%] max-[800px]:items-start max-[520px]:flex-col">
       <div className="relative size-[7vw] min-h-19 min-w-19 overflow-hidden max-[800px]:size-16 max-[800px]:min-h-16 max-[800px]:min-w-16 max-[520px]:self-center">
@@ -27,20 +30,20 @@ export default function RoomRow({
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         <div className="grid grid-cols-[1fr_2fr] gap-4 max-[800px]:grid-cols-1">
-          <span>Host: {room.host}</span>
-          <span>Catchphrase: {room.catchphrase}</span>
+          <span>{dictionary.lobby.host}: {room.host}</span>
+          <span>{dictionary.lobby.catchphrase}: {room.catchphrase}</span>
         </div>
         <div className="grid grid-cols-[1fr_2fr_2fr] gap-4 max-[800px]:grid-cols-1">
-          <span>Private: {room.isPrivate ? "Yes" : "No"}</span>
+          <span>{dictionary.lobby.private}: {room.isPrivate ? "Yes" : "No"}</span>
           <JoinGroup
-            label={`Players: ${room.players}/${room.maxPlayers}`}
-            actionLabel={isJoined ? "Jump in" : "Join"}
+            label={`${dictionary.lobby.players}: ${room.players}/${room.maxPlayers}`}
+            actionLabel={isJoined ? `${dictionary.lobby.jumpIn}` : `${dictionary.lobby.joined}`}
             onClick={() =>
               isJoined ? onJumpIn(room) : onJoin(room, "player")
             }
           />
           <JoinGroup
-            label={`Spectators: ${room.spectators}/${room.maxSpectators}`}
+            label={`${dictionary.lobby.spectators}: ${room.spectators}/${room.maxSpectators}`}
             actionLabel="Join"
             onClick={isJoined ? undefined : () => onJoin(room, "spectator")}
           />
