@@ -24,6 +24,7 @@ import { GameRedisService } from '../../../modules/game/redis/game-redis.service
 import { UserService } from '../../../modules/user/user.service.js';
 import { shuffleDeck } from '../../../modules/game/tools/shuffle.js';
 import { LobbyGameSettingsDto } from '../../../modules/lobby/redis/dtos/lobby-gameSettings.dto.js';
+import { GameDatabaseService } from '../../../modules/game/database/game-database.service.js';
 
 @Injectable()
 export class GameGatewayService implements OnModuleInit {
@@ -42,6 +43,7 @@ export class GameGatewayService implements OnModuleInit {
   constructor(
     private readonly userRedisService: UsersRedisService,
     private readonly gameRedisService: GameRedisService,
+    private readonly gameDatabaseService: GameDatabaseService,
     private readonly userService: UserService,
     private readonly moduleRef: ModuleRef
   ) {}
@@ -655,9 +657,19 @@ export class GameGatewayService implements OnModuleInit {
 
     this.logger.log(`Hand ${state.handId} settled for table ${state.tableSessionId}`);
     if (matchProgress.matchComplete) {
+
+
       const nextHandTimer = this.nextHandTimers.get(state.tableSessionId);
       if (nextHandTimer) clearTimeout(nextHandTimer);
       this.nextHandTimers.delete(state.tableSessionId);
+
+      this.gameDatabaseService.createNewGameMatches(
+        matchProgress,
+        result.matchEndedAt ? new Date(result.matchEndedAt) : new Date(),
+        result.tableSessionId
+      )
+
+      
     } else {
       this.scheduleNextHand(state.tableSessionId);
     }

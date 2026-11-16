@@ -17,6 +17,7 @@ import { RefreshAuthGuard } from "../../../modules/auth/guards/refresh-auth/refr
 import { GoogleAuthGuard } from "../../../modules/auth/guards/google-auth/google-auth.guard.js";
 import { FortytwoAuthGuard } from "../../../modules/auth/guards/fortytwo-auth/fortytwo-auth.guard.js";
 import { UsersRedisService } from "../../../modules/user/redis/users-redis.service.js";
+import { IpThrottlerGuard } from "../../../modules/auth/guards/ip-throttler/ip-throttler.guard.js";
 
 @Controller('auth')
 export class InternalAuthController {
@@ -43,9 +44,9 @@ export class InternalAuthController {
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @Get('admin/check')
-  @UseGuards(ThrottlerGuard, JwtAuthGuard, RolesGuard)
+  @UseGuards(IpThrottlerGuard, JwtAuthGuard, RolesGuard)
   @Throttle({
-    default: {
+    ip: {
       limit: THROTTLER_AUTH_ADMIN_CHECK_LIMIT,
       ttl: THROTTLER_AUTH_ADMIN_CHECK_TTL
     }

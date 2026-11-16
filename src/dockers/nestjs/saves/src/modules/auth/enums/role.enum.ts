@@ -7,7 +7,11 @@ export enum Role {
 
   ADMIN = 'ADMIN',
 
+  // ONLY ABOVE DEVELOPER CAN REQUEST NEW API KEY
+  DEVELOPER = "DEVELOPER",
+
   EDITOR = 'EDITOR',
+
   // GUEST ?
   /* 
     - should not have direct access to match history
@@ -21,5 +25,7 @@ export enum Role {
     )
     )
   */
-  USER = 'USER'
+  USER = 'USER',
+
+  GUEST = 'GUEST'
 }

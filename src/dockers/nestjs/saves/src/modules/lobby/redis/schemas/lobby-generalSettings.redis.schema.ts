@@ -3,6 +3,8 @@ import z, { date } from "zod";
 export enum LobbyRoomType {
   PUBLIC = "PUBLIC",
   PRIVATE = "PRIVATE",
+  RANKED = "RANKED",
+  TOURNAMENT = "TOURNAMENT"
 }
 
 const CATCH_PHRASE_LIMIT = {
