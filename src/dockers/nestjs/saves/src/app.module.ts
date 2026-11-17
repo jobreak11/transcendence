@@ -15,6 +15,7 @@ import { ChatModule } from './modules/chat/chat.module.js';
 import { InternalModule } from './api/internal/internal.module.js';
 import { PublicModule } from './api/public/public.module.js';
 import { ApiModule } from './api/api.module.js';
+import { LobbyModule } from './modules/lobby/lobby.module.js';
 
 @Module({
   controllers: [AppController],
@@ -25,11 +26,22 @@ import { ApiModule } from './api/api.module.js';
       throttlers: [
         {
           name: 'default',
-          limit: 20,
+          limit: 100,
           ttl: 10 * 1000,
+        }, 
+        {
+          name: 'ip',
+          limit: 100,
+          ttl: 10000
+        },
+        {
+          name: 'user',
+          limit: 100,
+          ttl: 10000
         }
       ],
     }),
+    LobbyModule,
     UserModule,
     AuthModule,
     RedisModule,

@@ -203,7 +203,7 @@ export interface paths {
          * Get user profile
          * @description Retrieves the authenticated user’s profile if no query params are passed. Provide either `id` or `tagId` to view another user’s profile. Providing both will return a 400 error.
          */
-        get: operations["InternalUsersController_getProfile"];
+        get: operations["InternalUsersUserController_getProfile"];
         put?: never;
         post?: never;
         delete?: never;
@@ -222,7 +222,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Upload user profile picture */
-        post: operations["InternalUsersController_uploadProfilePic"];
+        post: operations["InternalUsersUserController_uploadProfilePic"];
         delete?: never;
         options?: never;
         head?: never;
@@ -246,10 +246,10 @@ export interface paths {
          * update the user profile
          * @description update the user profile
          */
-        patch: operations["InternalUsersController_update"];
+        patch: operations["InternalUsersUserController_update"];
         trace?: never;
     };
-    "/user/setRole": {
+    "/user/dev/setRole": {
         parameters: {
             query?: never;
             header?: never;
@@ -259,14 +259,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** set the role of the user */
-        post: operations["InternalUsersController_setUserRole"];
+        post: operations["InternalUsersDeveloperController_setUserRole"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/user/create": {
+    "/user/dev/create": {
         parameters: {
             query?: never;
             header?: never;
@@ -279,14 +279,14 @@ export interface paths {
          * Register a new user account
          * @description register new user api for ADMIN role
          */
-        post: operations["InternalUsersController_create"];
+        post: operations["InternalUsersDeveloperController_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/user/delete": {
+    "/user/dev/delete": {
         parameters: {
             query?: never;
             header?: never;
@@ -300,13 +300,13 @@ export interface paths {
          * Delete user from the database
          * @description takes access_token from Authorization: Bearer header     and allow only role ADMIN and EDITOR to delete user
          */
-        delete: operations["InternalUsersController_remove"];
+        delete: operations["InternalUsersDeveloperController_remove"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/user": {
+    "/user/dev": {
         parameters: {
             query?: never;
             header?: never;
@@ -317,7 +317,7 @@ export interface paths {
          * get multiple user info
          * @description for ADMIN AND EDITOR
          */
-        get: operations["InternalUsersController_getBatchUsers"];
+        get: operations["InternalUsersDeveloperController_getBatchUsers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -326,14 +326,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/user/totalCount": {
+    "/user/dev/totalCount": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["InternalUsersController_totalUserCount"];
+        get: operations["InternalUsersDeveloperController_totalUserCount"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1012,7 +1012,7 @@ export interface components {
              * @example USER
              * @enum {string}
              */
-            role: "ADMIN" | "EDITOR" | "USER";
+            role: "ADMIN" | "DEVELOPER" | "EDITOR" | "USER" | "GUEST";
             /**
              * Format: date-time
              * @description The time and date that this user was created
@@ -1073,7 +1073,7 @@ export interface components {
              * @description target role to set
              * @enum {string}
              */
-            newRole: "ADMIN" | "EDITOR" | "USER";
+            newRole: "ADMIN" | "DEVELOPER" | "EDITOR" | "USER" | "GUEST";
         };
         UserProfileDto: {
             /**
@@ -1137,7 +1137,7 @@ export interface components {
              * @example USER
              * @enum {string}
              */
-            role: "ADMIN" | "EDITOR" | "USER";
+            role: "ADMIN" | "DEVELOPER" | "EDITOR" | "USER" | "GUEST";
             /**
              * @description the refresh token of the user
              * @example asdflkaeflkasdflkasf
@@ -1303,12 +1303,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a1e339-90f3-7575-ae52-5111a7351297
+             * @example 01a1e3a4-2821-704a-8b2f-9a1b140c12ee
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a1e339-90f9-710e-bf98-58156e4cb429
+             * @example 01a1e3a4-2823-76e1-a8fd-699a2ecdca34
              */
             chatRoomId: string;
             /**
@@ -1359,16 +1359,16 @@ export interface components {
              */
             catchPhrase?: string | null;
             /**
+             * @description the password of the room
+             * @example veryStringPassword1234
+             */
+            password?: string | null;
+            /**
              * @description the lobby room type
              * @example PUBLIC
              * @enum {string}
              */
             roomType?: "PUBLIC" | "PRIVATE";
-            /**
-             * @description the password of the room
-             * @example veryStringPassword1234
-             */
-            password?: string | null;
         };
         gameBase: {
             /** @description the max amount of player */
@@ -1394,7 +1394,7 @@ export interface components {
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1e339-90ff-7045-b139-d99cd9c14338
+             * @example 01a1e3a4-2825-72f4-82da-60d38db086c6
              */
             gameRoomId: string | null;
             /**
@@ -1451,7 +1451,7 @@ export interface components {
              * @example PUBLIC
              * @enum {string}
              */
-            roomType: "PUBLIC" | "PRIVATE";
+            roomType: "PUBLIC" | "PRIVATE" | "RANKED" | "TOURNAMENT";
             /**
              * @description the password of the room
              * @example veryStringPassword1234
@@ -1483,7 +1483,7 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1e339-90ff-7045-b139-d99cd9c14338
+             * @example 01a1e3a4-2825-72f4-82da-60d38db086c6
              */
             gameRoomId: string | null;
             /**
@@ -1523,7 +1523,7 @@ export interface components {
              * @example PUBLIC
              * @enum {string}
              */
-            roomType: "PUBLIC" | "PRIVATE";
+            roomType: "PUBLIC" | "PRIVATE" | "RANKED" | "TOURNAMENT";
             /** @description whether this lobby require password or not */
             hasPassword: boolean;
         };
@@ -1551,7 +1551,7 @@ export interface components {
              * @example PUBLIC
              * @enum {string}
              */
-            roomType?: "PUBLIC" | "PRIVATE";
+            roomType?: "PUBLIC" | "PRIVATE" | "RANKED" | "TOURNAMENT";
             /**
              * @description the password of the room
              * @example veryStringPassword1234
@@ -1822,7 +1822,7 @@ export interface operations {
             };
         };
     };
-    InternalUsersController_getProfile: {
+    InternalUsersUserController_getProfile: {
         parameters: {
             query?: {
                 /** @description Lookup target profile by User ID (mutually exclusive with tagId) */
@@ -1863,7 +1863,7 @@ export interface operations {
             };
         };
     };
-    InternalUsersController_uploadProfilePic: {
+    InternalUsersUserController_uploadProfilePic: {
         parameters: {
             query?: never;
             header?: never;
@@ -1890,7 +1890,7 @@ export interface operations {
             };
         };
     };
-    InternalUsersController_update: {
+    InternalUsersUserController_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -1913,7 +1913,7 @@ export interface operations {
             };
         };
     };
-    InternalUsersController_setUserRole: {
+    InternalUsersDeveloperController_setUserRole: {
         parameters: {
             query?: never;
             header?: never;
@@ -1936,7 +1936,7 @@ export interface operations {
             };
         };
     };
-    InternalUsersController_create: {
+    InternalUsersDeveloperController_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -1967,7 +1967,7 @@ export interface operations {
             };
         };
     };
-    InternalUsersController_remove: {
+    InternalUsersDeveloperController_remove: {
         parameters: {
             query: {
                 userId: string;
@@ -2003,7 +2003,7 @@ export interface operations {
             };
         };
     };
-    InternalUsersController_getBatchUsers: {
+    InternalUsersDeveloperController_getBatchUsers: {
         parameters: {
             query: {
                 limit: number;
@@ -2025,7 +2025,7 @@ export interface operations {
             };
         };
     };
-    InternalUsersController_totalUserCount: {
+    InternalUsersDeveloperController_totalUserCount: {
         parameters: {
             query?: never;
             header?: never;

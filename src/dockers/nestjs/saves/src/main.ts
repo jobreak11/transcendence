@@ -7,6 +7,7 @@ import fastifyMultipart from "@fastify/multipart"
 import { GLOBAL_LIMIT_FASTIFY_MULTIPART_FILE_FIELD_MAX, GLOBAL_LIMIT_FASTIFY_MULTIPART_FILESIZE_LIMIT } from './constant.js';
 import fastifyCookie from "@fastify/cookie"
 import { setupSwagger } from './documentation/swagger.setup.js';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 async function bootstrap() {
 

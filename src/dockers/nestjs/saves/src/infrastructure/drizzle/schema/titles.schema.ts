@@ -1,6 +1,7 @@
 import { index, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-orm/zod";
 import { v7 as uuidv7 } from 'uuid'
+import { achievements } from "./achievements/achievements.schema.js";
 
 /* The */
 export const titles = pgTable("titles", 
@@ -16,6 +17,8 @@ export const titles = pgTable("titles",
     // may be you can describe here on how or where
     // this title came from or what it means
     description: text("description"),
+
+    // achievementId: uuid("achievement_id").references(() => achievements.id, { onDelete: "set null"}),
 
     // The time this title were added
     // maybe useful if we want to see when this or that title

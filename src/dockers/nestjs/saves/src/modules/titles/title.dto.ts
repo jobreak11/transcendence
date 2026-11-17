@@ -2,6 +2,8 @@ import { ApiProperty, IntersectionType, PartialType, PickType } from "@nestjs/sw
 import { z } from "zod";
 import { titles } from "../../infrastructure/drizzle/schema/titles.schema.js";
 import { user_titles } from "../../infrastructure/drizzle/schema/user_titles.schema.js";
+import { v7 } from "uuid";
+import { achievements } from "../../infrastructure/drizzle/schema/achievements/achievements.schema.js";
 
 type TitleSelect = typeof titles.$inferSelect;
 export class TitleDto implements TitleSelect {
@@ -22,6 +24,12 @@ export class TitleDto implements TitleSelect {
     description: "the description of the title"
   })
   description: string | null;
+
+  // @ApiProperty({
+  //   example: v7(),
+  //   description: "the achievements uuid linked with this title"
+  // })
+  // achievementId: string | null;
 
   @ApiProperty({
     description: "The time and date of when this title was added"
@@ -51,6 +59,7 @@ export class UserTitleDto implements UserTitleSelect {
 export const CreateNewTitleSchema = z.object({
   name: z.string().max(100),
   description: z.string().max(5000).optional().nullable(),
+  // achievementId: z.uuid().nullish(),
   createdAt: z.date().optional()
 })
 
@@ -70,6 +79,12 @@ export class CreateNewTitleZodDto implements _CreateNewTitleZodDtoBase {
   })
   description?: string | null;
 
+  // @ApiProperty({
+  //   example: v7(),
+  //   description: "the achievements uuid linked with this title"
+  // })
+  // achievementId?: string | null;
+
   @ApiProperty({
     description: "the Created time of the title. no need this is optional",
     required: false
@@ -86,6 +101,7 @@ export class GetUserTitleDto extends IntersectionType(
 export const UpdateTitleSchema = z.object({
   name: z.string().max(100).optional(),
   description: z.string().max(5000).optional().nullable(),
+  // achievementId: z.uuid().nullish(),
   createdAt: z.date().optional()
 })
 
@@ -104,6 +120,12 @@ export class UpdateTitleZodDto implements _UpdateTitleZodDtoBase {
     required: false
   })
   description?: string | null;
+
+  // @ApiProperty({
+  //   example: v7(),
+  //   description: "the achievements uuid linked with this title"
+  // })
+  // achievementId?: string | null;
 
   @ApiProperty({
     description: "the Created time of the title. no need this is optional",

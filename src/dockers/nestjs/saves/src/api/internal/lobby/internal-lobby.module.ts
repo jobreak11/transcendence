@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { InternalLobbyController } from "./internal-lobby.controller.js";
 import { LobbyService } from "../../../modules/lobby/lobby.service.js";
 import { LobbyModule } from "../../../modules/lobby/lobby.module.js";
