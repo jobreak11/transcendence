@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { rankings } from "../../../lib/mock-data";
 import { useMainSocket } from "../../(protected)/_context/useMainSocket";
 
 const MATCH_FOUND_EVENT = "ranked:match-found";
+const GAME_READY_EVENT = "ranked:game-ready";
+const MATCH_FAILED_EVENT = "ranked:match-failed";
 
 function isMatchFoundEvent(
   value: unknown,
@@ -17,11 +20,27 @@ function isMatchFoundEvent(
     && value.playerCount === 4;
 }
 
+function isRankedGameReadyEvent(
+  value: unknown,
+): value is { matchId: string; lobbyPinId: string; tableSessionId: string } {
+  return typeof value === "object"
+    && value !== null
+    && "matchId" in value
+    && typeof value.matchId === "string"
+    && "lobbyPinId" in value
+    && typeof value.lobbyPinId === "string"
+    && "tableSessionId" in value
+    && typeof value.tableSessionId === "string";
+}
+
 export default function RankedMode() {
+  const router = useRouter();
   const { socket, isConnected, connectionError } = useMainSocket();
   const [message, setMessage] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [matchId, setMatchId] = useState<string | null>(null);
+  const [hasAccepted, setHasAccepted] = useState(false);
+  const [isAccepting, setIsAccepting] = useState(false);
 
   useEffect(() => {
     if (!socket) return;
@@ -31,13 +50,36 @@ export default function RankedMode() {
       setIsSearching(false);
       setMessage("");
       setMatchId(event.matchId);
+      setHasAccepted(false);
+      setIsAccepting(false);
+    };
+
+    const onGameReady = (event: unknown) => {
+      if (!isRankedGameReadyEvent(event) || event.matchId !== matchId) return;
+      router.push(`/game?tableSessionId=${encodeURIComponent(event.tableSessionId)}`);
+    };
+    const onMatchFailed = (event: unknown) => {
+      if (
+        typeof event !== "object"
+        || event === null
+        || !("matchId" in event)
+        || event.matchId !== matchId
+      ) return;
+      setMatchId(null);
+      setHasAccepted(false);
+      setIsAccepting(false);
+      setMessage("Could not start the ranked game. Please search again.");
     };
 
     socket.on(MATCH_FOUND_EVENT, onMatchFound);
+    socket.on(GAME_READY_EVENT, onGameReady);
+    socket.on(MATCH_FAILED_EVENT, onMatchFailed);
     return () => {
       socket.off(MATCH_FOUND_EVENT, onMatchFound);
+      socket.off(GAME_READY_EVENT, onGameReady);
+      socket.off(MATCH_FAILED_EVENT, onMatchFailed);
     };
-  }, [socket]);
+  }, [matchId, router, socket]);
 
   useEffect(() => {
     if (!isConnected && isSearching) {
@@ -100,6 +142,44 @@ export default function RankedMode() {
             ? "Search cancelled."
             : "You are no longer waiting for a match.",
         );
+      },
+    );
+  }
+
+  function acceptMatch() {
+    if (!socket || !matchId || isAccepting || hasAccepted) return;
+
+    setIsAccepting(true);
+    socket.timeout(10_000).emit(
+      "ranked:accept",
+      { matchId },
+      (timeoutError: Error | null, response: unknown) => {
+        setIsAccepting(false);
+        if (timeoutError) {
+          setMessage("Could not confirm the match. Please try again.");
+          return;
+        }
+
+        if (
+          typeof response !== "object"
+          || response === null
+          || !("status" in response)
+        ) {
+          setMessage("The matchmaking service returned an invalid response.");
+          return;
+        }
+        if (
+          response.status === "accepted"
+          || response.status === "launching"
+          || response.status === "ready"
+        ) {
+          setHasAccepted(true);
+        } else if (response.status === "failed") {
+          setMatchId(null);
+          setMessage("Could not start the ranked game. Please search again.");
+        } else {
+          setMessage("The matchmaking service returned an invalid acceptance status.");
+        }
       },
     );
   }
@@ -173,16 +253,18 @@ export default function RankedMode() {
             >
               Match Found!
             </h2>
-            <p className="mb-5">Four players are ready for a ranked match.</p>
+            <p className="mb-5">
+              {hasAccepted
+                ? "Waiting for all players to accept…"
+                : "Accept to confirm your ranked match. The game starts when all four players accept."}
+            </p>
             <button
               type="button"
-              className="rounded-lg bg-red-600 px-6 py-2 font-bold hover:bg-red-700 focus-visible:bg-red-700"
-              onClick={() => {
-                setMatchId(null);
-                setMessage("Match accepted. Game launch is not connected yet.");
-              }}
+              className="rounded-lg bg-red-600 px-6 py-2 font-bold hover:bg-red-700 focus-visible:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isAccepting || hasAccepted}
+              onClick={acceptMatch}
             >
-              Accept
+              {isAccepting ? "Accepting…" : hasAccepted ? "Accepted" : "Accept"}
             </button>
           </div>
         </div>

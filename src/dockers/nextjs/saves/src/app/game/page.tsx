@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import enDictionary from "../../dictionaries/en.json";
 import thDictionary from "../../dictionaries/th.json";
@@ -66,6 +66,7 @@ function isPublicGameState(value: unknown): value is PublicGameState {
     && (!("settled" in value) || typeof value.settled === "boolean")
     && (!("cycleComplete" in value) || typeof value.cycleComplete === "boolean")
     && (!("matchComplete" in value) || typeof value.matchComplete === "boolean")
+    && (!("isRankedMatch" in value) || typeof value.isRankedMatch === "boolean")
     && (!("totalHandsPlayed" in value) || typeof value.totalHandsPlayed === "number")
     && (!("matchStartedAt" in value) || typeof value.matchStartedAt === "string")
     && (!("matchEndedAt" in value) || typeof value.matchEndedAt === "string")
@@ -114,6 +115,9 @@ function isPublicGameState(value: unknown): value is PublicGameState {
           && typeof stats.expEarned === "number"
           && Number.isSafeInteger(stats.expEarned)
           && stats.expEarned >= 0
+          && "rankEarned" in stats
+          && typeof stats.rankEarned === "number"
+          && Number.isSafeInteger(stats.rankEarned)
         )
       )
     )
@@ -265,6 +269,36 @@ export default function Page() {
   const isHost = lobbyStatus?.details.hostUserId === userId;
   const dictionary = language === "en" ? enDictionary.game : thDictionary.game;
 
+  const routeToMatchHistory = useCallback((state: PublicGameState) => {
+    if (
+      state.matchComplete
+      && state.playerPlaces
+      && state.totalHandsPlayed !== undefined
+      && state.matchStartedAt
+      && state.matchEndedAt
+      && !window.location.pathname.startsWith("/game/history")
+    ) {
+      const historyPath = state.isRankedMatch
+        ? "/game/history/rank"
+        : "/game/history";
+      window.sessionStorage.setItem(
+        "gameMatchHistory",
+        JSON.stringify({
+          tableSessionId: state.tableSessionId,
+          totalHandsPlayed: state.totalHandsPlayed,
+          matchStartedAt: state.matchStartedAt,
+          matchEndedAt: state.matchEndedAt,
+          isRankedMatch: state.isRankedMatch ?? false,
+          playerId: userId,
+          playerPlaces: state.playerPlaces,
+          playerStats: state.playerStats ?? {},
+          playerNames: state.playerNames ?? {},
+        }),
+      );
+      router.push(historyPath);
+    }
+  }, [router, userId]);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const queryTableId = params.get("tableSessionId") ?? params.get("roomPinId") ?? "";
@@ -288,28 +322,7 @@ export default function Page() {
         setError("");
         setIsSendingAction(false);
         setIsWaitingToStartFirstHand(false);
-        if (
-          state.matchComplete
-          && state.playerPlaces
-          && state.totalHandsPlayed !== undefined
-          && state.matchStartedAt
-          && state.matchEndedAt
-          && window.location.pathname !== "/game/history"
-        ) {
-          window.sessionStorage.setItem(
-            "gameMatchHistory",
-            JSON.stringify({
-              tableSessionId: state.tableSessionId,
-              totalHandsPlayed: state.totalHandsPlayed,
-              matchStartedAt: state.matchStartedAt,
-              matchEndedAt: state.matchEndedAt,
-              playerPlaces: state.playerPlaces,
-              playerStats: state.playerStats ?? {},
-              playerNames: state.playerNames ?? {},
-            }),
-          );
-          router.push("/game/history");
-        }
+        routeToMatchHistory(state);
       }
     };
     const onAction = (action: PokerActionEvent) => {
@@ -368,7 +381,14 @@ export default function Page() {
       socket.off(PokerEvent.private_cards.to_client.event_name, onPrivateCards);
       socket.off("exception", onSocketException);
     };
-  }, [gameState?.players, router, socket, tableSessionId, userId]);
+  }, [
+    gameState?.players,
+    routeToMatchHistory,
+    router,
+    socket,
+    tableSessionId,
+    userId,
+  ]);
 
   useEffect(() => {
     setAllPlayersLoaded(false);
@@ -406,9 +426,12 @@ export default function Page() {
         setGameState(response.state);
         setMyCards(response.cards);
         setError("");
+        if (response.state) {
+          routeToMatchHistory(response.state);
+        }
       },
     );
-  }, [isConnected, lobbyStatusRefresh, socket, tableSessionId]);
+  }, [isConnected, lobbyStatusRefresh, routeToMatchHistory, socket, tableSessionId]);
 
   useEffect(() => {
     if (!socket || !isConnected || !tableSessionId) return;
@@ -814,6 +837,11 @@ export default function Page() {
       </aside>
 
       <div className="fixed top-[3vh] right-[3vw] flex gap-2">
+        {lobbyStatus?.generalSettings.roomType === "RANKED" && (
+          <span className="rounded-full border border-[#ffd700] bg-black/80 px-4 py-2 text-sm font-bold tracking-widest text-[#ffd700]">
+            RANKED
+          </span>
+        )}
         <button
           type="button"
           onClick={() => setLanguage((current) => current === "en" ? "th" : "en")}

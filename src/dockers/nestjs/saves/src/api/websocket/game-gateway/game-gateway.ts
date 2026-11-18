@@ -174,15 +174,28 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @MessageBody(new WsZodValidationPipe(startHandSchema))
     body: StartHandDto,
   ) {
-    const isUserInLobby = await this.userRedisService.isUserInLobby(
-      client.data.user,
-      body.tableSessionId,
-    );
-    if (!isUserInLobby) {
+    const [isUserInLobby, completedMatch] = await Promise.all([
+      this.userRedisService.isUserInLobby(client.data.user, body.tableSessionId),
+      this.gameGatewayService.getCompletedMatchState(body.tableSessionId),
+    ]);
+    const isCompletedMatchPlayer = completedMatch !== null
+      && Object.prototype.hasOwnProperty.call(
+        completedMatch.playerPlaces,
+        client.data.user,
+      );
+    if (!isUserInLobby && !isCompletedMatchPlayer) {
       return { ok: false, message: "User must be in lobby" };
     }
 
     await client.join(room_game_specific_room(body.tableSessionId));
+    if (completedMatch) {
+      return {
+        ok: true,
+        state: completedMatch,
+        cards: [],
+      };
+    }
+
     const hand = await this.gameGatewayService.getCurrentHand(
       body.tableSessionId,
       client.data.user,

@@ -23,6 +23,10 @@ export function redis_game_table_match_progress(gameRoomId: string) {
   return `${redis_game_table(gameRoomId)}:match_progress`
 }
 
+export function redis_game_table_completed_match(gameRoomId: string) {
+  return `${redis_game_table(gameRoomId)}:completed_match`
+}
+
 // use hget hset
 export function redis_game_table_stack(gameRoomId: string) {
   return `${redis_game_table(gameRoomId)}:stacks`

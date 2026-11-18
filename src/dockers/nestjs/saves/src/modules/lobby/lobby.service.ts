@@ -7,6 +7,9 @@ import { LobbyCreate } from "./redis/schemas/lobby-create.redis.schema.js";
 import { LobbyDto } from "./redis/dtos/lobby.dto.js";
 import { LobbyRoomStatus } from "./redis/schemas/lobby-details.redis.schema.js";
 import { LobbyUpdateDto } from "./redis/dtos/lobby-update.dto.js";
+import { GameSettingFormat } from "./redis/schemas/lobby-gameSettings.redis.schema.js";
+import { LobbyRoomType } from "./redis/schemas/lobby-generalSettings.redis.schema.js";
+import { randomBytes } from "node:crypto";
 
 @Injectable()
 export class LobbyService implements OnModuleInit {
@@ -35,6 +38,61 @@ export class LobbyService implements OnModuleInit {
     })
 
     return res;
+  }
+
+  async createRankedGame(playerIds: string[]) {
+    if (
+      playerIds.length !== 4
+      || new Set(playerIds).size !== playerIds.length
+      || playerIds.some((playerId) => !playerId)
+    ) {
+      throw new Error("A ranked game requires four distinct players.");
+    }
+
+    const hostUserId = playerIds[0];
+    if (!hostUserId) {
+      throw new Error("A ranked game requires a host player.");
+    }
+    const lobbyPassword = randomBytes(32).toString("hex");
+    const lobby = await this.createLobby(hostUserId, {
+      details: { createdByUserId: hostUserId },
+      generalSettings: {
+        catchPhrase: "RANKED",
+        roomType: LobbyRoomType.RANKED,
+        password: lobbyPassword,
+      },
+      gameSettings: {
+        maxPlayer: 4,
+        maxSpectator: 0,
+        format: GameSettingFormat.PRO,
+      },
+    });
+
+    try {
+      for (const playerId of playerIds.slice(1)) {
+        await this.joinLobby(lobby.details.roomPinId, playerId, false, lobbyPassword);
+        await this.lobbyRedisService.toggleReady(playerId, lobby.details.roomPinId);
+      }
+
+      const startedLobby = await this.startgame(hostUserId, lobby.details.roomPinId);
+      const tableSessionId = startedLobby.details.gameRoomId;
+      if (!tableSessionId) {
+        throw new Error("The ranked lobby started without a game table.");
+      }
+
+      return {
+        lobbyPinId: startedLobby.details.roomPinId,
+        tableSessionId,
+      };
+    } catch (error) {
+      await this.removeLobby(lobby.details.roomPinId).catch((cleanupError: unknown) => {
+        this.logger.error(
+          "Failed to clean up an incomplete ranked lobby",
+          cleanupError instanceof Error ? cleanupError.stack : String(cleanupError),
+        );
+      });
+      throw error;
+    }
   }
 
   async setLobbyRoomStatus(lobbyPinId: string, status: LobbyRoomStatus) {

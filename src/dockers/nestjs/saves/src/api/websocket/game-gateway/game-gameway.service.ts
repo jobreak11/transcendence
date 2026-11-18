@@ -24,6 +24,7 @@ import { GameRedisService } from '../../../modules/game/redis/game-redis.service
 import { UserService } from '../../../modules/user/user.service.js';
 import { shuffleDeck } from '../../../modules/game/tools/shuffle.js';
 import { LobbyGameSettingsDto } from '../../../modules/lobby/redis/dtos/lobby-gameSettings.dto.js';
+import { LobbyRoomType } from '../../../modules/lobby/redis/schemas/lobby-generalSettings.redis.schema.js';
 import { GameDatabaseService } from '../../../modules/game/database/game-database.service.js';
 
 @Injectable()
@@ -63,7 +64,19 @@ export class GameGatewayService implements OnModuleInit {
     return progress.handNumber === 0;
   }
 
+  getCompletedMatchState(tableSessionId: string) {
+    return this.gameRedisService.getCompletedMatchState(tableSessionId);
+  }
+
   async getCurrentHand(tableSessionId: string, playerId: string) {
+    const completedMatch = await this.getCompletedMatchState(tableSessionId);
+    if (completedMatch) {
+      return {
+        state: completedMatch,
+        cards: [],
+      };
+    }
+
     const state = await this.gameRedisService.getHand(tableSessionId);
     if (!state) return null;
 
@@ -532,7 +545,7 @@ export class GameGatewayService implements OnModuleInit {
         matchProgress.playerPlaces[winnerPlayerId] = 1;
       }
     }
-    const showdownWinnerIds = new Set(
+    const handWinnerIds = new Set(
       payouts
         .filter(({ amount }) => amount > 0)
         .map(({ player }) => player.playerId),
@@ -545,13 +558,16 @@ export class GameGatewayService implements OnModuleInit {
         rankEarned: 0,
       };
       stats.playCount += 1;
-      if (revealCards && !player.folded && showdownWinnerIds.has(player.playerId)) {
+      if (handWinnerIds.has(player.playerId)) {
         stats.winCount += 1;
       }
       matchProgress.playerStats[player.playerId] = stats;
     }
+    let isRankedMatch = false;
     if (matchProgress.matchComplete) {
       const playerCount = matchProgress.matchPlayerIds.length;
+      const lobby = await this.lobbyRedisService.getLobbyFull(state.tableSessionId);
+      isRankedMatch = lobby.generalSettings.roomType === LobbyRoomType.RANKED;
       for (const playerId of matchProgress.matchPlayerIds) {
         const place = matchProgress.playerPlaces[playerId];
         if (place === undefined) continue;
@@ -567,6 +583,22 @@ export class GameGatewayService implements OnModuleInit {
           : 20 + Math.round(60 * (playerCount - place) / (playerCount - 1));
         stats.expEarned = placementExp
           + stats.playCount * EXP_PER_HAND_PLAYED;
+        if (isRankedMatch) {
+          switch (place) {
+            case 1:
+              stats.rankEarned = 80 + stats.winCount;
+              break;
+            case 2:
+              stats.rankEarned = 40 + stats.winCount;
+              break;
+            case 3:
+              stats.rankEarned = stats.winCount - 40;
+              break;
+            case 4:
+              stats.rankEarned = stats.winCount - 80;
+              break;
+          }
+        }
         matchProgress.playerStats[playerId] = stats;
       }
     }
@@ -578,12 +610,7 @@ export class GameGatewayService implements OnModuleInit {
     );
     matchProgress.cycleComplete = matchProgress.bigBlindPlayerIds.length === 0;
 
-    //await this.saveMatchProgress(state.tableSessionId, matchProgress);
-    //await this.redis.del(this.handKey(state.tableSessionId));
-    await Promise.all([
-      this.gameRedisService.saveMatchProgress(state.tableSessionId, matchProgress),
-      this.gameRedisService.delHand(state.tableSessionId)
-    ])
+    await this.gameRedisService.saveMatchProgress(state.tableSessionId, matchProgress);
 
     const winningPayouts = payouts.filter(({ amount }) => amount > 0);
     const playerNames = matchProgress.matchComplete
@@ -617,6 +644,7 @@ export class GameGatewayService implements OnModuleInit {
       roundNumber: 5,
       cycleComplete: matchProgress.cycleComplete,
       matchComplete: matchProgress.matchComplete,
+      ...(matchProgress.matchComplete ? { isRankedMatch } : {}),
       playerPlaces: matchProgress.playerPlaces,
       playerStats: matchProgress.playerStats,
       ...(playerNames ? { playerNames } : {}),
@@ -647,6 +675,14 @@ export class GameGatewayService implements OnModuleInit {
         allIn,
       })),
     };
+
+    if (matchProgress.matchComplete) {
+      await this.gameRedisService.saveCompletedMatchState(
+        state.tableSessionId,
+        result,
+      );
+    }
+    await this.gameRedisService.delHand(state.tableSessionId);
 
     //this.requireServer()
     //  .to(this.tableRoom(state.tableSessionId))
