@@ -21,6 +21,7 @@ import { errorWithCode } from '../../utility/errorWithCode.js';
 import { user_profiles, userProfileSchema } from '../../infrastructure/drizzle/schema/user_profiles/user_profiles.schema.js';
 import { BASEURL, SHARED_STORAGE_PATH, STORAGE_URL_PATH } from '../../constant.js';
 import { UserDto } from '../../infrastructure/drizzle/schema/users/user.dto.js';
+import { logError } from '../../utility/logError.js';
 
 @Injectable()
 export class UserService {
@@ -248,6 +249,8 @@ export class UserService {
 
   async update(id: string, updateUserDto: UpdateUserDto) {
 
+    const oldData = await this.findOne(id);
+
 
     // strip thrw updateUserDto
     const userProfile = userProfileSchema.update.strip().safeParse(updateUserDto.user_profile);
@@ -279,8 +282,6 @@ export class UserService {
     try {
 
       const result = await this.db.transaction(async (tx): Promise<UserAndProfileDto> => {
-
-
         const [userDataUpdateResult] = await tx
           .update(users)
           .set(data)
@@ -288,7 +289,7 @@ export class UserService {
           .returning();
 
         if (!userDataUpdateResult) {
-          tx.rollback();
+          await tx.rollback();
           throw new Error(`user id ${id} not found`);
         }
 
@@ -299,7 +300,7 @@ export class UserService {
           .returning();
 
         if (!userProfileUpdateResult) {
-          tx.rollback();
+          await tx.rollback();
           throw new Error(`user id ${id} not found`);
         }
 
@@ -309,6 +310,15 @@ export class UserService {
         }
 
       })
+      
+      if (!result) {
+        throw logError(
+          this.logger,
+          "error from update()",
+          "unknown result from database",
+          HttpStatus.INTERNAL_SERVER_ERROR
+        )
+      }
 
       await this.usersCachingService.cachingUser(result);
       return result;
@@ -345,7 +355,7 @@ export class UserService {
 
   async uploadProfilePic(id: string, fileBuffer: Buffer): Promise<UserAndProfileDto> {
 
-    await this.findOne(id);
+    const userData = await this.findOne(id);
 
     const uploadDir = path.join(SHARED_STORAGE_PATH, String(id));
     const destinationPath = path.join(uploadDir, 'profile.jpg');

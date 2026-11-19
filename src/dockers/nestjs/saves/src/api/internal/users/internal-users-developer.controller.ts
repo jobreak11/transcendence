@@ -1,5 +1,5 @@
 import { BadRequestException, Body, ConflictException, Controller, Delete, ForbiddenException, Get, HttpCode, HttpStatus, Logger, NotImplementedException, ParseIntPipe, ParseUUIDPipe, Post, Query, Req, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiOperation, ApiResponse, ApiUnauthorizedResponse } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import { Roles } from "../../../modules/auth/decorators/roles.decorators.js";
 import { Role } from "../../../modules/auth/enums/role.enum.js";
 import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
@@ -14,6 +14,8 @@ import { UnauthorizedErrorDto } from "../../../modules/auth/dto/login.dto.js";
 import { UserAndProfileDto } from "../../../modules/user/dto/user-and-profile.dto.js";
 import { GetUserTotalCountDto } from "./dtos/get-user-count.dto.js";
 
+
+@ApiTags("Users")
 @Controller('user/dev')
 export class InternalUsersDeveloperController {
 

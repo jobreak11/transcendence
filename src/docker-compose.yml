@@ -4,6 +4,7 @@ services:
     build:
       context: ./dockers/nginx
     environment:
+      TRANSCENDENCE_NGINX_BIND_PORT: ${NGINX_BIND_PORT}
       TRANSCENDENCE_NGINX_EXPOSE_PORT: ${NGINX_EXPOSE_PORT}
       TRANSCENDENCE_NEXTJS_EXPOSE_PORT: ${NEXTJS_EXPOSE_PORT}
       TRANSCENDENCE_NESTJS_EXPOSE_PORT: ${NESTJS_EXPOSE_PORT}
@@ -33,8 +34,10 @@ services:
     networks:
       - transcendence-network
     environment:
+      TRANSCENDENCE_DOMAIN_NAME: ${TRANSCENDENCE_DOMAIN_NAME}
       TRANSCENDENCE_ADMIN_USER_EMAIL: ${TRANSCENDENCE_ADMIN_USER_EMAIL}
       TRANSCENDENCE_ADMIN_PASSWORD_SECRET_FILE: /run/secrets/admin-password
+      NGINX_BIND_PORT: ${NGINX_BIND_PORT}
       PORT: ${NESTJS_EXPOSE_PORT}
       POSTGRES_PASSWORD_FILE: /run/secrets/db-password
       NESTJS_JWT_SECRET_FILE: /run/secrets/jwt-key

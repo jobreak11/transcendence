@@ -2,6 +2,8 @@ import { integer, pgEnum, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
 import { v7 as uuidv7 } from 'uuid'
 import { users } from "../users/users.schema.js";
 import { GameSettingFormat } from "../../../../modules/lobby/redis/schemas/lobby-gameSettings.redis.schema.js";
+import { createInsertSchema, createSelectSchema } from "drizzle-orm/zod";
+import z from "zod";
 
 export enum GameType {
   CASUAL = "CASUAL",
@@ -33,3 +35,14 @@ export const game_matches = pgTable("game_matches", {
   endedAt: timestamp("ended_at", {withTimezone: true}).notNull(),
 
 })
+
+const selectSchema = createSelectSchema(game_matches, {
+  gameType: z.enum(GameType),
+  gameFormat: z.enum(GameSettingFormat)
+});
+const insertSchema = createInsertSchema(game_matches);
+
+export const gameMatchesDatabaseSchema = {
+  select: selectSchema,
+  insert: insertSchema,
+}

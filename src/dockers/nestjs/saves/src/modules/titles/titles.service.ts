@@ -7,6 +7,7 @@ import { dbSchema } from '../../infrastructure/drizzle/schema/schema.js';
 import { REDIS_CLIENT, type RedisClient } from '../../infrastructure/redis/redis.provider.js';
 import { titles } from '../../infrastructure/drizzle/schema/titles.schema.js';
 import { user_titles } from '../../infrastructure/drizzle/schema/user_titles.schema.js';
+import { castToDouble } from 'drizzle-orm/singlestore-core/codecs';
 
 @Injectable()
 export class TitlesService {
@@ -149,7 +150,7 @@ export class TitlesService {
       return res;
     } catch (error: any) {
 
-      if (error?.code) {
+      if (error?.cause?.code) {
         // Postgresql error code
 
          if (error?.cause?.code === '23505')

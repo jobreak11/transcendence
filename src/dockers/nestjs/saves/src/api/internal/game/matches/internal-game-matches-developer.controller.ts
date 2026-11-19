@@ -4,11 +4,11 @@ import { UserThrottlerGuard } from "../../../../modules/auth/guards/user-throttl
 import { IpThrottlerGuard } from "../../../../modules/auth/guards/ip-throttler/ip-throttler.guard.js";
 import { JwtAuthGuard } from "../../../../modules/auth/guards/jwt-auth/jwt-auth.guard.js";
 import { RolesGuard } from "../../../../modules/auth/guards/roles/roles.guard.js";
+import { ApiTags } from "@nestjs/swagger";
 
+@ApiTags("Game Matches")
 @Controller('game/matches/dev')
 @UseGuards(IpThrottlerGuard, JwtAuthGuard, RolesGuard, UserThrottlerGuard)
 export class InternalGameMatchesDeveloperController {
-
-    
 
 }

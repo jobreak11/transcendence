@@ -211,6 +211,8 @@ export class InternalTitlesController {
   ) {
 
     await this.titleService.removeTitle(titleId);
+    
+
   }
 
   

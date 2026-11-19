@@ -16,6 +16,8 @@ import { InternalModule } from './api/internal/internal.module.js';
 import { PublicModule } from './api/public/public.module.js';
 import { ApiModule } from './api/api.module.js';
 import { LobbyModule } from './modules/lobby/lobby.module.js';
+import { GameStatisticsModule } from './modules/game-statistics/game-statistics.module.js';
+import { TrophiesModule } from './modules/trophies/trophies.module.js';
 
 @Module({
   controllers: [AppController],
@@ -48,6 +50,7 @@ import { LobbyModule } from './modules/lobby/lobby.module.js';
     ChatModule,
     FriendModule,
     GameModule,
+    GameStatisticsModule,
     ApiModule,
   ],
 })

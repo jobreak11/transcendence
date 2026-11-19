@@ -1,7 +1,8 @@
-import { check, index, integer, pgTable, primaryKey, unique, uuid } from "drizzle-orm/pg-core";
+import { check, index, integer, pgTable, primaryKey, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 import { game_matches } from "../game_matches/game_matches.schema.js";
 import { users } from "../users/users.schema.js";
 import { sql } from "drizzle-orm";
+import { createInsertSchema, createSelectSchema } from "drizzle-orm/zod";
 
 export const user_game_matches = pgTable("user_game_matches", {
 
@@ -17,7 +18,6 @@ export const user_game_matches = pgTable("user_game_matches", {
   rankEarned: integer("rank_earned").notNull(),
   expEarned: integer("exp_earned").notNull(),
 
-
 }, (t) => [
   check("player_place_check", sql`${t.playerPlace} BETWEEN 1 AND 10`),
   check("exp_earned_check", sql`${t.expEarned} >= 0`),
@@ -26,3 +26,10 @@ export const user_game_matches = pgTable("user_game_matches", {
   index("user_game_matches_game_match_idx").on(t.gameMatchId)
 ])
 
+const selectSchema = createSelectSchema(user_game_matches);
+const insertSchema = createInsertSchema(user_game_matches);
+
+export const userGameMatchesDatabaseSchema = {
+  select: selectSchema,
+  insert: insertSchema
+}

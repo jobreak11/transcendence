@@ -20,6 +20,7 @@ import { LobbyUpdateDto } from "../../../modules/lobby/redis/dtos/lobby-update.d
 import { lobbyUpdateSchema } from "../../../modules/lobby/redis/schemas/lobby-update.redis.schema.js";
 import z from "zod";
 import { LobbyDto } from "../../../modules/lobby/redis/dtos/lobby.dto.js";
+import { LobbyDetails } from "../../../modules/lobby/redis/schemas/lobby-details.redis.schema.js";
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, InternalLobbyGuard, ThrottlerGuard)
@@ -135,7 +136,6 @@ export class InternalLobbyController {
         allLobby.map(async (lobby): Promise<GetLobbyPublicDto> => {
 
           const {password, ...publicGeneralSettings} = lobby.generalSettings;
-          const {chatRoomId, ...publicDetails} = lobby.details;
 
           const pub: LobbyGeneralSettingsPublicDto = {
             catchPhrase: publicGeneralSettings.catchPhrase,
@@ -145,8 +145,8 @@ export class InternalLobbyController {
 
           return {
             details: {
-              ...publicDetails,
-              hostDisplayName: await this.getHostDisplayName(publicDetails.hostUserId),
+              ...lobby.details,
+              hostDisplayName: await this.getHostDisplayName(lobby.details.hostUserId),
             },
             gameSettings: lobby.gameSettings,
             generalSettings: pub
@@ -245,7 +245,7 @@ export class InternalLobbyController {
     const lobbyData = await this.lobbyService.getLobbyDto(lobbyPinId);
 
     const {password, ...publicGeneralSettings} = lobbyData.generalSettings;
-    const {chatRoomId, ...publicDetails} = lobbyData.details;
+    // const {chatRoomId, ...publicDetails} = lobbyData.details;
 
     const pub: LobbyGeneralSettingsPublicDto = {
       catchPhrase: publicGeneralSettings.catchPhrase,
@@ -255,8 +255,8 @@ export class InternalLobbyController {
 
     return {
       details: {
-        ...publicDetails,
-        hostDisplayName: await this.getHostDisplayName(publicDetails.hostUserId),
+        ...lobbyData.details,
+        hostDisplayName: await this.getHostDisplayName(lobbyData.details.hostUserId),
       },
       gameSettings: lobbyData.gameSettings,
       generalSettings: pub,

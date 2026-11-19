@@ -4,14 +4,19 @@ import { AchievementsDatabaseService } from "./database/achievements-database.se
 import { AchievementsRedisService } from "./redis/achievements-redis.service.js";
 import { AchievementsService } from "./achievements.service.js";
 import { DrizzleModule } from "../../infrastructure/drizzle/drizzle.module.js";
+import { UserModule } from "../user/user.module.js";
 
 @Module({
     imports: [
-        DrizzleModule
+        DrizzleModule,
+        UserModule
     ],
 
     providers: [
-        AchievementsCachingService, AchievementsDatabaseService, AchievementsRedisService, AchievementsService
+        AchievementsCachingService,
+        AchievementsDatabaseService,
+        AchievementsRedisService,
+        AchievementsService
     ],
     exports: [
         AchievementsService

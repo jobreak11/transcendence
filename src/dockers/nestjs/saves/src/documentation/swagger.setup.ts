@@ -37,7 +37,7 @@ export function setupSwagger(app: INestApplication): void {
         internalConfig,
         {
             include: [InternalModule],
-            deepScanRoutes: true
+            deepScanRoutes: true,
         },
     );
 

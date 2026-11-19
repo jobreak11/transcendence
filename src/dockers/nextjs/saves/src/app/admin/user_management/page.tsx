@@ -123,11 +123,11 @@ export default function SysAdminUserManagementPage() {
     setLoading(true);
     try {
       const [usersRes, countRes] = await Promise.all([
-        fetch(`/api/user?limit=${limit}&offset=${offset}`, {
+        fetch(`/api/user/dev?limit=${limit}&offset=${offset}`, {
           method: "GET",
           headers: getHeaders(),
         }),
-        fetch(`/api/user/totalCount`, {
+        fetch(`/api/user/dev/totalCount`, {
           method: "GET",
         }),
       ]);
@@ -214,7 +214,7 @@ export default function SysAdminUserManagementPage() {
     };
 
     try {
-      const res = await fetch(`/api/user/create`, {
+      const res = await fetch(`/api/user/dev/create`, {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify(payload),
@@ -243,7 +243,7 @@ export default function SysAdminUserManagementPage() {
     const payload: UserSetRoleDto = { userId, newRole };
 
     try {
-      const res = await fetch(`/api/user/setRole`, {
+      const res = await fetch(`/api/user/dev/setRole`, {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify(payload),
@@ -270,7 +270,7 @@ export default function SysAdminUserManagementPage() {
 
     try {
       const params = new URLSearchParams({ userId: userToDelete.id });
-      const res = await fetch(`/api/user/delete?${params.toString()}`, {
+      const res = await fetch(`/api/user/dev/delete?${params.toString()}`, {
         method: "DELETE",
       });
 

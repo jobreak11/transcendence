@@ -6,7 +6,7 @@ export const redisCacheUserSchema = z.object({
   ...userSchema.insert.shape,
   user_profile: z.object({
     ...userProfileSchema.insert.shape
-  }).required().nullable()
+  }).required()
 }).required().strip();
 
 export type RedisCacheUserDto = z.infer<typeof redisCacheUserSchema>;

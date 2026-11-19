@@ -9,8 +9,9 @@ import { LobbyRoomType } from "../../lobby/redis/schemas/lobby-generalSettings.r
 import { logError } from "../../../utility/logError.js";
 import { user_game_matches } from "../../../infrastructure/drizzle/schema/user_game_matches/user_game_matches.schema.js";
 import { user_game_statistics } from "../../../infrastructure/drizzle/schema/user_game_statistics/user_game_statistics.schema.js";
-import { sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { type WrapperType } from "../../../types/wrapperType.js";
+import { errorWithCode } from "../../../utility/errorWithCode.js";
 
 @Injectable()
 export class GameDatabaseService {
@@ -23,6 +24,20 @@ export class GameDatabaseService {
         
     ) {
 
+    }
+
+    async getGameMatches(userId: string, limit: number = 50, offset: number = 0) {
+
+        const result = await this.db
+            .select()
+            .from(user_game_matches)
+            .innerJoin(game_matches, eq(game_matches.id, user_game_matches.gameMatchId))
+            .where(eq(user_game_matches.userId, userId))
+            .orderBy(desc(game_matches.endedAt))
+            .limit(limit)
+            .offset(offset);
+
+        return result;
     }
 
     async createNewGameMatches(matchProgress: MatchProgress, matchEndedTimestamp: Date, lobbyPinId: string) {
@@ -98,7 +113,7 @@ export class GameDatabaseService {
                 rankPoint: value.rankEarned,
                 totalHandsWon: value.winCount,
                 totalHandsPlayed: value.playCount,
-                totalMatchesWon: value.playerPlace > Object.keys(matchProgress.playerPlaces).length / 2 ? 1 : 0,
+                totalMatchesWon: value.playerPlace < Object.keys(matchProgress.playerPlaces).length / 2 ? 1 : 0,
                 matchPlayed: 1
             }
         })
@@ -122,4 +137,23 @@ export class GameDatabaseService {
         return newGameMatch; 
     }
 
+    async findOne( gameMatchId: string ) {
+        const result = await this.db.query.game_matches.findFirst({
+            where: {
+                id: gameMatchId
+            },
+            with: {
+                user_game_matches: true
+            }
+        })
+
+        if (!result) {
+            throw errorWithCode(
+                HttpStatus.NOT_FOUND,
+                "game match not found"
+            )
+        }
+
+        return result;
+    }
 }

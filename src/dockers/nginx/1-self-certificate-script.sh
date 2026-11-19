@@ -40,6 +40,7 @@ sed -i -E -e "s|^([[:space:]]+)ssl_certificate[[:space:]]+.*;$|\1ssl_certificate
   -e "s|^([[:space:]]+)proxy_pass[[:space:]]+http://dozzle:[0-9]+(.*);$|\1proxy_pass http://dozzle:${DOZZLE_PORT}\2;|" \
   -e "s|^([[:space:]]+)proxy_pass[[:space:]]+http://redis-commander:[0-9]+(.*);$|\1proxy_pass http://redis-commander:${REDIS_INSIGHT_PORT}\2;|" \
   -e "s|^([[:space:]]+)server_name[[:space:]]+.*;$|\1server_name ${NGINX_DOMAIN_NAME_TRANSC};|" \
+  -e "s|^([[:space:]]+)return[[:space:]]+302.*;$|\1return 302 https://${TRANSCENDENCE_DOMAIN_NAME}:${TRANSCENDENCE_NGINX_BIND_PORT};|" \
   "${TRANSCENDENCE_NGINX_CONF_PATH}"
 
 touch "${TRANSCENDENCE_INIT_FILE}"

@@ -1,7 +1,7 @@
 import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, Logger, Patch, PayloadTooLargeException, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { UserService } from "../../../modules/user/user.service.js";
 import { TitlesService } from "../../../modules/titles/titles.service.js";
-import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiOperation, ApiQuery, ApiUnauthorizedResponse } from "@nestjs/swagger";
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiOperation, ApiQuery, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import { GetUserProfileDto, getUserProfileSchema } from "./dtos/get-user-profile.dto.js";
 import { UnauthorizedErrorDto } from "../../../modules/auth/dto/login.dto.js";
 import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
@@ -13,6 +13,7 @@ import { type AuthJwtFastifyRequest } from "../../../modules/auth/types/auth-jwt
 import { ZodValidationPipe } from "../../../pipes/ZodValidationPipe.js";
 import { UpdateUserDto, updateUserSchema } from "../../../modules/user/dto/update-user.dto.js";
 
+@ApiTags("Users")
 @Controller('user')
 export class InternalUsersUserController {
 

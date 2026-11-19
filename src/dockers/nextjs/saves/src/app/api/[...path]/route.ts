@@ -12,11 +12,11 @@ const allowedPaths = new Set([
   '/user/profile',
   '/user/profile/uploadProfilePic',
   '/user/update',
-  '/user/setRole',
-  '/user/create',
-  '/user/delete',
-  '/user',
-  '/user/totalCount',
+  '/user/dev/setRole',
+  '/user/dev/create',
+  '/user/dev/delete',
+  '/user/dev',
+  '/user/dev/totalCount',
 
 
   // title api
@@ -28,6 +28,33 @@ const allowedPaths = new Set([
   '/title/revoke',
   '/title/update',
   '/title/delete',
+
+  // throphies api
+  '/trophies',
+  '/trophies/totalUserCount',
+  '/trophies/allTotalCount',
+  '/trophies/find',
+  '/trophies/dev/all',
+  '/trophies/dev/create',
+  '/trophies/dev/uploadPic',
+  '/trophies/dev/update',
+  '/trophies/dev/give',
+  '/trophies/dev/revoke',
+  '/trophies/dev/delete',
+
+
+
+  // achievements api
+  '/achievements',
+  '/achievements/totalUserCount',
+  '/achievements/allTotalCount',
+  '/achievements/find',
+  '/achievements/dev/all',
+  '/achievements/dev/create',
+  '/achievements/dev/update',
+  '/achievements/dev/give',
+  '/achievements/dev/revoke',
+  '/achievements/dev/delete',
 
   //auth api
   '/auth/check',
@@ -72,6 +99,12 @@ const allowedPaths = new Set([
   '/game/lobby/members',
   '/game/lobby',
 
+  // game matches api
+  '/game/matches',
+  '/game/matches/find',
+
+  // game statistics api
+  '/game/statistics',
 
 ])
 

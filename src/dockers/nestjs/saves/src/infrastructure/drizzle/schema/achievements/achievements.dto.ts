@@ -42,9 +42,9 @@ export class AchievementDto implements test {
 
     @ApiProperty({
         example: uuidv7(),
-        description: "throphy uuid linked to this achievement"
+        description: "trophy uuid linked to this achievement"
     })
-    throphyId: string | null;    
+    trophyId: string | null;    
 
     @ApiProperty({
         example: (new Date()).toISOString(),
