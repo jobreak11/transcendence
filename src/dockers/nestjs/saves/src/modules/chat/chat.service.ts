@@ -617,7 +617,7 @@ export class ChatService {
       })
       .returning();
 
-    // this.chatGatewayService.joinChatSession(user1, newRoom.id);
+    this.chatGatewayService.joinChatSession(user1, newRoom.id);
 
     const [insert2] = await this.db
       .insert(chat_room_members)
@@ -628,7 +628,7 @@ export class ChatService {
       })
       .returning();
 
-    // this.chatGatewayService.joinChatSession(user2, newRoom.id);
+    this.chatGatewayService.joinChatSession(user2, newRoom.id);
   
     return (newRoom);
   }
