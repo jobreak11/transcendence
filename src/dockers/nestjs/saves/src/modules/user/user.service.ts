@@ -148,6 +148,8 @@ export class UserService {
         return newUser
       })
 
+      
+
       return result;
     } catch (error: any) {
       if (error?.cause?.code === '23505') {

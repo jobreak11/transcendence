@@ -13,6 +13,7 @@ import { CreateUserDto, createUserSchema } from "../../../modules/user/dto/creat
 import { UnauthorizedErrorDto } from "../../../modules/auth/dto/login.dto.js";
 import { UserAndProfileDto } from "../../../modules/user/dto/user-and-profile.dto.js";
 import { GetUserTotalCountDto } from "./dtos/get-user-count.dto.js";
+import { InternalUsersService } from "./internal-users.service.js";
 
 
 @ApiTags("Users")
@@ -23,6 +24,7 @@ export class InternalUsersDeveloperController {
 
     constructor (
         private readonly userService: UserService,
+        private readonly internalUsersService: InternalUsersService
     ) {
 
     }
@@ -80,11 +82,15 @@ export class InternalUsersDeveloperController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Post('create')
-  create(
+  async create(
     @Req() req: any,
     @Body(new ZodValidationPipe(createUserSchema)) createUserDto: CreateUserDto
   ) {
-    return this.userService.create(createUserDto);
+    const result = await this.userService.create(createUserDto);
+
+    await this.internalUsersService.giveUserDefaultTitle(result.id);
+
+    return result;
   }
 
   @ApiOperation({

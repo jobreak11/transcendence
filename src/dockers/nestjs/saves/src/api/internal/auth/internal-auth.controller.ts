@@ -18,11 +18,13 @@ import { GoogleAuthGuard } from "../../../modules/auth/guards/google-auth/google
 import { FortytwoAuthGuard } from "../../../modules/auth/guards/fortytwo-auth/fortytwo-auth.guard.js";
 import { UsersRedisService } from "../../../modules/user/redis/users-redis.service.js";
 import { IpThrottlerGuard } from "../../../modules/auth/guards/ip-throttler/ip-throttler.guard.js";
+import { InternalAuthService } from "./internal-auth.service.js";
 
 @Controller('auth')
 export class InternalAuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly internalAuthService: InternalAuthService
   ) {}
 
 
@@ -65,8 +67,12 @@ export class InternalAuthController {
     }
   })
   @UseGuards(ThrottlerGuard)
-  registerUser(@Body(new ZodValidationPipe(createUserSchema)) createUserDto: CreateUserDto) {
-    return this.authService.registerUser(createUserDto);
+  async registerUser(@Body(new ZodValidationPipe(createUserSchema)) createUserDto: CreateUserDto) {
+    const result = await this.authService.registerUser(createUserDto);
+
+    await this.internalAuthService.giveUserDefaultTitle(result.id);
+
+    return result;
   }
 
 
