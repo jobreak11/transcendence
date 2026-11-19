@@ -73,7 +73,8 @@ export const dbRelations = defineRelations(
     user_api_keys: {
       user: r.one.users({
         from: r.user_api_keys.userId,
-        to: r.users.id
+        to: r.users.id,
+        optional: false
       })
     },
 
@@ -224,5 +225,7 @@ export const dbSchema = {
   game_matches,
   user_game_matches,
   user_game_statistics,
+  achievements,
+  user_api_keys,
   dbRelations,
 }

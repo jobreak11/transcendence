@@ -29,7 +29,7 @@ function wsGatewayCatch(error: any) {
       return {
         statusCode: code,
         message: error?.cause?.message ?? "error",
-        error: error?.cause?.error ?? null
+        error: code >= 500 ? null : error?.cause?.error ?? null
       }
     }
 

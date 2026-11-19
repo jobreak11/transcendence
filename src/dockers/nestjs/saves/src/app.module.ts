@@ -18,6 +18,7 @@ import { ApiModule } from './api/api.module.js';
 import { LobbyModule } from './modules/lobby/lobby.module.js';
 import { GameStatisticsModule } from './modules/game-statistics/game-statistics.module.js';
 import { TrophiesModule } from './modules/trophies/trophies.module.js';
+import { UsersApiModule } from './modules/users-api/users-api.module.js';
 
 @Module({
   controllers: [AppController],
@@ -40,6 +41,11 @@ import { TrophiesModule } from './modules/trophies/trophies.module.js';
           name: 'user',
           limit: 100,
           ttl: 10000
+        },
+        {
+          name: 'public-api',
+          limit: 100,
+          ttl: 10000
         }
       ],
     }),
@@ -51,6 +57,7 @@ import { TrophiesModule } from './modules/trophies/trophies.module.js';
     FriendModule,
     GameModule,
     GameStatisticsModule,
+    UsersApiModule,
     ApiModule,
   ],
 })

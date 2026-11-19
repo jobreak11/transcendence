@@ -15,7 +15,7 @@ export class UserApiKeyDto implements test {
         description: "user id that own this api key"
 
     })
-    userId: string | null;
+    userId: string;
 
     @ApiProperty({
         description: "the name of the key"

@@ -1,0 +1,2 @@
+
+export const USER_API_DEVELOPER_API_LIMIT = 10;

@@ -1,4 +1,4 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException } from "@nestjs/common";
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from "@nestjs/common";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { stat } from "fs";
 import { httpControllerCatch } from "../../utility/httpControllerCatch.js";
@@ -13,10 +13,16 @@ export class HttpAllExceptionsFilter implements ExceptionFilter {
       const transformException = httpControllerCatch(exception);
       const status = transformException.getStatus();
       const exceptionResponse = transformException.getResponse();
+      const isInternalError = status === HttpStatus.INTERNAL_SERVER_ERROR;
 
-      const errBody = typeof exceptionResponse === 'object' && exceptionResponse !== null
-      ? exceptionResponse
-      : { message: exceptionResponse };
+      const errBody = isInternalError
+      ? {
+          statusCode: status,
+          message: 'Internal server error',
+        }
+      : typeof exceptionResponse === 'object' && exceptionResponse !== null
+        ? exceptionResponse
+        : { message: exceptionResponse };
 
       response
         .status(status)

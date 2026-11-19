@@ -10,6 +10,7 @@ import { InternalGameMatchesModule } from "./game/matches/internal-game-matches.
 import { InternalGameStatisticsModule } from "./game/statistics/internal-game-statistics.module.js";
 import { InternalTrophiesModule } from "./trophies/internal-trophies.module.js";
 import { InternalAchievementsModule } from "./achievements/internal-achievements.module.js";
+import { InternalUsersApiModule } from "./users-api/internal-users-api.module.js";
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { InternalAchievementsModule } from "./achievements/internal-achievements
     InternalGameStatisticsModule,
     InternalTrophiesModule,
     InternalAchievementsModule,
+    InternalUsersApiModule
   ]
 })
 export class InternalModule {
