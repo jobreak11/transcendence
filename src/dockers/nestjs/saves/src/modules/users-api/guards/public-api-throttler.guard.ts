@@ -1,6 +1,8 @@
-import { ThrottlerGuard, ThrottlerRequest } from "@nestjs/throttler";
+import { ExecutionContext, Injectable } from "@nestjs/common";
+import { ThrottlerException, ThrottlerGuard, ThrottlerLimitDetail, ThrottlerRequest } from "@nestjs/throttler";
 import { FastifyRequest } from "fastify";
 
+@Injectable()
 export class PublicApiThrottlerGuard extends ThrottlerGuard {
 
     protected async getTracker(req: Record<string, any>): Promise<string> {
@@ -21,6 +23,10 @@ export class PublicApiThrottlerGuard extends ThrottlerGuard {
         return true;
       }
       return super.handleRequest(requestProps);
+    }
+
+    protected async throwThrottlingException(context: ExecutionContext, throttlerLimitDetail: ThrottlerLimitDetail): Promise<void> {
+      throw new ThrottlerException('Api rate limit exceed across your devices. Please slow down')
     }
 
     

@@ -1,9 +1,8 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { UsersApiService } from "../users-api.service.js";
 import { Observable } from "rxjs";
 import { FastifyRequest } from "fastify";
 import { API_KEY_PREFIX } from "../database/users-api-database.constants.js";
-import { ThrottlerException, ThrottlerLimitDetail } from "@nestjs/throttler";
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -13,6 +12,9 @@ declare module 'fastify' {
 
 @Injectable()
 export class PublicApiAuthGuard implements CanActivate {
+    
+    private readonly logger = new Logger(PublicApiAuthGuard.name);
+
     constructor(
         private readonly usersApiService: UsersApiService,
     ) {
@@ -20,6 +22,7 @@ export class PublicApiAuthGuard implements CanActivate {
     }
 
     async canActivate(context: ExecutionContext) {
+
 
         const request = context.switchToHttp().getRequest<FastifyRequest>();
 
@@ -35,15 +38,13 @@ export class PublicApiAuthGuard implements CanActivate {
             throw new UnauthorizedException('Invalid or revoked API Key');
         }
 
-        request.user.id = result.userId,
-        request.user.role = result.role
+        request.user = {
+            id: result.userId,
+            role: result.role
+        }
 
 
         return true;
-    }
-
-    protected async throwThrottlingException(context: ExecutionContext, throttlerLimitDetail: ThrottlerLimitDetail): Promise<void> {
-      throw new ThrottlerException('Api rate limit exceed across your devices. Please slow down')
     }
 
 }

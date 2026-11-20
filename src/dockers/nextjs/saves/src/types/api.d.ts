@@ -1273,7 +1273,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/users-api/dev": {
+    "/users-api": {
         parameters: {
             query?: never;
             header?: never;
@@ -1289,7 +1289,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/users-api/dev/request-new": {
+    "/users-api/request-new": {
         parameters: {
             query?: never;
             header?: never;
@@ -1305,7 +1305,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/users-api/dev/totalUserApiCount": {
+    "/users-api/totalUserApiCount": {
         parameters: {
             query?: never;
             header?: never;
@@ -1321,7 +1321,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/users-api/dev/revoke": {
+    "/users-api/revoke": {
         parameters: {
             query?: never;
             header?: never;
@@ -1337,7 +1337,7 @@ export interface paths {
         patch: operations["InternalUsersApiUserController_revokeApi"];
         trace?: never;
     };
-    "/users-api/dev/remove": {
+    "/users-api/remove": {
         parameters: {
             query?: never;
             header?: never;
@@ -1353,7 +1353,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/users-api/dev/find": {
+    "/users-api/find": {
         parameters: {
             query?: never;
             header?: never;
@@ -1369,7 +1369,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/users-api/dev/admin/all": {
+    "/users-api/admin/all": {
         parameters: {
             query?: never;
             header?: never;
@@ -1385,7 +1385,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/users-api/dev/admin/allApiCount": {
+    "/users-api/admin/allApiCount": {
         parameters: {
             query?: never;
             header?: never;
@@ -1401,7 +1401,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/users-api/dev/admin/delete": {
+    "/users-api/admin/delete": {
         parameters: {
             query?: never;
             header?: never;
@@ -1417,7 +1417,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/users-api/dev/admin/find": {
+    "/users-api/admin/find": {
         parameters: {
             query?: never;
             header?: never;
@@ -1849,12 +1849,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a1f9e1-6f24-72f4-9e7b-1b5509b1ae1f
+             * @example 01a1fa35-a826-74e5-b245-e6bc339392a9
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a1f9e1-6f25-751f-a220-7e561e5b7cc5
+             * @example 01a1fa35-a827-7498-90d0-e79832b2acdf
              */
             chatRoomId: string;
             /**
@@ -1940,7 +1940,7 @@ export interface components {
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1f9e1-6f27-75e1-8a25-993f11a8f7ed
+             * @example 01a1fa35-a829-74aa-945f-3ed2c1924a24
              */
             gameRoomId: string | null;
             /**
@@ -2029,7 +2029,7 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1f9e1-6f27-75e1-8a25-993f11a8f7ed
+             * @example 01a1fa35-a829-74aa-945f-3ed2c1924a24
              */
             gameRoomId: string | null;
             /**
@@ -2258,7 +2258,7 @@ export interface components {
         TrophyDto: {
             /**
              * @description the id of the trophy
-             * @example 01a1f9e1-6f30-7660-9bc2-e4e40813ce6f
+             * @example 01a1fa35-a837-75e3-8716-0de5f94f61ea
              */
             id: string;
             /**
@@ -2280,7 +2280,7 @@ export interface components {
             /**
              * Format: date-time
              * @description the date this trophy unlocked to this user
-             * @example 2026-11-20T16:54:23.280Z
+             * @example 2026-11-20T18:26:22.904Z
              */
             unlockedAt: string;
             /** @description the trophy details */
@@ -2297,7 +2297,7 @@ export interface components {
         GetTrophyDto: {
             /**
              * @description the id of the trophy
-             * @example 01a1f9e1-6f30-7660-9bc2-e4e40813ce6f
+             * @example 01a1fa35-a837-75e3-8716-0de5f94f61ea
              */
             id: string;
             /**
@@ -2350,36 +2350,36 @@ export interface components {
         NewUserTrophyDto: {
             /**
              * @description the uuid of the user that got this trophy
-             * @example 01a1f9e1-6f30-7660-9bc2-eb984b41db80
+             * @example 01a1fa35-a837-75e3-8716-12c24a4c1383
              */
             userId: string;
             /**
              * @description the uuid of the trophy
-             * @example 01a1f9e1-6f30-7660-9bc2-ee11f2ad63a5
+             * @example 01a1fa35-a838-7040-b8f1-03448165e136
              */
             trophyId: string;
             /**
              * Format: date-time
              * @description the date this trophy unlocked to this user
-             * @example 2026-11-20T16:54:23.280Z
+             * @example 2026-11-20T18:26:22.904Z
              */
             unlockedAt: string;
         };
         UserTrophyDto: {
             /**
              * @description the uuid of the user that got this trophy
-             * @example 01a1f9e1-6f30-7660-9bc2-eb984b41db80
+             * @example 01a1fa35-a837-75e3-8716-12c24a4c1383
              */
             userId: string;
             /**
              * @description the uuid of the trophy
-             * @example 01a1f9e1-6f30-7660-9bc2-ee11f2ad63a5
+             * @example 01a1fa35-a838-7040-b8f1-03448165e136
              */
             trophyId: string;
             /**
              * Format: date-time
              * @description the date this trophy unlocked to this user
-             * @example 2026-11-20T16:54:23.280Z
+             * @example 2026-11-20T18:26:22.904Z
              */
             unlockedAt: string;
         };
@@ -2434,18 +2434,18 @@ export interface components {
             condition: string | null;
             /**
              * @description title uuid linked to this achievement.
-             * @example 01a1f9e1-6f39-7372-89d8-8df1d7684fb5
+             * @example 01a1fa35-a83a-74ae-a4b1-7dbc261acb68
              */
             titleId: string | null;
             /**
              * @description trophy uuid linked to this achievement
-             * @example 01a1f9e1-6f39-7372-89d8-930b37682a81
+             * @example 01a1fa35-a83a-74ae-a4b1-83b22e575651
              */
             trophyId: string | null;
             /**
              * Format: date-time
              * @description the time this achivement was created
-             * @example 2026-11-20T16:54:23.289Z
+             * @example 2026-11-20T18:26:22.906Z
              */
             createdAt: string;
             /** @description the title details */
@@ -2456,18 +2456,18 @@ export interface components {
         GetUserAchievementDto: {
             /**
              * @description the uuid of user that have this achievement
-             * @example 01a1f9e1-6f3a-769e-a202-f04c5e013b8c
+             * @example 01a1fa35-a83b-7436-abaa-71de7f36a03d
              */
             userId: string;
             /**
              * @description this uuid of the achievement this user got
-             * @example 01a1f9e1-6f3a-769e-a202-f499b5a56394
+             * @example 01a1fa35-a83b-7436-abaa-7468610d7a71
              */
             achievementId: string;
             /**
              * Format: date-time
              * @description the date when this user got the achievement
-             * @example 2026-11-20T16:54:23.290Z
+             * @example 2026-11-20T18:26:22.907Z
              */
             unlockedAt: string;
             /** @description the achievement data */
@@ -2484,7 +2484,7 @@ export interface components {
         GetAchievementDto: {
             /**
              * @description the uuid
-             * @example 01a1f9e1-6f39-7372-89d8-8873ffef36a8
+             * @example 01a1fa35-a83a-74ae-a4b1-7bb88ea3f474
              */
             id: string;
             /**
@@ -2504,18 +2504,18 @@ export interface components {
             condition: string | null;
             /**
              * @description title uuid linked to this achievement.
-             * @example 01a1f9e1-6f39-7372-89d8-8df1d7684fb5
+             * @example 01a1fa35-a83a-74ae-a4b1-7dbc261acb68
              */
             titleId: string | null;
             /**
              * @description trophy uuid linked to this achievement
-             * @example 01a1f9e1-6f39-7372-89d8-930b37682a81
+             * @example 01a1fa35-a83a-74ae-a4b1-83b22e575651
              */
             trophyId: string | null;
             /**
              * Format: date-time
              * @description the time this achivement was created
-             * @example 2026-11-20T16:54:23.289Z
+             * @example 2026-11-20T18:26:22.906Z
              */
             createdAt: string;
             /** @description the title details */
@@ -2541,25 +2541,25 @@ export interface components {
             condition?: string | null;
             /**
              * @description title uuid linked to this achievement.
-             * @example 01a1f9e1-6f39-7372-89d8-8df1d7684fb5
+             * @example 01a1fa35-a83a-74ae-a4b1-7dbc261acb68
              */
             titleId?: string | null;
             /**
              * @description trophy uuid linked to this achievement
-             * @example 01a1f9e1-6f39-7372-89d8-930b37682a81
+             * @example 01a1fa35-a83a-74ae-a4b1-83b22e575651
              */
             trophyId?: string | null;
             /**
              * Format: date-time
              * @description the time this achivement was created
-             * @example 2026-11-20T16:54:23.289Z
+             * @example 2026-11-20T18:26:22.906Z
              */
             createdAt?: string;
         };
         AchievementDto: {
             /**
              * @description the uuid
-             * @example 01a1f9e1-6f39-7372-89d8-8873ffef36a8
+             * @example 01a1fa35-a83a-74ae-a4b1-7bb88ea3f474
              */
             id: string;
             /**
@@ -2579,18 +2579,18 @@ export interface components {
             condition: string | null;
             /**
              * @description title uuid linked to this achievement.
-             * @example 01a1f9e1-6f39-7372-89d8-8df1d7684fb5
+             * @example 01a1fa35-a83a-74ae-a4b1-7dbc261acb68
              */
             titleId: string | null;
             /**
              * @description trophy uuid linked to this achievement
-             * @example 01a1f9e1-6f39-7372-89d8-930b37682a81
+             * @example 01a1fa35-a83a-74ae-a4b1-83b22e575651
              */
             trophyId: string | null;
             /**
              * Format: date-time
              * @description the time this achivement was created
-             * @example 2026-11-20T16:54:23.289Z
+             * @example 2026-11-20T18:26:22.906Z
              */
             createdAt: string;
         };
@@ -2612,36 +2612,36 @@ export interface components {
             condition: string | null;
             /**
              * @description title uuid linked to this achievement.
-             * @example 01a1f9e1-6f39-7372-89d8-8df1d7684fb5
+             * @example 01a1fa35-a83a-74ae-a4b1-7dbc261acb68
              */
             titleId: string | null;
             /**
              * @description trophy uuid linked to this achievement
-             * @example 01a1f9e1-6f39-7372-89d8-930b37682a81
+             * @example 01a1fa35-a83a-74ae-a4b1-83b22e575651
              */
             trophyId: string | null;
             /**
              * Format: date-time
              * @description the time this achivement was created
-             * @example 2026-11-20T16:54:23.289Z
+             * @example 2026-11-20T18:26:22.906Z
              */
             createdAt: string;
         };
         UserAchievementDto: {
             /**
              * @description the uuid of user that have this achievement
-             * @example 01a1f9e1-6f3a-769e-a202-f04c5e013b8c
+             * @example 01a1fa35-a83b-7436-abaa-71de7f36a03d
              */
             userId: string;
             /**
              * @description this uuid of the achievement this user got
-             * @example 01a1f9e1-6f3a-769e-a202-f499b5a56394
+             * @example 01a1fa35-a83b-7436-abaa-7468610d7a71
              */
             achievementId: string;
             /**
              * Format: date-time
              * @description the date when this user got the achievement
-             * @example 2026-11-20T16:54:23.290Z
+             * @example 2026-11-20T18:26:22.907Z
              */
             unlockedAt: string;
         };
@@ -2688,14 +2688,6 @@ export interface components {
         UsersApiTotalUserApiCountDto: {
             /** @description the total amount of api that the user own */
             totalCount: number;
-        };
-        UsersApiRevokeDto: {
-            /** @description the target api key to remove */
-            rawApiKey: string;
-        };
-        UsersApiRemoveDto: {
-            /** @description the target api key to remove */
-            rawApiKey: string;
         };
         UserDto: {
             /**
@@ -4457,16 +4449,14 @@ export interface operations {
     };
     InternalUsersApiUserController_revokeApi: {
         parameters: {
-            query?: never;
+            query: {
+                apiId: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UsersApiRevokeDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
@@ -4480,16 +4470,14 @@ export interface operations {
     };
     InternalUsersApiUserController_removeApi: {
         parameters: {
-            query?: never;
+            query: {
+                apiId: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UsersApiRemoveDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
