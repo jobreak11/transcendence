@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, Req, UseFilters, UseGuards } from "@nestjs/common";
 import { AuthService } from "../../../modules/auth/auth.service.js";
 import { JwtAuthGuard } from "../../../modules/auth/guards/jwt-auth/jwt-auth.guard.js";
 import { UserThrottlerGuard } from "../../../modules/auth/guards/user-throttler/user-throttler.guard.js";
@@ -19,8 +19,10 @@ import { FortytwoAuthGuard } from "../../../modules/auth/guards/fortytwo-auth/fo
 import { UsersRedisService } from "../../../modules/user/redis/users-redis.service.js";
 import { IpThrottlerGuard } from "../../../modules/auth/guards/ip-throttler/ip-throttler.guard.js";
 import { InternalAuthService } from "./internal-auth.service.js";
+import { HttpAllExceptionsFilter } from "../../filters/HttpAllExceptionsFilter.js";
 
 @Controller('auth')
+@UseFilters(HttpAllExceptionsFilter)
 export class InternalAuthController {
   constructor(
     private readonly authService: AuthService,
@@ -30,7 +32,7 @@ export class InternalAuthController {
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @Get('check')
-  @UseGuards(JwtAuthGuard, UserThrottlerGuard)
+  @UseGuards(IpThrottlerGuard, JwtAuthGuard, UserThrottlerGuard)
   async authCheck(@Req() req: any) {
 
   }
@@ -46,7 +48,7 @@ export class InternalAuthController {
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @Get('admin/check')
-  @UseGuards(IpThrottlerGuard, JwtAuthGuard, RolesGuard)
+  @UseGuards(IpThrottlerGuard, JwtAuthGuard, RolesGuard, UserThrottlerGuard)
   @Throttle({
     ip: {
       limit: THROTTLER_AUTH_ADMIN_CHECK_LIMIT,
@@ -60,13 +62,12 @@ export class InternalAuthController {
 
   @Post('signup')
   @Throttle({
-    // signup endpoint should not allow client to register so quickly
-    default: {
+    ip: {
       limit: THROTTLER_AUTH_SIGNUP_LIMIT,
       ttl: THROTTLER_AUTH_SIGNUP_TTL
     }
   })
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(IpThrottlerGuard)
   async registerUser(@Body(new ZodValidationPipe(createUserSchema)) createUserDto: CreateUserDto) {
     const result = await this.authService.registerUser(createUserDto);
 
@@ -94,13 +95,13 @@ export class InternalAuthController {
     type: UnauthorizedErrorDto
   })
   @HttpCode(HttpStatus.OK)
-  @UseGuards(LocalAuthGuard, UserThrottlerGuard)
   @Throttle({
-    default: {
+    ip: {
       limit: THROTTLER_AUTH_LOGIN_LIMIT,
       ttl: THROTTLER_AUTH_LOGIN_TTL
     }
   })
+  @UseGuards(IpThrottlerGuard, LocalAuthGuard)
   @Post('login')
   async login(@Req() req:any) {
 
@@ -122,7 +123,7 @@ export class InternalAuthController {
     description: 'invalid to expired refresh token. need to re-login for new generated one.'
   })
   @HttpCode(HttpStatus.OK)
-  @UseGuards(RefreshAuthGuard)
+  @UseGuards(IpThrottlerGuard, RefreshAuthGuard)
   @Post('refresh')
   refreshToken(@Req() req: any) {
     return this.authService.refreshToken(req.user.id)
@@ -144,7 +145,7 @@ export class InternalAuthController {
     type: UnauthorizedErrorDto,
     description: 'invalid access_token or expired'
   })
-  @UseGuards(JwtAuthGuard, UserThrottlerGuard)
+  @UseGuards(IpThrottlerGuard, JwtAuthGuard, UserThrottlerGuard)
   @Throttle({
     default: {
       limit: THROTTLER_AUTH_SIGNOUT_LIMIT,
@@ -156,14 +157,14 @@ export class InternalAuthController {
     this.authService.signOut(req.user.id)
   }
 
-  @UseGuards(GoogleAuthGuard)
+  @UseGuards(IpThrottlerGuard, GoogleAuthGuard)
   @Get('google/login')
   googleLogin() {
 
   }
 
 
-  @UseGuards(GoogleAuthGuard)
+  @UseGuards(IpThrottlerGuard, GoogleAuthGuard)
   @Get('google/callback')
   async googleCallback(@Req() req:any, @Query('state') state: string) {
 
@@ -176,14 +177,14 @@ export class InternalAuthController {
     return {...response, callbackUrl: decodeRedirect};
   }
 
-  @UseGuards(FortytwoAuthGuard)
+  @UseGuards(IpThrottlerGuard, FortytwoAuthGuard)
   @Get('42/login')
   fortyTwoLogin() {
 
   }
 
 
-  @UseGuards(FortytwoAuthGuard)
+  @UseGuards(IpThrottlerGuard, FortytwoAuthGuard)
   @Get('42/callback')
   async fortyTwoCallback(@Req() req:any, @Query('state') state: string) {
 

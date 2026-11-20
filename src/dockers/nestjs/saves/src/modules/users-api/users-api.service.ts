@@ -60,6 +60,7 @@ export class UsersApiService {
             return cachingFound;
         }
 
+
         const found = await this.usersApiDatabaseService.findOneByApiKey(apiKey);
 
         const userData = await this.userService.findOne(found.userId);
@@ -84,8 +85,8 @@ export class UsersApiService {
 
     async revokeApiKey(apiId: string) {
 
-        const result = await this.usersApiDatabaseService.revokeApiKey(apiId);
 
+        const result = await this.usersApiDatabaseService.revokeApiKey(apiId);
         await this.usersApiCachingService.removeHashedApi(redis_cache_api_key(result.keyHashed));
 
         return result;

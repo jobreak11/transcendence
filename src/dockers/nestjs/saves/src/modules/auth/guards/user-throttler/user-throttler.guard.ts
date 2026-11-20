@@ -1,5 +1,7 @@
 import { ExecutionContext, Injectable } from '@nestjs/common';
 import { ThrottlerException, ThrottlerGuard, ThrottlerLimitDetail, ThrottlerRequest } from '@nestjs/throttler';
+import { FastifyRequest } from 'fastify';
+import { Role } from '../../enums/role.enum.js';
 
 @Injectable()
 export class UserThrottlerGuard extends ThrottlerGuard {
@@ -8,10 +10,17 @@ export class UserThrottlerGuard extends ThrottlerGuard {
   }
 
   protected async handleRequest(requestProps: ThrottlerRequest): Promise<boolean> {
+
     if (requestProps.throttler.name !== 'user') {
       return true;
     }
-    return super.handleRequest(requestProps);
+
+    const req = requestProps.context.switchToHttp().getRequest<FastifyRequest>();
+    const role = req.user?.role ? (req.user.role as Role) : Role.USER
+
+    let finalLimit = requestProps.limit;
+
+    return super.handleRequest({...requestProps, limit: finalLimit});
   }
 
   protected async throwThrottlingException(context: ExecutionContext, throttlerLimitDetail: ThrottlerLimitDetail): Promise<void> {

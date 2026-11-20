@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpStatus, Logger, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Req, UseFilters, UseGuards } from "@nestjs/common";
+import { BadRequestException, Body, ConflictException, Controller, Delete, ForbiddenException, Get, HttpStatus, Logger, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Req, UseFilters, UseGuards } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { InternalUsersApiService } from "./internal-users-api.service.js";
 import { IpThrottlerGuard } from "../../../modules/auth/guards/ip-throttler/ip-throttler.guard.js";
@@ -10,16 +10,15 @@ import { Roles } from "../../../modules/auth/decorators/roles.decorators.js";
 import { Role } from "../../../modules/auth/enums/role.enum.js";
 import { ZodValidationPipe } from "../../../pipes/ZodValidationPipe.js";
 import { UsersApiCreateDto, usersApiCreateSchema } from "../../../modules/users-api/database/dtos/users-api-create.dto.js";
-import { USER_API_DEVELOPER_API_LIMIT } from "./internal-users-api.constants.js";
+import { USER_API_DEVELOPER_API_LIMIT, USER_API_EDITOR_API_LIMIT, USER_API_USER_API_LIMIT } from "./internal-users-api.constants.js";
 import { userApisRevokeSchema, UsersApiRevokeDto } from "./dtos/users-api-revoke.dto.js";
 import { UsersApiRemoveDto, usersApiRemoveSchema } from "./dtos/users-api-remove.dto.js";
 import { logError } from "../../../utility/logError.js";
 import { UsersApiKeyNoHashedDto } from "./dtos/users-api-key-no-hashed.dto.js";
 
 @ApiTags("Api Request")
-@Controller('users-api/dev')
+@Controller('users-api')
 @UseGuards(IpThrottlerGuard, JwtAuthGuard, RolesGuard, UserThrottlerGuard)
-@Roles(Role.ADMIN, Role.DEVELOPER)
 @UseFilters(HttpAllExceptionsFilter)
 export class InternalUsersApiUserController {
 
@@ -53,12 +52,18 @@ export class InternalUsersApiUserController {
 
     ) {
 
-        if (req.user.role === Role.DEVELOPER) {
+        if (req.user.role !== Role.ADMIN) {
             // developer cannot create too much api key
 
             const countResult = await this.internalUsersApiService.totalUserApiCount(req.user.id);
 
-            if (countResult.totalCount >= USER_API_DEVELOPER_API_LIMIT) {
+            if (req.user.role === Role.DEVELOPER && countResult.totalCount >= USER_API_DEVELOPER_API_LIMIT) {
+                throw new ForbiddenException(`cannot request any more api key, try removing old ones`);
+            }
+            else if (req.user.role === Role.EDITOR && countResult.totalCount >= USER_API_EDITOR_API_LIMIT) {
+                throw new ForbiddenException(`cannot request any more api key, try removing old ones`);
+            }
+            else if (req.user.role === Role.USER && countResult.totalCount >= USER_API_USER_API_LIMIT) {
                 throw new ForbiddenException(`cannot request any more api key, try removing old ones`);
             }
         }
@@ -89,19 +94,25 @@ export class InternalUsersApiUserController {
     @Patch('revoke')
     async revokeApi(
         @Req() req: any,
-        @Body(new ZodValidationPipe(userApisRevokeSchema)) body: UsersApiRevokeDto
+        @Query('apiId', ParseUUIDPipe) apiId: string
     ) {
 
-        const foundApiData = await this.internalUsersApiService.findOneByRawApiKey(body.rawApiKey);
+        const foundApiData = await this.internalUsersApiService.findOneById(apiId);
 
-        if (req.user.role === Role.DEVELOPER) {
+        console.error(foundApiData);
+
+        if (foundApiData.isRevoked === true) {
+            throw new ConflictException("this api key is already revoked")
+        }
+        if (req.user.role !== Role.ADMIN) {
 
             if (foundApiData.userId !== req.user.id) {
                 throw new ForbiddenException("DEVELOPER role cannot revoke this api key")
             }
         }
 
-        const result = await this.internalUsersApiService.revokeApiKey(body.rawApiKey);
+        const result = await this.internalUsersApiService.revokeApiKey(foundApiData.id);
+
 
         return result;
     }
@@ -109,11 +120,11 @@ export class InternalUsersApiUserController {
     @Delete('remove')
     async removeApi(
         @Req() req: any,
-        @Body(new ZodValidationPipe(usersApiRemoveSchema)) body: UsersApiRemoveDto
+        @Query('apiId', ParseUUIDPipe) apiId: string
     ) {
 
 
-        const foundApiData = await this.internalUsersApiService.findOneByRawApiKey(body.rawApiKey);
+        const foundApiData = await this.internalUsersApiService.findOneById(apiId);
 
         if (req.user.role === Role.DEVELOPER) {
 
@@ -122,7 +133,8 @@ export class InternalUsersApiUserController {
             }
         }
 
-        const result = await this.internalUsersApiService.removeApiKey(body.rawApiKey);
+
+        const result = await this.internalUsersApiService.removeApiKey(foundApiData.id);
 
         return result;
     }
@@ -162,6 +174,5 @@ export class InternalUsersApiUserController {
 
         return result;
     }
-
 
 }

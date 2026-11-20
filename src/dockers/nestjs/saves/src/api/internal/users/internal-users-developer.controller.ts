@@ -1,4 +1,4 @@
-import { BadRequestException, Body, ConflictException, Controller, Delete, ForbiddenException, Get, HttpCode, HttpStatus, Logger, NotImplementedException, ParseIntPipe, ParseUUIDPipe, Post, Query, Req, UseGuards } from "@nestjs/common";
+import { BadRequestException, Body, ConflictException, Controller, Delete, ForbiddenException, Get, HttpCode, HttpStatus, Logger, NotImplementedException, ParseIntPipe, ParseUUIDPipe, Post, Query, Req, UseFilters, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import { Roles } from "../../../modules/auth/decorators/roles.decorators.js";
 import { Role } from "../../../modules/auth/enums/role.enum.js";
@@ -14,9 +14,14 @@ import { UnauthorizedErrorDto } from "../../../modules/auth/dto/login.dto.js";
 import { UserAndProfileDto } from "../../../modules/user/dto/user-and-profile.dto.js";
 import { GetUserTotalCountDto } from "./dtos/get-user-count.dto.js";
 import { InternalUsersService } from "./internal-users.service.js";
+import { IpThrottlerGuard } from "../../../modules/auth/guards/ip-throttler/ip-throttler.guard.js";
+import { UserThrottlerGuard } from "../../../modules/auth/guards/user-throttler/user-throttler.guard.js";
+import { HttpAllExceptionsFilter } from "../../filters/HttpAllExceptionsFilter.js";
 
 
 @ApiTags("Users")
+@UseGuards(IpThrottlerGuard, JwtAuthGuard, UserThrottlerGuard)
+@UseFilters(HttpAllExceptionsFilter)
 @Controller('user/dev')
 export class InternalUsersDeveloperController {
 
@@ -34,12 +39,12 @@ export class InternalUsersDeveloperController {
   })
   @Roles(Role.ADMIN)
   @Throttle({
-    default: {
+    ip: {
       limit : THROTTLER_USER_SET_ROLE_LIMIT,
       ttl: THROTTLER_USER_SET_ROLE_TTL
     }
   })
-  @UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
+  @UseGuards(RolesGuard)
   @Post('setRole')
   async setUserRole(
     @Req() req: any,
@@ -58,9 +63,9 @@ export class InternalUsersDeveloperController {
       throw new ForbiddenException("cannot set other user to admin, should have only one admin")
     }
 
-    if (body.newRole === Role.DEVELOPER || body.newRole === Role.GUEST ) {
-        throw new NotImplementedException("DEVELOPER and GUEST role are not implemented yet")
-    }
+    // if (body.newRole === Role.DEVELOPER || body.newRole === Role.GUEST ) {
+    //     throw new NotImplementedException("DEVELOPER and GUEST role are not implemented yet")
+    // }
 
     const targetUser = await this.userService.findOne(body.userId);
     const setterUser = await this.userService.findOne(req.user.id);
@@ -79,7 +84,7 @@ export class InternalUsersDeveloperController {
   })
   @ApiResponse({status: 201, description: 'User created successfully'})
   @ApiResponse({status: 401, description: 'validation failed.', type: UnauthorizedErrorDto})
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   @Post('create')
   async create(
@@ -113,12 +118,12 @@ export class InternalUsersDeveloperController {
   @ApiBearerAuth()
   @Roles(Role.EDITOR, Role.ADMIN)
   @Throttle({
-    default: {
+    ip: {
       ttl: 10_000,
       limit: 20
     }
   })
-  @UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
+  @UseGuards(RolesGuard)
   //@UseGuards(JwtAuthGuard)
   @Delete('delete')
   async remove(
@@ -157,7 +162,7 @@ export class InternalUsersDeveloperController {
     }
   })
   @Roles(Role.ADMIN, Role.EDITOR)
-  @UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
+  @UseGuards(RolesGuard)
   getBatchUsers(
     @Req() req: any,
     @Query('limit', ParseIntPipe) limit: number,

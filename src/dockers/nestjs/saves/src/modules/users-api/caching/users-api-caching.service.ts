@@ -34,7 +34,7 @@ export class UsersApiCachingService {
     }
 
     async removeHashedApi(hashedApiKey: string) {
-        const result = await this.redis.unlink(redis_cache_api_key(hashedApiKey));
+        const result = await this.redis.del(redis_cache_api_key(hashedApiKey));
 
         return result;
     }

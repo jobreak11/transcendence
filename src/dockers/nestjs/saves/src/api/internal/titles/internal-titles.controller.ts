@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ForbiddenException, Get, HttpCode, HttpStatus, Logger, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, ForbiddenException, Get, HttpCode, HttpStatus, Logger, ParseUUIDPipe, Patch, Post, Query, Req, UseFilters, UseGuards } from "@nestjs/common";
 import { ApiForbiddenResponse, ApiOkResponse, ApiOperation, ApiQuery } from "@nestjs/swagger";
 import { CreateNewTitleSchema, CreateNewTitleZodDto, GetUserTitleDto, TitleDto, UpdateTitleSchema, UpdateTitleZodDto } from "../../../modules/titles/title.dto.js";
 import { TitlesService } from "../../../modules/titles/titles.service.js";
@@ -6,8 +6,14 @@ import { RolesGuard } from "../../../modules/auth/guards/roles/roles.guard.js";
 import { Roles } from "../../../modules/auth/decorators/roles.decorators.js";
 import { Role } from "../../../modules/auth/enums/role.enum.js";
 import { ZodValidationPipe } from "../../../pipes/ZodValidationPipe.js";
+import { HttpAllExceptionsFilter } from "../../filters/HttpAllExceptionsFilter.js";
+import { IpThrottlerGuard } from "../../../modules/auth/guards/ip-throttler/ip-throttler.guard.js";
+import { JwtAuthGuard } from "../../../modules/auth/guards/jwt-auth/jwt-auth.guard.js";
+import { UserThrottlerGuard } from "../../../modules/auth/guards/user-throttler/user-throttler.guard.js";
 
 @Controller('title')
+@UseFilters(HttpAllExceptionsFilter)
+@UseGuards(IpThrottlerGuard, JwtAuthGuard, UserThrottlerGuard)
 export class InternalTitlesController {
   private readonly logger = new Logger(InternalTitlesController.name);
 

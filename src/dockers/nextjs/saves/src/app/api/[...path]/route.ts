@@ -57,12 +57,12 @@ const allowedPaths = new Set([
   '/achievements/dev/delete',
 
   // api request for admin and developer
-  '/users-api/dev',
-  '/users-api/dev/request-new',
-  '/users-api/dev/totalUserApiCount',
-  '/users-api/dev/revoke',
-  '/users-api/dev/remove',
-  '/users-api/dev/find',
+  '/users-api',
+  '/users-api/request-new',
+  '/users-api/totalUserApiCount',
+  '/users-api/revoke',
+  '/users-api/remove',
+  '/users-api/find',
   '/users-api/dev/admin/all',
   '/users-api/dev/admin/allApiCount',
   '/users-api/dev/admin/delete',

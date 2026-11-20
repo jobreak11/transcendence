@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, Logger, Patch, PayloadTooLargeException, Post, Query, Req, UseGuards } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, Logger, Patch, PayloadTooLargeException, Post, Query, Req, UseFilters, UseGuards } from "@nestjs/common";
 import { UserService } from "../../../modules/user/user.service.js";
 import { TitlesService } from "../../../modules/titles/titles.service.js";
 import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiOperation, ApiQuery, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
@@ -12,8 +12,12 @@ import { UserThrottlerGuard } from "../../../modules/auth/guards/user-throttler/
 import { type AuthJwtFastifyRequest } from "../../../modules/auth/types/auth-jwtFastifyRequest.js";
 import { ZodValidationPipe } from "../../../pipes/ZodValidationPipe.js";
 import { UpdateUserDto, updateUserSchema } from "../../../modules/user/dto/update-user.dto.js";
+import { HttpAllExceptionsFilter } from "../../filters/HttpAllExceptionsFilter.js";
+import { IpThrottlerGuard } from "../../../modules/auth/guards/ip-throttler/ip-throttler.guard.js";
 
 @ApiTags("Users")
+@UseFilters(HttpAllExceptionsFilter)
+@UseGuards(IpThrottlerGuard, JwtAuthGuard, UserThrottlerGuard)
 @Controller('user')
 export class InternalUsersUserController {
 
@@ -58,9 +62,8 @@ export class InternalUsersUserController {
     type: UnauthorizedErrorDto,
     description: 'Missing or invalid JWT token',
   })
-  @UseGuards(JwtAuthGuard, ThrottlerGuard)
   @Throttle({
-    default: {
+    ip: {
       limit: THROTTLER_USER_PROFILE_LIMIT,
       ttl: THROTTLER_USER_PROFILE_TTL
     }
@@ -157,9 +160,8 @@ export class InternalUsersUserController {
       },
     },
   })
-  @UseGuards(JwtAuthGuard, UserThrottlerGuard)
   @Throttle({
-    default: {
+    ip: {
       limit: THROTTLER_USER_PROFILE_UPLOADPROFILEPIC_LIMIT,
       ttl: THROTTLER_USER_PROFILE_UPLOADPROFILEPIC_TTL
     }
@@ -212,9 +214,8 @@ export class InternalUsersUserController {
     description: 'update the user profile'
   })
   @Patch('update')
-  @UseGuards(JwtAuthGuard, UserThrottlerGuard)
   @Throttle({
-    default: {
+    ip: {
       limit: THROTTLER_USER_PROFILE_UPDATE_LIMIT,
       ttl: THROTTLER_USER_PROFILE_UPDATE_TTL
     }

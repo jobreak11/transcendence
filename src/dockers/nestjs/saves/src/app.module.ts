@@ -19,6 +19,7 @@ import { LobbyModule } from './modules/lobby/lobby.module.js';
 import { GameStatisticsModule } from './modules/game-statistics/game-statistics.module.js';
 import { TrophiesModule } from './modules/trophies/trophies.module.js';
 import { UsersApiModule } from './modules/users-api/users-api.module.js';
+import { byRoleHttp } from './utility/by-role.helper.js';
 
 @Module({
   controllers: [AppController],
@@ -27,11 +28,11 @@ import { UsersApiModule } from './modules/users-api/users-api.module.js';
     ConfigModule.forRoot({ isGlobal: true }), 
     ThrottlerModule.forRoot({
       throttlers: [
-        {
-          name: 'default',
-          limit: 100,
-          ttl: 10 * 1000,
-        }, 
+        // {
+        //   name: 'default',
+        //   limit: 100,
+        //   ttl: 10 * 1000,
+        // }, 
         {
           name: 'ip',
           limit: 100,
@@ -39,14 +40,14 @@ import { UsersApiModule } from './modules/users-api/users-api.module.js';
         },
         {
           name: 'user',
-          limit: 100,
+          limit: byRoleHttp({ ADMIN: 300, DEVELOPER: 200, EDITOR: 100, USER: 50}),
           ttl: 10000
         },
-        {
-          name: 'public-api',
-          limit: 100,
-          ttl: 10000
-        }
+        // {
+        //   name: 'public-api',
+        //   limit: 100,
+        //   ttl: 10000
+        // }
       ],
     }),
     LobbyModule,

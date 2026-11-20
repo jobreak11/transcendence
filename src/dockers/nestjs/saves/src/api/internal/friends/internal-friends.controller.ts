@@ -7,14 +7,15 @@ import { Throttle } from "@nestjs/throttler";
 import { THROTTLER_FRIEND_CONTROLLER_LIMIT, THROTTLER_FRIEND_CONTROLLER_TTL } from "./internal-friends.constants.js";
 import { FriendService } from "../../../modules/friend/friend.service.js";
 import { FriendshipStatus } from "../../../infrastructure/drizzle/schema/friendships.schema.js";
+import { IpThrottlerGuard } from "../../../modules/auth/guards/ip-throttler/ip-throttler.guard.js";
 
 
 @ApiTags('friendships')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, UserThrottlerGuard)
+@UseGuards(IpThrottlerGuard, JwtAuthGuard, UserThrottlerGuard)
 @UseFilters(HttpAllExceptionsFilter)
 @Throttle({
-  default: {
+  ip: {
     limit: THROTTLER_FRIEND_CONTROLLER_LIMIT,
     ttl: THROTTLER_FRIEND_CONTROLLER_TTL
   }

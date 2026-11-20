@@ -10,17 +10,11 @@ import { JwtAuthGuard } from "../../../modules/auth/guards/jwt-auth/jwt-auth.gua
 import { UserThrottlerGuard } from "../../../modules/auth/guards/user-throttler/user-throttler.guard.js";
 import { Roles } from "../../../modules/auth/decorators/roles.decorators.js";
 import { Role } from "../../../modules/auth/enums/role.enum.js";
-import { ZodValidationPipe } from "../../../pipes/ZodValidationPipe.js";
-import { UsersApiCreateDto, usersApiCreateSchema } from "../../../modules/users-api/database/dtos/users-api-create.dto.js";
-import { USER_API_DEVELOPER_API_LIMIT } from "./internal-users-api.constants.js";
-import { UsersApiDatabaseService } from "../../../modules/users-api/database/users-api-database.service.js";
-import { userApisRevokeSchema, UsersApiRevokeDto } from "./dtos/users-api-revoke.dto.js";
-import { UsersApiRemoveDto, usersApiRemoveSchema } from "./dtos/users-api-remove.dto.js";
 import { logError } from "../../../utility/logError.js";
 
 
 @ApiTags("Api Request")
-@Controller('users-api/dev/admin')
+@Controller('users-api/admin')
 @UseGuards(IpThrottlerGuard, JwtAuthGuard, RolesGuard, UserThrottlerGuard)
 @Roles(Role.ADMIN)
 @UseFilters(HttpAllExceptionsFilter)

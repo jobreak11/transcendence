@@ -21,9 +21,11 @@ import { lobbyUpdateSchema } from "../../../modules/lobby/redis/schemas/lobby-up
 import z from "zod";
 import { LobbyDto } from "../../../modules/lobby/redis/dtos/lobby.dto.js";
 import { LobbyDetails } from "../../../modules/lobby/redis/schemas/lobby-details.redis.schema.js";
+import { IpThrottlerGuard } from "../../../modules/auth/guards/ip-throttler/ip-throttler.guard.js";
+import { UserThrottlerGuard } from "../../../modules/auth/guards/user-throttler/user-throttler.guard.js";
 
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, InternalLobbyGuard, ThrottlerGuard)
+@UseGuards(IpThrottlerGuard, JwtAuthGuard, InternalLobbyGuard, UserThrottlerGuard)
 @UseFilters(HttpAllExceptionsFilter)
 @Controller('game/lobby')
 export class InternalLobbyController {
