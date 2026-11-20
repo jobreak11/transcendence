@@ -45,7 +45,7 @@ export class ChatController {
   }
 
   @Post('dm')
-  dmUser(@Req() req:any, @Query('targetUserId', ParseUUIDPipe) targetUserId:string) {
+  async dmUser(@Req() req:any, @Query('targetUserId', ParseUUIDPipe) targetUserId:string) {
 
     try {
 
