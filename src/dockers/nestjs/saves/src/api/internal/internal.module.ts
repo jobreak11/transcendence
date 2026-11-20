@@ -6,6 +6,7 @@ import { InternalChatModule } from "./chat/internal-chat.module.js";
 import { InternalFriendsModule } from "./friends/internal-friends.module.js";
 import { InternalLobbyModule } from "./lobby/internal-lobby.module.js";
 import { InternalGameModule } from "./game/internal-game.module.js";
+import { InternalTournamentModule } from "./tournament/internal-tournament.module.js";
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { InternalGameModule } from "./game/internal-game.module.js";
     InternalFriendsModule,
     InternalLobbyModule,
     InternalGameModule,
+    InternalTournamentModule,
     
   ]
 })

@@ -40,5 +40,9 @@ export function redis_game_table_hand_lock(gameRoomId: string) {
   return `${redis_game_table_hand(gameRoomId)}:lock`
 }
 
+export function redis_game_table_scheduled_start(gameRoomId: string) {
+  return `${redis_game_table(gameRoomId)}:scheduled_start`
+}
+
 
 

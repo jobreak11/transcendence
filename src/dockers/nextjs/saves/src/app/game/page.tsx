@@ -202,7 +202,12 @@ function isPlayersLoadedEvent(
     && "allPlayersLoaded" in value
     && typeof value.allPlayersLoaded === "boolean"
     && "shouldAutoStartFirstHand" in value
-    && typeof value.shouldAutoStartFirstHand === "boolean";
+    && typeof value.shouldAutoStartFirstHand === "boolean"
+    && "scheduledStartAt" in value
+    && (
+      typeof value.scheduledStartAt === "string"
+      || value.scheduledStartAt === null
+    );
 }
 
 interface PrivateCardsEvent {
@@ -264,10 +269,15 @@ export default function Page() {
   const [joinPassword, setJoinPassword] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const [scheduledStartAt, setScheduledStartAt] = useState<string | null>(null);
   const [language, setLanguage] = useState<GameLanguage>("en");
   const userId = getUserIdFromToken(accessToken);
   const isHost = lobbyStatus?.details.hostUserId === userId;
   const dictionary = language === "en" ? enDictionary.game : thDictionary.game;
+  const scheduledStartTime = scheduledStartAt ? Date.parse(scheduledStartAt) : NaN;
+  const secondsUntilTournamentStart = Number.isFinite(scheduledStartTime)
+    ? Math.max(0, Math.ceil((scheduledStartTime - currentTime) / 1000))
+    : null;
 
   const routeToMatchHistory = useCallback((state: PublicGameState) => {
     if (
@@ -393,6 +403,7 @@ export default function Page() {
   useEffect(() => {
     setAllPlayersLoaded(false);
     setIsWaitingToStartFirstHand(false);
+    setScheduledStartAt(null);
   }, [tableSessionId]);
 
   useEffect(() => {
@@ -445,6 +456,7 @@ export default function Page() {
 
       setAllPlayersLoaded(response.allPlayersLoaded);
       setIsWaitingToStartFirstHand(response.shouldAutoStartFirstHand);
+      setScheduledStartAt(response.scheduledStartAt);
     };
     const onPlayersLoaded = (response: unknown) => {
       applyPlayersLoaded(response);
@@ -470,14 +482,17 @@ export default function Page() {
   }, [allPlayersLoaded, isConnected, isHost, socket, tableSessionId]);
 
   useEffect(() => {
-    if (!gameState?.currentPlayerId || !gameState.actionDeadlineAt) return;
+    if (
+      (!gameState?.currentPlayerId || !gameState.actionDeadlineAt)
+      && !scheduledStartAt
+    ) return;
 
     setCurrentTime(Date.now());
     const intervalId = window.setInterval(() => {
       setCurrentTime(Date.now());
     }, 1000);
     return () => window.clearInterval(intervalId);
-  }, [gameState?.actionDeadlineAt, gameState?.currentPlayerId]);
+  }, [gameState?.actionDeadlineAt, gameState?.currentPlayerId, scheduledStartAt]);
 
   useEffect(() => {
     if (!tableSessionId) {
@@ -722,7 +737,7 @@ export default function Page() {
           </button>
         </form>
         <p>Table: {tableSessionId || "Enter your lobby roomPinId above"}</p>
-        {tableSessionId && !gameState && (
+        {tableSessionId && !gameState && lobbyStatus?.details.roomStatus !== "PLAYING" && (
           <div className="mt-2 flex flex-wrap gap-2">
             <button
               type="button"
@@ -751,7 +766,11 @@ export default function Page() {
         )}
         {tableSessionId && (
           <p aria-live="polite">
-            {!allPlayersLoaded
+            {secondsUntilTournamentStart !== null && !gameState
+              ? secondsUntilTournamentStart > 0
+                ? `Tournament round starts in ${Math.floor(secondsUntilTournamentStart / 60)}:${String(secondsUntilTournamentStart % 60).padStart(2, "0")}.`
+                : "Tournament round starting now..."
+              : !allPlayersLoaded
               ? "Waiting for all players to load the game..."
               : isWaitingToStartFirstHand
                 ? "All players loaded. Starting the first hand in 5 seconds..."

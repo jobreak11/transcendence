@@ -40,6 +40,17 @@ export class LobbyService implements OnModuleInit {
     return res;
   }
 
+  createTournamentLobby(
+    creatorUserId: string,
+    createLobbyDto: LobbyCreate.InputDto,
+  ): Promise<LobbyDto> {
+    return this.lobbyRedisService.createTournamentLobby(creatorUserId, createLobbyDto);
+  }
+
+  joinTournamentLobby(userId: string, lobbyPinId: string) {
+    return this.lobbyRedisService.joinTournamentLobby(userId, lobbyPinId);
+  }
+
   async createRankedGame(playerIds: string[]) {
     if (
       playerIds.length !== 4
@@ -242,6 +253,10 @@ export class LobbyService implements OnModuleInit {
 
     const res = await this.lobbyRedisService.startGameRoom(lobbyPinId);
     return res;
+  }
+
+  prepareTournamentLobby(lobbyPinId: string): Promise<LobbyDto> {
+    return this.lobbyRedisService.prepareTournamentLobby(lobbyPinId);
   }
 
 }

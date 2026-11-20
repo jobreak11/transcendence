@@ -26,6 +26,8 @@ import { shuffleDeck } from '../../../modules/game/tools/shuffle.js';
 import { LobbyGameSettingsDto } from '../../../modules/lobby/redis/dtos/lobby-gameSettings.dto.js';
 import { LobbyRoomType } from '../../../modules/lobby/redis/schemas/lobby-generalSettings.redis.schema.js';
 import { GameDatabaseService } from '../../../modules/game/database/game-database.service.js';
+import { TOURNAMENT_RESULT_RECORDER } from '../../../modules/tournament/tournament-result-recorder.js';
+import type { TournamentResultRecorder } from '../../../modules/tournament/tournament-result-recorder.js';
 
 @Injectable()
 export class GameGatewayService implements OnModuleInit {
@@ -37,6 +39,10 @@ export class GameGatewayService implements OnModuleInit {
     ReturnType<typeof setTimeout>
   >();
   private readonly nextHandTimers = new Map<
+    string,
+    ReturnType<typeof setTimeout>
+  >();
+  private readonly scheduledTournamentHandTimers = new Map<
     string,
     ReturnType<typeof setTimeout>
   >();
@@ -62,6 +68,72 @@ export class GameGatewayService implements OnModuleInit {
   async isFirstHand(tableSessionId: string) {
     const progress = await this.gameRedisService.loadMatchProgress(tableSessionId);
     return progress.handNumber === 0;
+  }
+
+  async scheduleTournamentFirstHand(tableSessionId: string, startAt: Date) {
+    if (!Number.isFinite(startAt.getTime())) {
+      throw new Error("Tournament start time must be a valid date.");
+    }
+    await this.gameRedisService.setScheduledStartAt(tableSessionId, startAt);
+    const existingTimer = this.scheduledTournamentHandTimers.get(tableSessionId);
+    if (existingTimer) clearTimeout(existingTimer);
+
+    const timer = setTimeout(() => {
+      this.scheduledTournamentHandTimers.delete(tableSessionId);
+      void this.startScheduledTournamentHand(tableSessionId, startAt);
+    }, Math.max(0, startAt.getTime() - Date.now()));
+    this.scheduledTournamentHandTimers.set(tableSessionId, timer);
+  }
+
+  async cancelScheduledTournamentStart(tableSessionId: string) {
+    const timer = this.scheduledTournamentHandTimers.get(tableSessionId);
+    if (timer) clearTimeout(timer);
+    this.scheduledTournamentHandTimers.delete(tableSessionId);
+    await this.gameRedisService.clearScheduledStartAt(tableSessionId);
+  }
+
+  private async startScheduledTournamentHand(tableSessionId: string, startAt: Date) {
+    try {
+      const remainingDelay = startAt.getTime() - Date.now();
+      if (remainingDelay > 0) {
+        const timer = setTimeout(() => {
+          this.scheduledTournamentHandTimers.delete(tableSessionId);
+          void this.startScheduledTournamentHand(tableSessionId, startAt);
+        }, remainingDelay);
+        this.scheduledTournamentHandTimers.set(tableSessionId, timer);
+        return;
+      }
+      if (!await this.isFirstHand(tableSessionId)) {
+        await this.gameRedisService.clearScheduledStartAt(tableSessionId);
+        return;
+      }
+      await this.startHand(tableSessionId);
+      await this.gameRedisService.clearScheduledStartAt(tableSessionId);
+    } catch (error) {
+      this.logger.error(
+        `Failed to start tournament table ${tableSessionId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      let firstHand: boolean;
+      try {
+        firstHand = await this.isFirstHand(tableSessionId);
+      } catch (stateError) {
+        this.logger.error(
+          `Could not verify tournament table ${tableSessionId} after a failed start`,
+          stateError instanceof Error ? stateError.stack : String(stateError),
+        );
+        firstHand = true;
+      }
+      if (!firstHand) {
+        await this.gameRedisService.clearScheduledStartAt(tableSessionId);
+        return;
+      }
+      const retryTimer = setTimeout(() => {
+        this.scheduledTournamentHandTimers.delete(tableSessionId);
+        void this.startScheduledTournamentHand(tableSessionId, startAt);
+      }, 5_000);
+      this.scheduledTournamentHandTimers.set(tableSessionId, retryTimer);
+    }
   }
 
   getCompletedMatchState(tableSessionId: string) {
@@ -92,6 +164,11 @@ export class GameGatewayService implements OnModuleInit {
     //requesterId: string
   ) {
     return this.gameRedisService.withTableLock(tableSessionId, async () => {
+      const scheduledStartAt = await this.gameRedisService.getScheduledStartAt(tableSessionId);
+      if (scheduledStartAt && Date.now() < scheduledStartAt.getTime()) {
+        throw new WsException("Tournament hand cannot start before its scheduled time.");
+      }
+
       const isLobbyExist = await this.lobbyRedisService.isLobbyExist(tableSessionId);
       if (!isLobbyExist) {
         throw new WsException('Table does not exist');
@@ -699,11 +776,20 @@ export class GameGatewayService implements OnModuleInit {
       if (nextHandTimer) clearTimeout(nextHandTimer);
       this.nextHandTimers.delete(state.tableSessionId);
 
-      this.gameDatabaseService.createNewGameMatches(
+      const savedMatch = await this.gameDatabaseService.createNewGameMatches(
         matchProgress,
         result.matchEndedAt ? new Date(result.matchEndedAt) : new Date(),
         result.tableSessionId
-      )
+      );
+      const tournamentService = this.moduleRef.get<TournamentResultRecorder>(
+        TOURNAMENT_RESULT_RECORDER,
+        { strict: false },
+      );
+      await tournamentService.recordMatchResult(
+        result.tableSessionId,
+        savedMatch.id,
+        matchProgress,
+      );
 
       
     } else {

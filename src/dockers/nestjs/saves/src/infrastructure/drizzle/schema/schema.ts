@@ -12,6 +12,7 @@ import { user_throphies } from './user_throphies/user_throphies.schema.js'
 import { game_matches } from './game_matches/game_matches.schema.js'
 import { user_game_matches } from './user_game_matches/user_game_matches.schema.js'
 import { user_game_statistics } from './user_game_statistics/user_game_statistics.schema.js'
+import { tournamentGroupPlayers, tournamentGroups, tournamentParticipants, tournamentRounds, tournaments } from './tournaments/tournaments.schema.js'
 
 //export * from './users.schema.js'
 //export * from './friendships.schema.js'
@@ -35,7 +36,12 @@ export const dbRelations = defineRelations(
     user_throphies,
     game_matches,
     user_game_matches,
-    user_game_statistics
+    user_game_statistics,
+    tournaments,
+    tournamentParticipants,
+    tournamentRounds,
+    tournamentGroups,
+    tournamentGroupPlayers
   },
   (r) => ({
     users: {
@@ -179,5 +185,10 @@ export const dbSchema = {
   game_matches,
   user_game_matches,
   user_game_statistics,
+  tournaments,
+  tournamentParticipants,
+  tournamentRounds,
+  tournamentGroups,
+  tournamentGroupPlayers,
   dbRelations,
 }
