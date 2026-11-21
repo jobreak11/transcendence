@@ -1,2 +1,0 @@
-
-export const CHAT_REDIS_MESSAGE_LIMIT = 200;

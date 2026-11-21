@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { rankings } from "../../../lib/mock-data";
 import { useMainSocket } from "../../(protected)/_context/useMainSocket";
+import { useLanguage } from "../language/LanguageProvider";
 
 const MATCH_FOUND_EVENT = "ranked:match-found";
 const GAME_READY_EVENT = "ranked:game-ready";
@@ -34,6 +35,9 @@ function isRankedGameReadyEvent(
 }
 
 export default function RankedMode() {
+
+  const { dictionary } = useLanguage();
+
   const router = useRouter();
   const { socket, isConnected, connectionError } = useMainSocket();
   const [message, setMessage] = useState("");

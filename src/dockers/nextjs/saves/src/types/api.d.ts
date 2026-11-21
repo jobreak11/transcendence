@@ -887,15 +887,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/game/matches": {
+    "/tournament": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** get the game matches data of the user */
-        get: operations["InternalGameMatchesUserController_getMatches"];
+        /** List tournaments */
+        get: operations["InternalTournamentController_list"];
+        put?: never;
+        /** Create a tournament */
+        post: operations["InternalTournamentController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tournament/{tournamentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get tournament details and bracket */
+        get: operations["InternalTournamentController_detail"];
         put?: never;
         post?: never;
         delete?: never;
@@ -904,119 +922,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/game/matches/find": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalGameMatchesUserController_findMatch"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/game/statistics": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalGameStatisticsUserController_getGameStatistics"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/trophies": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalTrophiesUserController_allUserThrophies"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/trophies/totalUserCount": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalTrophiesUserController_totalTrophiesCount"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/trophies/allTotalCount": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalTrophiesUserController_allTotalCount"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/trophies/find": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalTrophiesUserController_findOneTrophy"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/trophies/dev/all": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalTrophiesDeveloperController_allTrophies"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/trophies/dev/create": {
+    "/tournament/{tournamentId}/register": {
         parameters: {
             query?: never;
             header?: never;
@@ -1025,14 +931,16 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["InternalTrophiesDeveloperController_createTrophy"];
-        delete?: never;
+        /** Register for a tournament */
+        post: operations["InternalTournamentController_register"];
+        /** Unregister before registration closes */
+        delete: operations["InternalTournamentController_unregister"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/trophies/dev/uploadPic": {
+    "/tournament/{tournamentId}/close-registration": {
         parameters: {
             query?: never;
             header?: never;
@@ -1041,392 +949,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Upload user profile picture */
-        post: operations["InternalTrophiesDeveloperController_uploadTrophyPic"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/trophies/dev/update": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch: operations["InternalTrophiesDeveloperController_updateTrophyData"];
-        trace?: never;
-    };
-    "/trophies/dev/give": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["InternalTrophiesDeveloperController_giveUserTrophy"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/trophies/dev/revoke": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["InternalTrophiesDeveloperController_revokeUserTrophy"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/trophies/dev/delete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["InternalTrophiesDeveloperController_deleteUserTrophy"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/achievements": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalAchievementsUserController_getUserAchievements"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/achievements/totalUserCount": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalAchievementsUserController_totalAchievementsUserCount"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/achievements/allTotalCount": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalAchievementsUserController_totalAchievementsCount"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/achievements/find": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalAchievementsUserController_findAchievement"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/achievements/dev/all": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalAchievementsDeveloperController_allAchievements"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/achievements/dev/create": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["InternalAchievementsDeveloperController_createAchievement"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/achievements/dev/update": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch: operations["InternalAchievementsDeveloperController_updateAchievements"];
-        trace?: never;
-    };
-    "/achievements/dev/give": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["InternalAchievementsDeveloperController_giveUserAchievement"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/achievements/dev/revoke": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["InternalAchievementsDeveloperController_revokeUserAchievement"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/achievements/dev/delete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["InternalAchievementsDeveloperController_deleteAchievement"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/users-api": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalUsersApiUserController_yourApis"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/users-api/request-new": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["InternalUsersApiUserController_requestNewApi"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/users-api/totalUserApiCount": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalUsersApiUserController_totalUserApiCount"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/users-api/revoke": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch: operations["InternalUsersApiUserController_revokeApi"];
-        trace?: never;
-    };
-    "/users-api/remove": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["InternalUsersApiUserController_removeApi"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/users-api/find": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalUsersApiUserController_findApi"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/users-api/admin/all": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalUsersApiDeveloperController_allApis"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/users-api/admin/allApiCount": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalUsersApiDeveloperController_totalAllApiCount"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/users-api/admin/delete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["InternalUsersApiDeveloperController_deleteByApiId"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/users-api/admin/find": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["InternalUsersApiDeveloperController_findApi"];
-        put?: never;
-        post?: never;
+        /** Close registration and seed the first round */
+        post: operations["InternalTournamentController_closeRegistration"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1849,12 +1373,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a1fe6a-ec26-703c-981a-7876f921fc84
+             * @example 01a1fec9-bd84-7588-b0e7-ae92e0e72296
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a1fe6a-ec29-741e-8aa3-1aeaee217a4c
+             * @example 01a1fec9-bd87-72ea-8519-1f0a2d3bd96c
              */
             chatRoomId: string;
             /**
@@ -1940,7 +1464,7 @@ export interface components {
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1fe6a-ec2c-744b-adcd-364ad1c9dc3b
+             * @example 067821
              */
             gameRoomId: string | null;
             /**
@@ -2029,7 +1553,7 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a1fe6a-ec2c-744b-adcd-364ad1c9dc3b
+             * @example 067821
              */
             gameRoomId: string | null;
             /**
@@ -2126,627 +1650,6 @@ export interface components {
             generalSettings: components["schemas"]["baseGeneral"];
             /** @description field to update in game settings */
             gameSettings: components["schemas"]["baseGameSetting"];
-        };
-        GameMatchNoIdDto: {
-            /**
-             * @description the game type of this game match
-             * @example CASUAL
-             * @enum {string}
-             */
-            gameType: "CASUAL" | "RANKED" | "TOURNAMENT";
-            /** @description the total hands of all players in this match */
-            totalHandsPlayed: number;
-            /**
-             * @description the format of the game setting
-             * @example BEGINNER
-             * @enum {string}
-             */
-            gameFormat: "BEGINNER" | "PRO" | "TURBO" | "CUSTOM";
-            /**
-             * @description the starting chips of this game matches
-             * @example 2000
-             */
-            startingChips: number;
-            /** @description the bigblind amount */
-            bigBlind: number;
-            /** @description the ante amount */
-            ante: number;
-            /** @description the amount of player that played in this match */
-            totalPlayer: number;
-            /** @description the userId that created this room */
-            createdByUserId: string | null;
-            /**
-             * Format: date-time
-             * @description the timestamp when the match was started
-             */
-            startedAt: string;
-            /**
-             * Format: date-time
-             * @description the timestamp when the match was ended
-             */
-            endedAt: string;
-        };
-        GetGameMatchDto: {
-            /** @description the game match id */
-            gameMatchId: string;
-            /** @description the place for this player for this match */
-            playerPlace: number;
-            /** @description describe how many hands this user was played. */
-            playCount: number;
-            /** @description total win count of this match */
-            winCount: number;
-            /** @description the rank that earned from this match */
-            rankEarned: number;
-            /** @description the exp that earn from this match */
-            expEarned: number;
-            /** @description the game match details */
-            gameMatch: components["schemas"]["GameMatchNoIdDto"];
-        };
-        UserGameMatchNoGameMatchId: {
-            /** @description the user id */
-            userId: string;
-            /** @description the place for this player for this match */
-            playerPlace: number;
-            /** @description describe how many hands this user was played. */
-            playCount: number;
-            /** @description total win count of this match */
-            winCount: number;
-            /** @description the rank that earned from this match */
-            rankEarned: number;
-            /** @description the exp that earn from this match */
-            expEarned: number;
-        };
-        FullGameMatchDto: {
-            /** @description the id of this game matches */
-            id: string;
-            /**
-             * @description the game type of this game match
-             * @example CASUAL
-             * @enum {string}
-             */
-            gameType: "CASUAL" | "RANKED" | "TOURNAMENT";
-            /** @description the total hands of all players in this match */
-            totalHandsPlayed: number;
-            /**
-             * @description the format of the game setting
-             * @example BEGINNER
-             * @enum {string}
-             */
-            gameFormat: "BEGINNER" | "PRO" | "TURBO" | "CUSTOM";
-            /**
-             * @description the starting chips of this game matches
-             * @example 2000
-             */
-            startingChips: number;
-            /** @description the bigblind amount */
-            bigBlind: number;
-            /** @description the ante amount */
-            ante: number;
-            /** @description the amount of player that played in this match */
-            totalPlayer: number;
-            /** @description the userId that created this room */
-            createdByUserId: string | null;
-            /**
-             * Format: date-time
-             * @description the timestamp when the match was started
-             */
-            startedAt: string;
-            /**
-             * Format: date-time
-             * @description the timestamp when the match was ended
-             */
-            endedAt: string;
-            /** @description each user match result */
-            userMatchResult: components["schemas"]["UserGameMatchNoGameMatchId"][];
-        };
-        GetOneUserGameStatisticsDto: {
-            /** @description the exp point of that user left after deducting from level */
-            expPoint: number;
-            /** @description the level of the user */
-            level: number;
-            /** @description the total rank of the user */
-            rankPoint: number;
-            /** @description the total matches that this user has played */
-            matchPlayed: number;
-            /** @description the total matches that user has won. */
-            totalMatchesWon: number;
-            /** @description the total hands that user has played from all the game matches */
-            totalHandsPlayed: number;
-            /** @description the total hands that user has played and won from all the game matches */
-            totalHandsWon: number;
-        };
-        TrophyDto: {
-            /**
-             * @description the id of the trophy
-             * @example 01a1fe6a-ec49-714c-9dd4-8c46ba532934
-             */
-            id: string;
-            /**
-             * @description name of the trophy
-             * @example champion trophy
-             */
-            name: string;
-            /** @description the description detail of the trophy */
-            description: string | null;
-            /** @description the image url of the trophy */
-            imageUrl: string | null;
-            /**
-             * Format: date-time
-             * @description the date this trophy was created
-             */
-            createdAt: string;
-        };
-        GetUserTrophyDto: {
-            /**
-             * Format: date-time
-             * @description the date this trophy unlocked to this user
-             * @example 2026-11-21T14:03:02.602Z
-             */
-            unlockedAt: string;
-            /** @description the trophy details */
-            trophy: components["schemas"]["TrophyDto"];
-        };
-        GetAllUserTrophiesCountDto: {
-            /** @description totalCount of all the trophies this user got */
-            totalCount: number;
-        };
-        GetAllTrophiesCountDto: {
-            /** @description the total count of overall trophies available */
-            totalCount: number;
-        };
-        GetTrophyDto: {
-            /**
-             * @description the id of the trophy
-             * @example 01a1fe6a-ec49-714c-9dd4-8c46ba532934
-             */
-            id: string;
-            /**
-             * @description name of the trophy
-             * @example champion trophy
-             */
-            name: string;
-            /** @description the description detail of the trophy */
-            description: string | null;
-            /** @description the image url of the trophy */
-            imageUrl: string | null;
-            /**
-             * Format: date-time
-             * @description the date this trophy was created
-             */
-            createdAt: string;
-        };
-        CreateNewTrophyDto: {
-            /**
-             * @description name of the trophy
-             * @example champion trophy
-             */
-            name?: string;
-            /** @description the description detail of the trophy */
-            description?: string | null;
-            /** @description the image url of the trophy */
-            imageUrl?: string | null;
-            /**
-             * Format: date-time
-             * @description the date this trophy was created
-             */
-            createdAt?: string;
-        };
-        TrophiesUpdateDto: {
-            /**
-             * @description name of the trophy
-             * @example champion trophy
-             */
-            name?: string;
-            /** @description the description detail of the trophy */
-            description?: string | null;
-            /** @description the image url of the trophy */
-            imageUrl?: string | null;
-            /**
-             * Format: date-time
-             * @description the date this trophy was created
-             */
-            createdAt?: string;
-        };
-        NewUserTrophyDto: {
-            /**
-             * @description the uuid of the user that got this trophy
-             * @example 01a1fe6a-ec4a-72ee-ac7a-e9cf70ffbdf0
-             */
-            userId: string;
-            /**
-             * @description the uuid of the trophy
-             * @example 01a1fe6a-ec4a-72ee-ac7a-ec612e8af5ed
-             */
-            trophyId: string;
-            /**
-             * Format: date-time
-             * @description the date this trophy unlocked to this user
-             * @example 2026-11-21T14:03:02.602Z
-             */
-            unlockedAt: string;
-        };
-        UserTrophyDto: {
-            /**
-             * @description the uuid of the user that got this trophy
-             * @example 01a1fe6a-ec4a-72ee-ac7a-e9cf70ffbdf0
-             */
-            userId: string;
-            /**
-             * @description the uuid of the trophy
-             * @example 01a1fe6a-ec4a-72ee-ac7a-ec612e8af5ed
-             */
-            trophyId: string;
-            /**
-             * Format: date-time
-             * @description the date this trophy unlocked to this user
-             * @example 2026-11-21T14:03:02.602Z
-             */
-            unlockedAt: string;
-        };
-        TitleNoIdDto: {
-            /**
-             * @description the name of the title
-             * @example all in one
-             */
-            name: string;
-            /**
-             * @description the description of the title
-             * @example the person really likes to all in.
-             */
-            description: string | null;
-            /**
-             * Format: date-time
-             * @description The time and date of when this title was added
-             */
-            createdAt: string;
-        };
-        TrophyNoIdDto: {
-            /**
-             * @description name of the trophy
-             * @example champion trophy
-             */
-            name: string;
-            /** @description the description detail of the trophy */
-            description: string | null;
-            /** @description the image url of the trophy */
-            imageUrl: string | null;
-            /**
-             * Format: date-time
-             * @description the date this trophy was created
-             */
-            createdAt: string;
-        };
-        GetAchievementNoIdDto: {
-            /**
-             * @description the name of the achievement
-             * @example Get High
-             */
-            name: string;
-            /**
-             * @description the description of the achivement.
-             * @example Am i High?
-             */
-            description: string | null;
-            /**
-             * @description the condition for this achievement to triggered
-             * @example won by high cards 100 times
-             */
-            condition: string | null;
-            /**
-             * @description title uuid linked to this achievement.
-             * @example 01a1fe6a-ec4f-717e-91f8-028632bb53ea
-             */
-            titleId: string | null;
-            /**
-             * @description trophy uuid linked to this achievement
-             * @example 01a1fe6a-ec4f-717e-91f8-058e19ba7ce3
-             */
-            trophyId: string | null;
-            /**
-             * Format: date-time
-             * @description the time this achivement was created
-             * @example 2026-11-21T14:03:02.607Z
-             */
-            createdAt: string;
-            /** @description the title details */
-            title: components["schemas"]["TitleNoIdDto"] | null;
-            /** @description the trophy details */
-            trophy: components["schemas"]["TrophyNoIdDto"] | null;
-        };
-        GetUserAchievementDto: {
-            /**
-             * @description the uuid of user that have this achievement
-             * @example 01a1fe6a-ec50-7331-bffe-5c3399bcb26c
-             */
-            userId: string;
-            /**
-             * @description this uuid of the achievement this user got
-             * @example 01a1fe6a-ec50-7331-bffe-6164e4dde682
-             */
-            achievementId: string;
-            /**
-             * Format: date-time
-             * @description the date when this user got the achievement
-             * @example 2026-11-21T14:03:02.608Z
-             */
-            unlockedAt: string;
-            /** @description the achievement data */
-            achievement: components["schemas"]["GetAchievementNoIdDto"];
-        };
-        GetTotalUserAchievementCountDto: {
-            /** @description total count of the user achievements */
-            totalCount: number;
-        };
-        GetTotalAllAchievementCountDto: {
-            /** @description total count of all the achievements */
-            totalCount: number;
-        };
-        GetAchievementDto: {
-            /**
-             * @description the uuid
-             * @example 01a1fe6a-ec4e-763d-b053-7bb5af23216e
-             */
-            id: string;
-            /**
-             * @description the name of the achievement
-             * @example Get High
-             */
-            name: string;
-            /**
-             * @description the description of the achivement.
-             * @example Am i High?
-             */
-            description: string | null;
-            /**
-             * @description the condition for this achievement to triggered
-             * @example won by high cards 100 times
-             */
-            condition: string | null;
-            /**
-             * @description title uuid linked to this achievement.
-             * @example 01a1fe6a-ec4f-717e-91f8-028632bb53ea
-             */
-            titleId: string | null;
-            /**
-             * @description trophy uuid linked to this achievement
-             * @example 01a1fe6a-ec4f-717e-91f8-058e19ba7ce3
-             */
-            trophyId: string | null;
-            /**
-             * Format: date-time
-             * @description the time this achivement was created
-             * @example 2026-11-21T14:03:02.607Z
-             */
-            createdAt: string;
-            /** @description the title details */
-            title: components["schemas"]["TitleNoIdDto"] | null;
-            /** @description the trophy details */
-            trophy: components["schemas"]["TrophyNoIdDto"] | null;
-        };
-        AchievementCreateDto: {
-            /**
-             * @description the name of the achievement
-             * @example Get High
-             */
-            name: string;
-            /**
-             * @description the description of the achivement.
-             * @example Am i High?
-             */
-            description?: string | null;
-            /**
-             * @description the condition for this achievement to triggered
-             * @example won by high cards 100 times
-             */
-            condition?: string | null;
-            /**
-             * @description title uuid linked to this achievement.
-             * @example 01a1fe6a-ec4f-717e-91f8-028632bb53ea
-             */
-            titleId?: string | null;
-            /**
-             * @description trophy uuid linked to this achievement
-             * @example 01a1fe6a-ec4f-717e-91f8-058e19ba7ce3
-             */
-            trophyId?: string | null;
-            /**
-             * Format: date-time
-             * @description the time this achivement was created
-             * @example 2026-11-21T14:03:02.607Z
-             */
-            createdAt?: string;
-        };
-        AchievementDto: {
-            /**
-             * @description the uuid
-             * @example 01a1fe6a-ec4e-763d-b053-7bb5af23216e
-             */
-            id: string;
-            /**
-             * @description the name of the achievement
-             * @example Get High
-             */
-            name: string;
-            /**
-             * @description the description of the achivement.
-             * @example Am i High?
-             */
-            description: string | null;
-            /**
-             * @description the condition for this achievement to triggered
-             * @example won by high cards 100 times
-             */
-            condition: string | null;
-            /**
-             * @description title uuid linked to this achievement.
-             * @example 01a1fe6a-ec4f-717e-91f8-028632bb53ea
-             */
-            titleId: string | null;
-            /**
-             * @description trophy uuid linked to this achievement
-             * @example 01a1fe6a-ec4f-717e-91f8-058e19ba7ce3
-             */
-            trophyId: string | null;
-            /**
-             * Format: date-time
-             * @description the time this achivement was created
-             * @example 2026-11-21T14:03:02.607Z
-             */
-            createdAt: string;
-        };
-        AchievementUpdateDto: {
-            /**
-             * @description the name of the achievement
-             * @example Get High
-             */
-            name: string;
-            /**
-             * @description the description of the achivement.
-             * @example Am i High?
-             */
-            description: string | null;
-            /**
-             * @description the condition for this achievement to triggered
-             * @example won by high cards 100 times
-             */
-            condition: string | null;
-            /**
-             * @description title uuid linked to this achievement.
-             * @example 01a1fe6a-ec4f-717e-91f8-028632bb53ea
-             */
-            titleId: string | null;
-            /**
-             * @description trophy uuid linked to this achievement
-             * @example 01a1fe6a-ec4f-717e-91f8-058e19ba7ce3
-             */
-            trophyId: string | null;
-            /**
-             * Format: date-time
-             * @description the time this achivement was created
-             * @example 2026-11-21T14:03:02.607Z
-             */
-            createdAt: string;
-        };
-        UserAchievementDto: {
-            /**
-             * @description the uuid of user that have this achievement
-             * @example 01a1fe6a-ec50-7331-bffe-5c3399bcb26c
-             */
-            userId: string;
-            /**
-             * @description this uuid of the achievement this user got
-             * @example 01a1fe6a-ec50-7331-bffe-6164e4dde682
-             */
-            achievementId: string;
-            /**
-             * Format: date-time
-             * @description the date when this user got the achievement
-             * @example 2026-11-21T14:03:02.608Z
-             */
-            unlockedAt: string;
-        };
-        UsersApiKeyNoHashedDto: {
-            /** @description id of the api key in database */
-            id: string;
-            /** @description user id that own this api key */
-            userId: string;
-            /** @description the name of the key */
-            keyName: string;
-            /** @description the prefix of the key. used for displayed on request */
-            keyPrefix: string;
-            /** @description whether this key is revoked or not */
-            isRevoked: boolean;
-            /**
-             * Format: date-time
-             * @description the date this api was created
-             */
-            createdAt: string;
-        };
-        UsersApiCreateDto: {
-            /** @description the name of the key */
-            keyName: string;
-        };
-        UsersApiCreateRawApiKeyDto: {
-            /** @description id of the api key in database */
-            id: string;
-            /** @description user id that own this api key */
-            userId: string;
-            /** @description the name of the key */
-            keyName: string;
-            /** @description the prefix of the key. used for displayed on request */
-            keyPrefix: string;
-            /** @description whether this key is revoked or not */
-            isRevoked: boolean;
-            /**
-             * Format: date-time
-             * @description the date this api was created
-             */
-            createdAt: string;
-            /** @description the raw api key for user to store. DISPLAY ONE TIME ONLY!! */
-            rawApiKey: string;
-        };
-        UsersApiTotalUserApiCountDto: {
-            /** @description the total amount of api that the user own */
-            totalCount: number;
-        };
-        UserDto: {
-            /**
-             * @description the uuid main id for user table
-             * @example 01a105d0-bf8f-758a-a1ab-cf9098fded20
-             */
-            id: string;
-            /**
-             * @description tag id of user
-             * @example YYMMDD_0000
-             */
-            tagId: string;
-            /**
-             * @description the email of the user
-             * @example user@example.com
-             */
-            email: string;
-            /**
-             * @description the hashed password of the user
-             * @example SecurePassword123
-             */
-            password: string;
-            /**
-             * @description The role of the user
-             * @example USER
-             * @enum {string}
-             */
-            role: "ADMIN" | "DEVELOPER" | "EDITOR" | "USER";
-            /**
-             * @description the refresh token of the user
-             * @example asdflkaeflkasdflkasf
-             */
-            hashedRefreshToken: string | null;
-            /**
-             * Format: date-time
-             * @description The time and date that this user was created
-             */
-            createdAt: string;
-        };
-        UsersApiAllApiDto: {
-            /** @description id of the api key in database */
-            id: string;
-            /** @description user id that own this api key */
-            userId: string;
-            /** @description the name of the key */
-            keyName: string;
-            /** @description the prefix of the key. used for displayed on request */
-            keyPrefix: string;
-            /** @description the actual key hashed */
-            keyHashed: string;
-            /** @description whether this key is revoked or not */
-            isRevoked: boolean;
-            /**
-             * Format: date-time
-             * @description the date this api was created
-             */
-            createdAt: string;
-            /** @description the user infomation */
-            user: components["schemas"]["UserDto"];
         };
     };
     responses: never;
@@ -3847,116 +2750,7 @@ export interface operations {
             };
         };
     };
-    InternalGameMatchesUserController_getMatches: {
-        parameters: {
-            query?: {
-                limit?: number;
-                offset?: number;
-                userId?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GetGameMatchDto"][];
-                };
-            };
-        };
-    };
-    InternalGameMatchesUserController_findMatch: {
-        parameters: {
-            query: {
-                gameMatchId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FullGameMatchDto"];
-                };
-            };
-        };
-    };
-    InternalGameStatisticsUserController_getGameStatistics: {
-        parameters: {
-            query?: {
-                userId?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GetOneUserGameStatisticsDto"];
-                };
-            };
-        };
-    };
-    InternalTrophiesUserController_allUserThrophies: {
-        parameters: {
-            query?: {
-                limit?: number;
-                offset?: number;
-                userId?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GetUserTrophyDto"][];
-                };
-            };
-        };
-    };
-    InternalTrophiesUserController_totalTrophiesCount: {
-        parameters: {
-            query?: {
-                userId?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GetAllUserTrophiesCountDto"];
-                };
-            };
-        };
-    };
-    InternalTrophiesUserController_allTotalCount: {
+    InternalTournamentController_list: {
         parameters: {
             query?: never;
             header?: never;
@@ -3969,244 +2763,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["GetAllTrophiesCountDto"];
-                };
+                content?: never;
             };
         };
     };
-    InternalTrophiesUserController_findOneTrophy: {
-        parameters: {
-            query: {
-                trophyId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GetTrophyDto"];
-                };
-            };
-        };
-    };
-    InternalTrophiesDeveloperController_allTrophies: {
-        parameters: {
-            query?: {
-                limit?: number;
-                offset?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TrophyDto"][];
-                };
-            };
-        };
-    };
-    InternalTrophiesDeveloperController_createTrophy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateNewTrophyDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GetTrophyDto"];
-                };
-            };
-        };
-    };
-    InternalTrophiesDeveloperController_uploadTrophyPic: {
-        parameters: {
-            query: {
-                trophyId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": {
-                    /**
-                     * Format: binary
-                     * @description Trophy image file (JPG)
-                     */
-                    file: string;
-                };
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GetTrophyDto"];
-                };
-            };
-        };
-    };
-    InternalTrophiesDeveloperController_updateTrophyData: {
-        parameters: {
-            query: {
-                trophyId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TrophiesUpdateDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GetTrophyDto"];
-                };
-            };
-        };
-    };
-    InternalTrophiesDeveloperController_giveUserTrophy: {
-        parameters: {
-            query: {
-                targetUserId: string;
-                targetTrophyId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NewUserTrophyDto"];
-                };
-            };
-        };
-    };
-    InternalTrophiesDeveloperController_revokeUserTrophy: {
-        parameters: {
-            query: {
-                userId: string;
-                trophyId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserTrophyDto"];
-                };
-            };
-        };
-    };
-    InternalTrophiesDeveloperController_deleteUserTrophy: {
-        parameters: {
-            query: {
-                trophyId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TrophyDto"];
-                };
-            };
-        };
-    };
-    InternalAchievementsUserController_getUserAchievements: {
-        parameters: {
-            query?: {
-                limit?: number;
-                offset?: number;
-                userId?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GetUserAchievementDto"][];
-                };
-            };
-        };
-    };
-    InternalAchievementsUserController_totalAchievementsUserCount: {
-        parameters: {
-            query?: {
-                userId?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GetTotalUserAchievementCountDto"];
-                };
-            };
-        };
-    };
-    InternalAchievementsUserController_totalAchievementsCount: {
+    InternalTournamentController_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -4215,115 +2776,40 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GetTotalAllAchievementCountDto"];
-                };
-            };
-        };
-    };
-    InternalAchievementsUserController_findAchievement: {
-        parameters: {
-            query: {
-                achievementId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GetAchievementDto"];
-                };
-            };
-        };
-    };
-    InternalAchievementsDeveloperController_allAchievements: {
-        parameters: {
-            query?: {
-                limit?: number;
-                offset?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GetAchievementDto"][];
-                };
-            };
-        };
-    };
-    InternalAchievementsDeveloperController_createAchievement: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AchievementCreateDto"];
-            };
-        };
-        responses: {
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["AchievementDto"];
-                };
+                content?: never;
             };
         };
     };
-    InternalAchievementsDeveloperController_updateAchievements: {
+    InternalTournamentController_detail: {
         parameters: {
-            query: {
-                achievementId: string;
-            };
+            query?: never;
             header?: never;
-            path?: never;
+            path: {
+                tournamentId: string;
+            };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AchievementUpdateDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["GetAchievementDto"];
-                };
+                content?: never;
             };
         };
     };
-    InternalAchievementsDeveloperController_giveUserAchievement: {
+    InternalTournamentController_register: {
         parameters: {
-            query: {
-                userId: string;
-                achievementId: string;
-            };
+            query?: never;
             header?: never;
-            path?: never;
+            path: {
+                tournamentId: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -4332,266 +2818,45 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["UserAchievementDto"];
-                };
+                content?: never;
             };
         };
     };
-    InternalAchievementsDeveloperController_revokeUserAchievement: {
-        parameters: {
-            query: {
-                userId: string;
-                achievementId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserAchievementDto"];
-                };
-            };
-        };
-    };
-    InternalAchievementsDeveloperController_deleteAchievement: {
-        parameters: {
-            query: {
-                achievementId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AchievementDto"];
-                };
-            };
-        };
-    };
-    InternalUsersApiUserController_yourApis: {
-        parameters: {
-            query?: {
-                limit?: number;
-                offset?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UsersApiKeyNoHashedDto"][];
-                };
-            };
-        };
-    };
-    InternalUsersApiUserController_requestNewApi: {
+    InternalTournamentController_unregister: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                tournamentId: string;
+            };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UsersApiCreateDto"];
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
+    };
+    InternalTournamentController_closeRegistration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tournamentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["UsersApiCreateRawApiKeyDto"];
-                };
-            };
-        };
-    };
-    InternalUsersApiUserController_totalUserApiCount: {
-        parameters: {
-            query?: {
-                userId?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UsersApiTotalUserApiCountDto"];
-                };
-            };
-        };
-    };
-    InternalUsersApiUserController_revokeApi: {
-        parameters: {
-            query: {
-                apiId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UsersApiKeyNoHashedDto"];
-                };
-            };
-        };
-    };
-    InternalUsersApiUserController_removeApi: {
-        parameters: {
-            query: {
-                apiId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UsersApiKeyNoHashedDto"];
-                };
-            };
-        };
-    };
-    InternalUsersApiUserController_findApi: {
-        parameters: {
-            query?: {
-                apiId?: string;
-                apiKey?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UsersApiKeyNoHashedDto"];
-                };
-            };
-        };
-    };
-    InternalUsersApiDeveloperController_allApis: {
-        parameters: {
-            query?: {
-                limit?: number;
-                offset?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UsersApiAllApiDto"][];
-                };
-            };
-        };
-    };
-    InternalUsersApiDeveloperController_totalAllApiCount: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UsersApiTotalUserApiCountDto"];
-                };
-            };
-        };
-    };
-    InternalUsersApiDeveloperController_deleteByApiId: {
-        parameters: {
-            query: {
-                apiId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UsersApiKeyNoHashedDto"];
-                };
-            };
-        };
-    };
-    InternalUsersApiDeveloperController_findApi: {
-        parameters: {
-            query?: {
-                apiId?: string;
-                apiKey?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UsersApiKeyNoHashedDto"];
-                };
+                content?: never;
             };
         };
     };

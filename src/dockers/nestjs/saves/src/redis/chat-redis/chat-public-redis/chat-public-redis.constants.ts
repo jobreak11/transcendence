@@ -1,2 +1,0 @@
-
-export const REDIS_CHAT_PUBLIC_MESSAGE_LIMIT = 200;
