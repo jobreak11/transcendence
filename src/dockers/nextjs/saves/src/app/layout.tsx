@@ -1,6 +1,9 @@
 import React from 'react'
 import './global.css'
+<<<<<<< HEAD
 import LanguageProvider from './components/language/LanguageProvider';
+=======
+>>>>>>> origin/lobby_chat
 
 export default function RootLayout({
   children,

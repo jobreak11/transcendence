@@ -16,7 +16,6 @@ import type {
 type ProfileHeaderProps = {
   profile: UserProfileResponse;
   activeTab: ProfileTab;
-
   onTabChange: (
     tab: ProfileTab,
   ) => void;

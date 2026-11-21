@@ -19,3 +19,5 @@ export type FindAllFriendshipsDto = components['schemas']['FindAllFriendshipsDto
 export type ChatRoomMemberDto = components['schemas']['ChatRoomMemberDto'];
 export type GetUserProfileDto = components['schemas']['GetUserProfileDto'];
 
+
+export type LobbyDetailsDto = components['schemas']['LobbyDetailsDto']

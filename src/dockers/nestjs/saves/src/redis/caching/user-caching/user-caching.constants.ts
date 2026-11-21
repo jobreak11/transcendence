@@ -1,0 +1,1 @@
+export const CACHING_USER_SERVICE_EXPIRE_TIME = 600;

@@ -10,7 +10,6 @@ import type {
 import defaultProfilePic from "../../../public/defaultProfilePic.svg";
 import iconLogo from "../../../public/iconLogo.svg";
 
-
 // hard coded still have no stats
 const mockStatistics = {
   level: 1,
