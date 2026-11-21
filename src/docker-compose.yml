@@ -16,7 +16,7 @@ services:
       - transcendence-network
     restart: unless-stopped
     ports:
-      - "${NGINX_BIND_PORT}:${NGINX_EXPOSE_PORT}"
+      - "${NGINX_BIND_PORT_REAL}:${NGINX_EXPOSE_PORT}"
     depends_on:
       nextjs:
         condition: service_healthy
