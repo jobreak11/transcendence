@@ -11,6 +11,11 @@ import { game_matches } from './game_matches/game_matches.schema.js'
 import { user_game_matches } from './user_game_matches/user_game_matches.schema.js'
 import { user_game_statistics } from './user_game_statistics/user_game_statistics.schema.js'
 import { tournamentGroupPlayers, tournamentGroups, tournamentParticipants, tournamentRounds, tournaments } from './tournaments/tournaments.schema.js'
+import { trophies } from './throphies/trophies.schema.js'
+import { achievements } from './achievements/achievements.schema.js'
+import { user_achievements } from './user_achievements/user_achievements.schema.js'
+import { user_trophies } from './user_trophies/user_trophies.schema.js'
+import { user_api_keys } from './user_api_keys/user_api_keys.schema.js'
 
 //export * from './users.schema.js'
 //export * from './friendships.schema.js'
@@ -41,7 +46,8 @@ export const dbRelations = defineRelations(
     tournamentParticipants,
     tournamentRounds,
     tournamentGroups,
-    tournamentGroupPlayers
+    tournamentGroupPlayers,
+    user_api_keys
   },
   (r) => ({
     users: {
@@ -213,12 +219,15 @@ export const dbSchema = {
   users,
   user_titles,
   user_profiles,
+  user_api_keys,
   friendships,
   chat_rooms,
   chat_room_members,
   chat_messages,
   titles,
   trophies,
+  achievements,
+  user_achievements,
   user_trophies,
   game_matches,
   user_game_matches,
