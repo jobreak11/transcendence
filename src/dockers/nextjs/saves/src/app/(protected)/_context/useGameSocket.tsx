@@ -3,6 +3,7 @@
 import { useRouter } from "next/router";
 import React, { Children, createContext, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
+import { TRANSCENDENCE_BASE_URL } from "../../../lib/constants";
 
 interface GameSocketContextType {
   socket: Socket | null;
@@ -39,7 +40,7 @@ export function GameSocketProvider({
       return;
     }
 
-    const socketInstance: Socket = io(`${window.location.origin}/game`, {
+    const socketInstance: Socket = io(`${TRANSCENDENCE_BASE_URL}/game`, {
       path: '/socket.io',
       transports: ['websocket'],
       auth: {

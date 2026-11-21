@@ -3,6 +3,7 @@
 import { useRouter } from "next/router";
 import React, { Children, createContext, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
+import { TRANSCENDENCE_BASE_URL } from "../../../lib/constants";
 
 interface MainSocketContextType {
   socket: Socket | null;
@@ -39,7 +40,7 @@ export function MainSocketProvider({
       return;
     }
 
-    const socketInstance: Socket = io(window.location.origin, {
+    const socketInstance: Socket = io(`${TRANSCENDENCE_BASE_URL}`, {
       path: '/socket.io',
       transports: ['websocket'],
       auth: {
