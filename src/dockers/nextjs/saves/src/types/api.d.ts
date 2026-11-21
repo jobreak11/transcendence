@@ -1373,12 +1373,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a1fec9-bd84-7588-b0e7-ae92e0e72296
+             * @example 01a1ff0f-979c-7233-a612-97f02f2d26e0
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a1fec9-bd87-72ea-8519-1f0a2d3bd96c
+             * @example 01a1ff0f-979f-72fa-85cc-1d2dc27b67c5
              */
             chatRoomId: string;
             /**
