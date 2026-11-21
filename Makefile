@@ -112,6 +112,8 @@ ${CHMOD_TOOLS_STAMPFILE}: | ${TEMP_DIR} ${TOOLS_DIR}
 
 #####################################################
 
+env: ${CHECK_ENV_SECRETS_STAMPFILE}
+
 start: ${DOCKER_COMPOSE_START_STAMPFILE}
 
 stop: ${DOCKER_COMPOSE_YAML_FILE}
@@ -168,4 +170,4 @@ go-nextjs: ${DOCKER_COMPOSE_START_STAMPFILE}
 	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" exec nextjs ./entrypoint.sh /bin/sh
 
 
-.PHONY: all start stop build down re purge nuke save-nextjs save-nestjs save ${NAME} go-postgres go-nestjs go-nextjs
+.PHONY: all start stop build down re purge nuke save-nextjs save-nestjs save ${NAME} go-postgres go-nestjs go-nextjs env

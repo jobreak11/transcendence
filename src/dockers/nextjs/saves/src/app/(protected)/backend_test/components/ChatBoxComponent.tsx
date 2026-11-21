@@ -8,6 +8,7 @@ export interface ChatRoom {
   id: string;
   roomName: string | null;
   visibilityType: 'PUBLIC' | 'PRIVATE' | 'DIRECT_MESSAGE' | string;
+  type? : string;
   role?: string;
   createdAt?: string;
   joinedAt?: string;

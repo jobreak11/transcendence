@@ -96,12 +96,15 @@ cat <<EOF > ./next.config.js
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
+  allowedDevOrigins: [
+    '${TRANSCENDENCE_DOMAIN_NAME}',
+    'localhost',
+  ],
   transpilePackages: ['three'],
   experimental: {
     serverActions: {
       allowedOrigins: [
         '${TRANSCENDENCE_DOMAIN_NAME}',
-        '${TRANSCENDENCE_DOMAIN_NAME}:${TRANSCENDENCE_NGINX_BIND_PORT}',
         'localhost',
       ],
     },
@@ -163,8 +166,37 @@ fi
 
 run_suexec ${USER_ID} ${GROUP_ID} pnpm generate:types
 
-if [ "${USER_ID}" -ne 0 ]; then
-  exec su-exec "${USER_ID}:${GROUP_ID}" "$@"
+# run_suexec ${USER_ID} ${GROUP_ID} npm run build
+
+
+if [ $# -ne 0 ]; then
+  if [ "${USER_ID}" -ne 0 ]; then
+    exec su-exec "${USER_ID}:${GROUP_ID}" "$@"
+  else
+    exec "$@"
+  fi
 else
-  exec "$@"
+
+  if [ "${TRANSCENDENCE_PRODUCTION_MODE}" = "FALSE" ]; then
+
+    if [ "${USER_ID}" -ne 0 ]; then
+      exec su-exec "${USER_ID}:${GROUP_ID}" npm run dev
+    else
+      exec npm run dev
+    fi
+  
+  else
+
+
+    run_suexec ${USER_ID} ${GROUP_ID} npm run build
+
+    if [ "${USER_ID}" -ne 0 ]; then
+      exec su-exec "${USER_ID}:${GROUP_ID}" npm run start
+    else
+      exec npm run start
+    fi
+
+  fi
+
 fi
+

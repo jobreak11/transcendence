@@ -11,4 +11,5 @@ RUN chmod +x ./entrypoint.sh ./healthcheckscript.sh
 # USER node
 
 ENTRYPOINT [ "./entrypoint.sh" ]
-CMD [ "npm", "run", "dev" ]
+# CMD [ "npm", "run", "dev" ]
+# CMD [ "npm", "run", "start" ]

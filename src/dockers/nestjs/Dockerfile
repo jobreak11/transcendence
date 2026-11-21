@@ -9,5 +9,5 @@ RUN chmod +x ./entrypoint.sh ./healthcheckscript.sh
 # RUN chmod -R 777 /home/node/app
 # USER node
 ENTRYPOINT [ "./entrypoint.sh" ]
-CMD [ "npm", "run", "start:dev" ]
+# CMD [ "npm", "run", "start:dev" ]
 EXPOSE 3000
