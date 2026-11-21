@@ -12,6 +12,7 @@ import { event_game_poker_action, event_game_poker_sync } from "./events/poker.e
 import { WsAllExceptionsFilter } from "../filters/WsAllExceptionsFilter.js";
 import { LobbyRedisService } from "../../../modules/lobby/redis/lobby-redis.service.js";
 import { UsersRedisService } from "../../../modules/user/redis/users-redis.service.js";
+import { GameRedisService } from "../../../modules/game/redis/game-redis.service.js";
 
 @UseFilters(WsAllExceptionsFilter)
 @WebSocketGateway({
@@ -32,6 +33,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   constructor(
     private readonly gameGatewayService: GameGatewayService ,
     private readonly userRedisService: UsersRedisService,
+    private readonly gameRedisService: GameRedisService,
     private readonly moduleRef: ModuleRef,
   ) {
 
@@ -69,16 +71,26 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const playerIds = await this.lobbyRedisService.getPlayerMemberList(
       body.tableSessionId,
     );
+    const isPlayer = playerIds.includes(client.data.user);
+    if (!isPlayer) {
+      throw new WsException("User must be a player at this table.");
+    }
     const loadedPlayers = this.loadedPlayersByTable.get(body.tableSessionId)
       ?? new Set<string>();
 
-    if (playerIds.includes(client.data.user)) {
-      loadedPlayers.add(client.data.user);
-      this.loadedPlayersByTable.set(body.tableSessionId, loadedPlayers);
-    }
+    loadedPlayers.add(client.data.user);
+    this.loadedPlayersByTable.set(body.tableSessionId, loadedPlayers);
+    await client.join(room_game_specific_room(body.tableSessionId));
 
     const allPlayersLoaded = playerIds.length >= 2
       && playerIds.every((playerId) => loadedPlayers.has(playerId));
+    const scheduledStartAt = await this.gameRedisService.getScheduledStartAt(body.tableSessionId);
+    if (scheduledStartAt) {
+      await this.gameGatewayService.scheduleTournamentFirstHand(
+        body.tableSessionId,
+        scheduledStartAt,
+      );
+    }
     const shouldAutoStartFirstHand = allPlayersLoaded
       && await this.gameGatewayService.isFirstHand(body.tableSessionId);
     const response = {
@@ -87,16 +99,16 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       playerCount: playerIds.length,
       allPlayersLoaded,
       shouldAutoStartFirstHand,
+      scheduledStartAt: scheduledStartAt?.toISOString() ?? null,
     };
 
-    if (playerIds.includes(client.data.user)) {
-      this.server
-        .to(room_game_specific_room(body.tableSessionId))
-        .emit(event_game_players_loaded.to_client(), response);
-    }
+    this.server
+      .to(room_game_specific_room(body.tableSessionId))
+      .emit(event_game_players_loaded.to_client(), response);
 
     if (
-      shouldAutoStartFirstHand
+      !scheduledStartAt
+      && shouldAutoStartFirstHand
       && !this.scheduledFirstHands.has(body.tableSessionId)
     ) {
       this.scheduledFirstHands.add(body.tableSessionId);
@@ -174,15 +186,28 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @MessageBody(new WsZodValidationPipe(startHandSchema))
     body: StartHandDto,
   ) {
-    const isUserInLobby = await this.userRedisService.isUserInLobby(
-      client.data.user,
-      body.tableSessionId,
-    );
-    if (!isUserInLobby) {
+    const [isUserInLobby, completedMatch] = await Promise.all([
+      this.userRedisService.isUserInLobby(client.data.user, body.tableSessionId),
+      this.gameGatewayService.getCompletedMatchState(body.tableSessionId),
+    ]);
+    const isCompletedMatchPlayer = completedMatch !== null
+      && Object.prototype.hasOwnProperty.call(
+        completedMatch.playerPlaces,
+        client.data.user,
+      );
+    if (!isUserInLobby && !isCompletedMatchPlayer) {
       return { ok: false, message: "User must be in lobby" };
     }
 
     await client.join(room_game_specific_room(body.tableSessionId));
+    if (completedMatch) {
+      return {
+        ok: true,
+        state: completedMatch,
+        cards: [],
+      };
+    }
+
     const hand = await this.gameGatewayService.getCurrentHand(
       body.tableSessionId,
       client.data.user,

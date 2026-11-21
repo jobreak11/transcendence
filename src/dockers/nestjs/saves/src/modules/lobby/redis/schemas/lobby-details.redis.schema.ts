@@ -22,7 +22,7 @@ const baseLobbyDetailsSchema = z.object({
   currentPlayerCount: z.int(),
   currentSpectatorCount: z.int(),
   chatRoomId: z.uuid(),
-  gameRoomId: z.uuid().nullable()
+  gameRoomId: z.string().nullable()
 })
 
 const fullLobbyDetailsSchema = z.object({

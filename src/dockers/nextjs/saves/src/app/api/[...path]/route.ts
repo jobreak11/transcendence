@@ -98,20 +98,16 @@ const allowedPaths = new Set([
   '/game/lobby/startgame',
   '/game/lobby/members',
   '/game/lobby',
-
-  // game matches api
-  '/game/matches',
-  '/game/matches/find',
-
-  // game statistics api
-  '/game/statistics',
-
+  '/tournament',
 ])
+
+const tournamentPathPattern =
+  /^tournament(?:\/[0-9a-f-]{36}(?:\/(?:register|close-registration))?)?$/i;
 
 async function handleRequest(request: NextRequest, { params }: { params: Promise<{ path: string[] }>}) {
   const resolvedParams = await params;
   const pathString = resolvedParams.path.join('/');
-  if (!allowedPaths.has(`/${pathString}`)) {
+  if (!allowedPaths.has(`/${pathString}`) && !tournamentPathPattern.test(pathString)) {
     return Response.json(
       {
         error: `Not found`,

@@ -6,10 +6,7 @@ import { InternalChatModule } from "./chat/internal-chat.module.js";
 import { InternalFriendsModule } from "./friends/internal-friends.module.js";
 import { InternalLobbyModule } from "./lobby/internal-lobby.module.js";
 import { InternalGameModule } from "./game/internal-game.module.js";
-import { InternalGameMatchesModule } from "./game/matches/internal-game-matches.module.js";
-import { InternalGameStatisticsModule } from "./game/statistics/internal-game-statistics.module.js";
-import { InternalTrophiesModule } from "./trophies/internal-trophies.module.js";
-import { InternalAchievementsModule } from "./achievements/internal-achievements.module.js";
+import { InternalTournamentModule } from "./tournament/internal-tournament.module.js";
 
 @Module({
   imports: [
@@ -20,10 +17,8 @@ import { InternalAchievementsModule } from "./achievements/internal-achievements
     InternalFriendsModule,
     InternalLobbyModule,
     InternalGameModule,
-    InternalGameMatchesModule,
-    InternalGameStatisticsModule,
-    InternalTrophiesModule,
-    InternalAchievementsModule,
+    InternalTournamentModule,
+    
   ]
 })
 export class InternalModule {

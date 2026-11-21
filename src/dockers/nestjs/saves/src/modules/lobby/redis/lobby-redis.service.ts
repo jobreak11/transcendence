@@ -99,6 +99,7 @@ export class LobbyRedisService implements OnModuleInit {
         local lobbyPinId = ARGV[4]
         local joinedAt = tonumber(ARGV[5])
         local userLobbyListLimit = tonumber(ARGV[6])
+        local tournamentSeedJoin = ARGV[7] == 'true'
 
         if redis.call('SCARD', userLobbyListKey) >= userLobbyListLimit then
           return 1
@@ -113,8 +114,13 @@ export class LobbyRedisService implements OnModuleInit {
         end
 
         local currentLobbyStatus = redis.call('HGET', lobbyDetailsKey, 'roomStatus')
-        if not currentLobbyStatus or currentLobbyStatus == 'UNAVAILABLE' then
+        if not currentLobbyStatus then
           return 4
+        elseif currentLobbyStatus == 'UNAVAILABLE' then
+          local roomType = redis.call('HGET', lobbyGeneralSettingsKey, 'roomType')
+          if not tournamentSeedJoin or roomType ~= 'TOURNAMENT' then
+            return 4
+          end
         elseif isSpectator == 'false' and currentLobbyStatus ~= 'WAITING' then
           return 5
         end
@@ -711,7 +717,13 @@ export class LobbyRedisService implements OnModuleInit {
     this.lobbyGatewayService.leaveLobbySession(userId, lobbyPinId, role);
   }
 
-  async lobbyUserJoin(userId: string, lobbyPinId: string, isSpectator: boolean = false, password?: string) {
+  async lobbyUserJoin(
+    userId: string,
+    lobbyPinId: string,
+    isSpectator: boolean = false,
+    password?: string,
+    tournamentSeedJoin = false,
+  ) {
     this.logger.debug("redis lobby user join called");
 
     await this.getLobbyFull(lobbyPinId);
@@ -732,6 +744,7 @@ export class LobbyRedisService implements OnModuleInit {
         lobbyPinId,
         Date.now(),
         REDIS_USER_LOBBY_LIST_LIMIT,
+        tournamentSeedJoin ? "true" : "false",
       );
     } catch (error: any) {
       throw logError(
@@ -1015,6 +1028,62 @@ export class LobbyRedisService implements OnModuleInit {
       await this.setLobbyRoomStatus(lobbyPinId, LobbyRoomStatus.WAITING).catch(() => null);
       throw error;
     }
+  }
+
+  async prepareTournamentLobby(lobbyPinId: string): Promise<LobbyDto> {
+    const [lobbyData, members] = await Promise.all([
+      this.getLobbyFull(lobbyPinId),
+      this.getLobbyMemberList(lobbyPinId),
+    ]);
+
+    if (
+      lobbyData.generalSettings.roomType !== LobbyRoomType.TOURNAMENT
+      || lobbyData.details.roomStatus !== LobbyRoomStatus.UNAVAILABLE
+      || members.playerList.length < 2
+      || members.playerList.length > lobbyData.gameSettings.maxPlayer
+    ) {
+      throw errorWithCode(HttpStatus.CONFLICT, "Tournament lobby cannot be prepared.");
+    }
+
+    try {
+      await Promise.all([
+        this.redis.hset(redis_lobby_details(lobbyPinId), "gameRoomId", lobbyPinId),
+        this.redis.del(redis_lobby_ready_player_list(lobbyPinId)),
+      ]);
+      await this.setLobbyRoomStatus(lobbyPinId, LobbyRoomStatus.PLAYING);
+      this.lobbyGatewayService.gameStarted(lobbyPinId, lobbyPinId);
+      return this.getLobbyFull(lobbyPinId);
+    } catch (error) {
+      await this.redis.hdel(redis_lobby_details(lobbyPinId), "gameRoomId");
+      await this.setLobbyRoomStatus(lobbyPinId, LobbyRoomStatus.WAITING).catch(() => null);
+      throw error;
+    }
+  }
+
+  async createTournamentLobby(creatorUserId: string, createLobbyDto: LobbyCreate.InputDto) {
+    const lobby = await this.lobbyCreate({
+      details: { createdByUserId: creatorUserId },
+      gameSettings: createLobbyDto.gameSettings,
+      generalSettings: createLobbyDto.generalSettings,
+    });
+    try {
+      await this.setLobbyRoomStatus(lobby.details.roomPinId, LobbyRoomStatus.UNAVAILABLE);
+      return lobby;
+    } catch (error) {
+      await this.lobbyRemove(lobby.details.roomPinId);
+      throw error;
+    }
+  }
+
+  async joinTournamentLobby(userId: string, lobbyPinId: string) {
+    const lobby = await this.getLobbyFull(lobbyPinId);
+    if (
+      lobby.generalSettings.roomType !== LobbyRoomType.TOURNAMENT
+      || lobby.details.roomStatus !== LobbyRoomStatus.UNAVAILABLE
+    ) {
+      throw errorWithCode(HttpStatus.CONFLICT, "Tournament table is not accepting assigned players.");
+    }
+    return this.lobbyUserJoin(userId, lobbyPinId, false, undefined, true);
   }
 
   async isLobbyExist(lobbyPinId: string) {
