@@ -34,6 +34,7 @@ export namespace GameEvent {
         playerCount: number;
         allPlayersLoaded: boolean;
         shouldAutoStartFirstHand: boolean;
+        scheduledStartAt: string | null;
       }
     }
   }
