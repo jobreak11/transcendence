@@ -32,7 +32,8 @@
     "goToTop": "Go to top",
     "join": "Join",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "lobby": "Lobby"
   },
 
   "auth": {

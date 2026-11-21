@@ -4,6 +4,7 @@ import Link from "next/link";
 import { UserProfileResponse } from "../../../lib/profile-api";
 import LanguageSwitcher from "../language/LanguageSwitcher";
 import { useLanguage } from "../language/LanguageProvider";
+import { signOut } from "../../../lib/auth";
 
 import type {
   GameTab,
@@ -70,13 +71,11 @@ export default function PlayRoomHeader({
           </div>
 
           <LanguageSwitcher />
-
-          <Link
-            href="/"
-            className="whitespace-nowrap text-[clamp(14px,calc(0.2vw+1rem),22px)] text-white underline max-[800px]:text-sm"
-          >
-            {dictionary.common.logout}
-          </Link>
+          <form action={signOut} className="inline">
+              <button type="submit" className="inline appearance-none border-0 bg-transparent p-0 font-[inherit] leading-[inherit] text-left text-[clamp(14px,calc(0.2vw+1rem),22px)] text-white underline whitespace-nowrap cursor-pointer max-[800px]:text-sm">
+                  {dictionary.common.logout}
+              </button>
+          </form>
         </div>
       </div>
 

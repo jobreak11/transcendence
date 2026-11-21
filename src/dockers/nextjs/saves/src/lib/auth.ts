@@ -149,21 +149,35 @@ export async function signIn(
         path: '/',
         maxAge: REFRESH_TOKEN_COOKIE_EXPIRE_TIME, // Max age for cookie is in seconds
       });
-
     }
 
     // should fix to redirecto to the callbackUrl from search params
     //redirect('/');
-    redirect(safeCallbackUrl);
+    // redirect(safeCallbackUrl);
+    /// redirect to profile
+    let profileLoaded = false;
+    if (accessToken){
+      try {
+        const profileResponse = await fetch(`${BACKEND_URL}/user/profile`, { 
+          headers:{
+          Authorization: `Bearer${accessToken}`,
+        },
+          cache: 'no-cache',
+       });
+       profileLoaded = profileResponse.ok;
+      } catch(error){
+        console.log('Failed to load profile after sign-in', error);
+      }
+    }
+    // redirect(profileLoaded ? '/profile': safeCallbackUrl);
+    redirect('/profile');
   }
-  
   else {
     return ({
       message: response.status === 401 ? 'Email or password is wrong' : response.statusText,
       fields,
     })
   }
-
 }
 
 export async function signOut() {
@@ -176,7 +190,7 @@ export async function signOut() {
   if (!accessToken) {
     cookieStore.delete('accessToken');
     cookieStore.delete('refreshToken');
-    redirect('/auth/signin');
+    redirect('/');
   }
 
   try {
@@ -193,6 +207,8 @@ export async function signOut() {
     cookieStore.delete('accessToken');
     cookieStore.delete('refreshToken');
   }
-
-  redirect('/auth/signin');
+  redirect('/');
 }
+
+// change path to landing page
+// if singout and not sign in
