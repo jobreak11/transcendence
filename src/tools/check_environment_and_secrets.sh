@@ -295,10 +295,10 @@ while IFS= read -r line <&3 || [ -n "$line" ]; do
     fi
 
     # various checks based on each key
-    if printf "${key}" | ${GREP_CMD} -qP "PORT"; then
-      check_env "${key}" "${value}" "check_port_function"
+    # if printf "${key}" | ${GREP_CMD} -qP "PORT"; then
+    #   check_env "${key}" "${value}" "check_port_function"
 
-    elif printf "${key}" | ${GREP_CMD} -qP "^DOCKER_SOCKET_PATH"; then
+    if printf "${key}" | ${GREP_CMD} -qP "^DOCKER_SOCKET_PATH"; then
     # for DOCKER_SOCKET_PATH require specific treatment
 
       # need to check first if .env already has this key or not

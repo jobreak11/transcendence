@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
+import { TRANSCENDENCE_BASE_URL } from '../../../lib/constants';
 
 export function OauthButton() {
 
@@ -10,11 +11,11 @@ export function OauthButton() {
   console.log({callbackUrl});
 
   const handleGoogleLogin = () => {
-    window.location.href = `https://localhost:4333/api/auth/google/login?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+    window.location.href = `${TRANSCENDENCE_BASE_URL}/api/auth/google/login?callbackUrl=${encodeURIComponent(callbackUrl)}`;
   };
 
   const handle42Login = () => {
-    window.location.href = `https://localhost:4333/api/auth/42/login?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+    window.location.href = `${TRANSCENDENCE_BASE_URL}/api/auth/42/login?callbackUrl=${encodeURIComponent(callbackUrl)}`;
   };
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export function OauthButton() {
 
     if (accessToken) {
       localStorage.setItem('accessToken', accessToken);
-      window.location.href = 'https://localhost:4333/';
+      window.location.href = `${TRANSCENDENCE_BASE_URL}`;
     }
   }, []);
 

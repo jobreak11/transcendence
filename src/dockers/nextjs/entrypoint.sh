@@ -101,7 +101,7 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: [
         '${TRANSCENDENCE_DOMAIN_NAME}',
-        'localhost:${TRANSCENDENCE_NGINX_BIND_PORT}',
+        '${TRANSCENDENCE_DOMAIN_NAME}:${TRANSCENDENCE_NGINX_BIND_PORT_REAL}',
       ],
     },
   },
