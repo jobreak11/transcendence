@@ -9,7 +9,14 @@ import { ConnectionGatewayService } from "./connection-gateway.service.js";
 
 @WebSocketGateway({
   transports: ['websocket'],
-  namespace: '/'
+  namespace: '/',
+  cors: {
+    origin: [
+    `https://${process.env.TRANSCENDENCE_DOMAIN_NAME ?? "localhost"}`,
+    `https://${process.env.TRANSCENDENCE_DOMAIN_NAME ?? "localhost"}:${process.env.NGINX_BIND_PORT ?? "4333"}`,
+    ]
+  }
+
 })
 export class ConnectionGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect{
 

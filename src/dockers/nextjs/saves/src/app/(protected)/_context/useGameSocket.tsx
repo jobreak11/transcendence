@@ -40,7 +40,7 @@ export function GameSocketProvider({
       return;
     }
 
-    const socketInstance: Socket = io(`${TRANSCENDENCE_BASE_URL}/game`, {
+    const socketInstance: Socket = io(`/game`, {
       path: '/socket.io',
       transports: ['websocket'],
       auth: {

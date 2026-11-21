@@ -16,7 +16,13 @@ import { UsersRedisService } from "../../../modules/user/redis/users-redis.servi
 @UseFilters(WsAllExceptionsFilter)
 @WebSocketGateway({
   transports: ['websocket'],
-  namespace: '/game'
+  namespace: '/game',
+  cors: {
+    origin: [
+    `https://${process.env.TRANSCENDENCE_DOMAIN_NAME ?? "localhost"}`,
+    `https://${process.env.TRANSCENDENCE_DOMAIN_NAME ?? "localhost"}:${process.env.NGINX_BIND_PORT ?? "4333"}`,
+    ],
+  }
 })
 export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 

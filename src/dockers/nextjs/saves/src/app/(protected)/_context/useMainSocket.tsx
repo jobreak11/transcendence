@@ -40,7 +40,7 @@ export function MainSocketProvider({
       return;
     }
 
-    const socketInstance: Socket = io(`${TRANSCENDENCE_BASE_URL}`, {
+    const socketInstance: Socket = io(`/`, {
       path: '/socket.io',
       transports: ['websocket'],
       auth: {

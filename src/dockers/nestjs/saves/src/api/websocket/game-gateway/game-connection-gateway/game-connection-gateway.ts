@@ -8,7 +8,13 @@ import { WsAllExceptionsFilter } from "../../filters/WsAllExceptionsFilter.js";
 @UseFilters(WsAllExceptionsFilter)
 @WebSocketGateway({
   transports: ['websocket'],
-  namespace: "/game"
+  namespace: "/game",
+  cors: {
+    origin: [
+    `https://${process.env.TRANSCENDENCE_DOMAIN_NAME ?? "localhost"}`,
+    `https://${process.env.TRANSCENDENCE_DOMAIN_NAME ?? "localhost"}:${process.env.NGINX_BIND_PORT ?? "4333"}`,
+    ]
+  }
 })
 export class GameConnectionGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 
