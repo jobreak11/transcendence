@@ -11,7 +11,7 @@ export default async function SignInPage() {
    */
   const accessToken = cookieStore.get("accessToken")?.value;
   if (accessToken){
-    redirect('/');
+    redirect('/profile');
   }
 
   return (

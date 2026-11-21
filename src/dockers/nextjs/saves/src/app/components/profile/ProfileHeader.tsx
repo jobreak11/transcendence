@@ -13,8 +13,16 @@ import type {
   UserProfileResponse,
 } from "../../../lib/profile-api";
 
+import {
+  getMyTitles,
+  type UserTitle,
+} from "../../../lib/title-api";
+
+import { signOut } from "../../../lib/auth";
+
 type ProfileHeaderProps = {
   profile: UserProfileResponse;
+  title: UserTitle;
   activeTab: ProfileTab;
   onTabChange: (
     tab: ProfileTab,
@@ -70,20 +78,18 @@ export default function ProfileHeader({
 
         <div className="ml-auto mr-16 flex items-center gap-3 sm:gap-5">
           <Link
-            href="/game"
+            href="/lobby"
             className="red-button play-button text-lg"
           >
-            {dictionary.common.play}
+            {dictionary.common.lobby}
           </Link>
 
           <LanguageSwitcher />
-
-          <Link
-            href="#"
-            className="logout-link text-base"
-          >
-            {dictionary.common.logout}
-          </Link>
+          <form action={signOut} className="inline">
+            <button type="submit" className="inline appearance-none border-0 bg-transparent p-0 font-[inherit] leading-[inherit] text-left text-[clamp(14px,calc(0.2vw+1rem),22px)] text-white underline whitespace-nowrap cursor-pointer max-[800px]:text-sm">
+              {dictionary.common.logout}
+             </button>
+          </form>
         </div>
       </div>
 

@@ -9,6 +9,7 @@ import RoomRow from "./RoomRow";
 import type { GetLobbyPublicDto } from "../../../types/dto";
 import type { JoinRole, Room } from "../../../lib/types";
 import { useMainSocket } from "../../(protected)/_context/useMainSocket";
+import { useLanguage } from "../language/LanguageProvider";
 
 const inputStyles =
   "max-w-full rounded-md border border-[#666] bg-[#2a2a2a] px-2.5 py-1 text-white outline-none focus:ring-2 focus:ring-red-600";
@@ -47,6 +48,8 @@ export default function CasualRooms() {
   const [joinError, setJoinError] = useState("");
   const [isJoining, setIsJoining] = useState(false);
   const [message, setMessage] = useState("");
+
+  const {dictionary} = useLanguage();
 
   const loadRooms = useCallback(async () => {
     setIsLoadingRooms(true);
@@ -225,10 +228,10 @@ export default function CasualRooms() {
         onSubmit={searchRoom}
       >
         <div className="flex items-center bg-[rgba(42,42,42,0.75)] p-[1vw] max-[800px]:px-4 max-[800px]:py-3">
-          Rooms
+          {dictionary.lobby.room}
         </div>
         <div className="flex items-center gap-4 bg-[rgba(29,29,29,0.85)] p-[1vw] pl-[5%] max-[800px]:flex-wrap max-[800px]:px-4 max-[800px]:py-3">
-          <label htmlFor="playroom">Search by ID:</label>
+          <label htmlFor="playroom">{dictionary.lobby.searchById}:</label>
           <input
             id="playroom"
             value={roomId}
@@ -236,7 +239,7 @@ export default function CasualRooms() {
             className={inputStyles}
           />
           <button className={redButtonStyles} type="submit">
-            Search
+            {dictionary.lobby.search}
           </button>
           <button
             className={redButtonStyles}
@@ -244,7 +247,7 @@ export default function CasualRooms() {
             disabled={!isConnected}
             onClick={() => setIsCreatingRoom(true)}
           >
-            Create Room
+            {dictionary.lobby.createRoom}
           </button>
         </div>
       </form>
