@@ -1,6 +1,7 @@
 *.crt
 *.key
 temp/
+backup/
 
 task*.txt
 note*.txt

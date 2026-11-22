@@ -9,6 +9,11 @@
 SRC_DIR = ./src
 TEMP_DIR = ./temp
 
+BACKUP_DIR = ./backup
+POSTGRESQL_BACKUP_DIR = ${BACKUP_DIR}/postgresql
+POSTGRESQL_BACKUP_FILEPATH = ${POSTGRESQL_BACKUP_DIR}/backup.dump
+REDIS_BACKUP_DIR = ${BACKUP_DIR}/redis
+
 # docker containers
 DOCKERS_DIR = ${SRC_DIR}/dockers
 
@@ -169,5 +174,24 @@ go-nestjs: ${DOCKER_COMPOSE_START_STAMPFILE}
 go-nextjs: ${DOCKER_COMPOSE_START_STAMPFILE}
 	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" exec nextjs ./entrypoint.sh /bin/sh
 
+db-backup: ${DOCKER_COMPOSE_START_STAMPFILE} | ${POSTGRESQL_BACKUP_DIR}
+	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" exec -T postgresql sh -c 'PGPASSWORD=$$(cat $$POSTGRES_PASSWORD_FILE) pg_dump -Fc -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"' > "${POSTGRESQL_BACKUP_FILEPATH}"
 
-.PHONY: all start stop build down re purge nuke save-nextjs save-nestjs save ${NAME} go-postgres go-nestjs go-nextjs env
+db-restore: ${DOCKER_COMPOSE_START_STAMPFILE} ${POSTGRESQL_BACKUP_FILEPATH}
+	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" stop nestjs
+	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" exec -T postgresql sh -c 'PGPASSWORD=$$(cat $$POSTGRES_PASSWORD_FILE) pg_restore --clean --if-exists --no-owner -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"' < "${POSTGRESQL_BACKUP_FILEPATH}"
+	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" start nestjs
+
+
+
+
+${BACKUP_DIR}:
+	mkdir -p $@
+
+${POSTGRESQL_BACKUP_DIR}: | ${BACKUP_DIR}
+	mkdir -p $@
+
+# ${REDIS_BACKUP_DIR}: | ${BACKUP_DIR}
+# 	mkdir -p $@
+
+.PHONY: all start stop build down re purge nuke save-nextjs save-nestjs save ${NAME} go-postgres go-nestjs go-nextjs env db-backup
