@@ -1,13 +1,12 @@
 import { HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
 import { REDIS_CLIENT, type RedisClient } from "../../../infrastructure/redis/redis.provider.js";
 import { UsersRedisService } from "../../user/redis/users-redis.service.js";
-import { redis_game_table_button, redis_game_table_completed_match, redis_game_table_hand, redis_game_table_hand_lock, redis_game_table_match_progress, redis_game_table_scheduled_start, redis_game_table_stack } from "./game-redis.namespace.js";
+import { redis_game_table_button, redis_game_table_hand, redis_game_table_hand_lock, redis_game_table_match_progress, redis_game_table_stack } from "./game-redis.namespace.js";
 import { PokerState } from "../../../api/websocket/game-gateway/dtos/poker-state.dto.js";
 import { errorWithCode } from "../../../utility/errorWithCode.js";
 import { LOCK_TTL_MS, PLAYER_ACTION_TIMEOUT_MS } from "../../../api/websocket/game-gateway/game-gateway.constants.js";
 import { MatchProgress } from "../../../api/websocket/game-gateway/dtos/match-progress.dto.js";
 import { randomUUID } from "node:crypto";
-import type { EventGameFinishStateToClientDto } from "../../../api/websocket/game-gateway/events/poker.event.js";
 
 @Injectable()
 export class GameRedisService {
@@ -28,46 +27,6 @@ export class GameRedisService {
   }
   delHand(gameRoomId: string) {
     return this.redis.del(redis_game_table_hand(gameRoomId));
-  }
-
-  async getCompletedMatchState(gameRoomId: string) {
-    const stored = await this.redis.get(redis_game_table_completed_match(gameRoomId));
-    return stored
-      ? JSON.parse(stored) as EventGameFinishStateToClientDto
-      : null;
-  }
-
-  saveCompletedMatchState(
-    gameRoomId: string,
-    state: EventGameFinishStateToClientDto,
-  ) {
-    return this.redis.set(
-      redis_game_table_completed_match(gameRoomId),
-      JSON.stringify(state),
-    );
-  }
-
-  setScheduledStartAt(gameRoomId: string, startAt: Date) {
-    return this.redis.set(
-      redis_game_table_scheduled_start(gameRoomId),
-      startAt.toISOString(),
-      "EX",
-      7 * 24 * 60 * 60,
-    );
-  }
-
-  async getScheduledStartAt(gameRoomId: string) {
-    const stored = await this.redis.get(redis_game_table_scheduled_start(gameRoomId));
-    if (!stored) return null;
-    const startAt = new Date(stored);
-    if (!Number.isFinite(startAt.getTime())) {
-      throw new Error(`Invalid scheduled start time for table ${gameRoomId}.`);
-    }
-    return startAt;
-  }
-
-  clearScheduledStartAt(gameRoomId: string) {
-    return this.redis.del(redis_game_table_scheduled_start(gameRoomId));
   }
 
   saveState(state: PokerState) {

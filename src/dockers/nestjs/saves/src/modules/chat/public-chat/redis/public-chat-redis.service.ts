@@ -49,9 +49,6 @@ export class PublicChatRedisService {
       )
     }
 
-    // await this.redis.expire(redis_chat_public_messages(), 3600);
-
-
     return payload
   }
 

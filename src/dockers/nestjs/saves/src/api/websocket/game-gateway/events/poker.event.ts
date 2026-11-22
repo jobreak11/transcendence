@@ -58,13 +58,11 @@ export interface EventGameFinishStateToClientDto {
   roundNumber: number;
   cycleComplete: boolean;
   matchComplete: boolean;
-  isRankedMatch?: boolean;
   playerPlaces: Record<string, number>;
   playerStats: Record<string, {
     playCount: number;
     winCount: number;
     expEarned: number;
-    rankEarned: number;
   }>;
   playerNames?: Record<string, string>;
   totalHandsPlayed: number;

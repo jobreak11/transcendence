@@ -2,8 +2,55 @@ import { integer, pgEnum, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
 import { v7 as uuidv7 } from 'uuid'
 import { users } from "../users/users.schema.js";
 import { GameSettingFormat } from "../../../../modules/lobby/redis/schemas/lobby-gameSettings.redis.schema.js";
-import { createInsertSchema, createSelectSchema } from "drizzle-orm/zod";
-import z from "zod";
+
+export interface MatchProgress {
+  cycleNumber: number;
+  handNumber: number;
+  cyclePlayerIds: string[];
+  bigBlindPlayerIds: string[];
+  cycleComplete: boolean;
+  matchPlayerIds: string[];
+  playerPlaces: Record<string, number>;
+  matchComplete: boolean;
+  totalHandsPlayed: number;
+  startedAt: string | null;
+}
+
+export interface EventGameFinishStateToClientDto {
+  settled: boolean;
+  handId: string;
+  tableSessionId: string;
+  matchId: string;
+  cycleNumber: number;
+  handNumber: number;
+  round: string;
+  roundNumber: number;
+  cycleComplete: boolean;
+  matchComplete: boolean;
+  playerPlaces: Record<string, number>;
+  playerNames?: Record<string, string>;
+  totalHandsPlayed: number;
+  matchStartedAt: string;
+  matchEndedAt?: string;
+  poolCards: string[];
+  pot: number;
+  ante: number;
+  winners: {
+    playerId: string,
+    amount: number,
+    hand: string | undefined
+  }[];
+  revealedCards: {
+    [k: string]: string[];
+  } | undefined;
+  players: {
+    playerId: string;
+    stack: number;
+    folded: boolean;
+    allIn: boolean;
+  }[];
+}
+
 
 export enum GameType {
   CASUAL = "CASUAL",
@@ -32,17 +79,6 @@ export const game_matches = pgTable("game_matches", {
   totalPlayer: integer("total_player").notNull(),
   createdByUserId: uuid("created_by_user_id").references(() => users.id, {onDelete: "set null"}),
   startedAt: timestamp("started_at", {withTimezone: true}).notNull(),
-  endedAt: timestamp("ended_at", {withTimezone: true}).notNull(),
+  EndedAt: timestamp("ended_at", {withTimezone: true}).notNull(),
 
 })
-
-const selectSchema = createSelectSchema(game_matches, {
-  gameType: z.enum(GameType),
-  gameFormat: z.enum(GameSettingFormat)
-});
-const insertSchema = createInsertSchema(game_matches);
-
-export const gameMatchesDatabaseSchema = {
-  select: selectSchema,
-  insert: insertSchema,
-}

@@ -24,6 +24,7 @@ type ProfileHeaderProps = {
   profile: UserProfileResponse;
   title: UserTitle;
   activeTab: ProfileTab;
+
   onTabChange: (
     tab: ProfileTab,
   ) => void;

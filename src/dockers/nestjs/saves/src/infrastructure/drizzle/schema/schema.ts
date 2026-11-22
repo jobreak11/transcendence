@@ -7,15 +7,11 @@ import { user_titles } from './user_titles.schema.js'
 import { users } from './users/users.schema.js'
 import { user_profiles } from './user_profiles/user_profiles.schema.js'
 import { chat_room_members } from './chat_room_members/chat_room_members.schema.js'
+import { throphies } from './throphies/throphies.schema.js'
+import { user_throphies } from './user_throphies/user_throphies.schema.js'
 import { game_matches } from './game_matches/game_matches.schema.js'
 import { user_game_matches } from './user_game_matches/user_game_matches.schema.js'
 import { user_game_statistics } from './user_game_statistics/user_game_statistics.schema.js'
-import { tournamentGroupPlayers, tournamentGroups, tournamentParticipants, tournamentRounds, tournaments } from './tournaments/tournaments.schema.js'
-import { trophies } from './throphies/trophies.schema.js'
-import { achievements } from './achievements/achievements.schema.js'
-import { user_achievements } from './user_achievements/user_achievements.schema.js'
-import { user_trophies } from './user_trophies/user_trophies.schema.js'
-import { user_api_keys } from './user_api_keys/user_api_keys.schema.js'
 
 //export * from './users.schema.js'
 //export * from './friendships.schema.js'
@@ -35,19 +31,11 @@ export const dbRelations = defineRelations(
     titles,
     user_titles,
     user_profiles,
-    trophies,
-    achievements,
-    user_achievements,
-    user_trophies,
+    throphies,
+    user_throphies,
     game_matches,
     user_game_matches,
-    user_game_statistics,
-    tournaments,
-    tournamentParticipants,
-    tournamentRounds,
-    tournamentGroups,
-    tournamentGroupPlayers,
-    user_api_keys
+    user_game_statistics
   },
   (r) => ({
     users: {
@@ -55,12 +43,10 @@ export const dbRelations = defineRelations(
       chat_messages: r.many.chat_messages(),
       chat_room_members: r.many.chat_room_members(),
       user_game_matches: r.many.user_game_matches(),
-      user_trophies: r.many.user_trophies(),
-      user_achievements: r.many.user_achievements(),
+      user_throphies: r.many.user_throphies(),
       user_profile: r.one.user_profiles({
         from: r.users.id,
-        to: r.user_profiles.userId,
-        optional: false
+        to: r.user_profiles.userId
       }),
       user_game_statistic: r.one.user_game_statistics({
         from: r.users.id,
@@ -71,15 +57,6 @@ export const dbRelations = defineRelations(
       }),
       friendshipsReceived: r.many.friendships({
         alias: "addressee"
-      }),
-      user_api_keys: r.many.user_api_keys()
-    },
-    
-    user_api_keys: {
-      user: r.one.users({
-        from: r.user_api_keys.userId,
-        to: r.users.id,
-        optional: false
       })
     },
 
@@ -97,7 +74,6 @@ export const dbRelations = defineRelations(
       })
     },
 
-
     chat_messages: {
       user: r.one.users({
         from: r.chat_messages.userId,
@@ -110,16 +86,14 @@ export const dbRelations = defineRelations(
       })
     },
 
-    user_trophies: {
+    user_throphies: {
       user: r.one.users({
-        from: r.user_trophies.userId,
-        to: r.users.id,
-        optional: false,
+        from: r.user_throphies.userId,
+        to: r.users.id
       }),
-      trophy: r.one.trophies({
-        from: r.user_trophies.trophyId,
-        to: r.trophies.id,
-        optional: false,
+      throphy: r.one.throphies({
+        from: r.user_throphies.throphy_id,
+        to: r.throphies.id
       })
     },
 
@@ -134,37 +108,12 @@ export const dbRelations = defineRelations(
       })
     },
 
-    user_achievements: {
-      user: r.one.users({
-        from: r.user_achievements.userId,
-        to: r.users.id,
-        optional: false,
-      }),
-      achievement: r.one.achievements({
-        from: r.user_achievements.achievementId,
-        to: r.achievements.id,
-        optional: false,
-      })
-    },
-
-    achievements: {
-      user_achievements: r.many.user_achievements(),
-      title: r.one.titles({
-        from: r.achievements.titleId,
-        to: r.titles.id,
-      }),
-      trophy: r.one.trophies({
-        from: r.achievements.trophyId,
-        to: r.trophies.id
-      })
-    },
-
     titles: {
       user_titles: r.many.user_titles()
     },
 
-    trophies: {
-      user_trophies: r.many.user_trophies()
+    throphies: {
+      user_throphies: r.many.user_throphies()
     },
 
     chat_room_members: {
@@ -220,23 +169,15 @@ export const dbSchema = {
   users,
   user_titles,
   user_profiles,
-  user_api_keys,
   friendships,
   chat_rooms,
   chat_room_members,
   chat_messages,
   titles,
-  trophies,
-  achievements,
-  user_achievements,
-  user_trophies,
+  throphies,
+  user_throphies,
   game_matches,
   user_game_matches,
   user_game_statistics,
-  tournaments,
-  tournamentParticipants,
-  tournamentRounds,
-  tournamentGroups,
-  tournamentGroupPlayers,
   dbRelations,
 }

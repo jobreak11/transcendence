@@ -101,18 +101,16 @@ export default function CasualRooms() {
         new Set(joinedBody.map((lobby) => lobby.details.roomPinId)),
       );
       setRooms(
-        lobbyList
-          .filter((lobby) => lobby.generalSettings.roomType !== "RANKED")
-          .map((lobby) => ({
-            id: lobby.details.roomPinId,
-            host: lobby.details.hostDisplayName,
-            catchphrase: lobby.generalSettings.catchPhrase ?? "",
-            isPrivate: lobby.generalSettings.roomType === "PRIVATE",
-            players: lobby.details.currentPlayerCount,
-            maxPlayers: lobby.gameSettings.maxPlayer,
-            spectators: lobby.details.currentSpectatorCount ?? 0,
-            maxSpectators: lobby.gameSettings.maxSpectator,
-          })),
+        lobbyList.map((lobby) => ({
+          id: lobby.details.roomPinId,
+          host: lobby.details.hostDisplayName,
+          catchphrase: lobby.generalSettings.catchPhrase ?? "",
+          isPrivate: lobby.generalSettings.roomType === "PRIVATE",
+          players: lobby.details.currentPlayerCount,
+          maxPlayers: lobby.gameSettings.maxPlayer,
+          spectators: lobby.details.currentSpectatorCount ?? 0,
+          maxSpectators: lobby.gameSettings.maxSpectator,
+        })),
       );
     } catch (error) {
       setRoomsError(

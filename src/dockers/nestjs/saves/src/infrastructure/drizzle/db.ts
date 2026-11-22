@@ -28,5 +28,4 @@ export const seedPool = new Pool({
 
 export const db:NodePgDatabase<typeof dbSchema.dbRelations> = drizzle({
   client: seedPool,
-  relations: dbSchema.dbRelations,
 });

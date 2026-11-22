@@ -9,13 +9,7 @@ import { Throttle } from "@nestjs/throttler";
 @UseFilters(WsAllExceptionsFilter)
 @WebSocketGateway({
   transports: ['websocket'],
-  namespace: '/',
-  cors: {
-    origin: [
-    `https://${process.env.TRANSCENDENCE_DOMAIN_NAME ?? "localhost"}`,
-    `https://${process.env.TRANSCENDENCE_DOMAIN_NAME ?? "localhost"}:${process.env.NGINX_BIND_PORT ?? "4333"}`,
-    ]
-  }
+  namespace: '/'
 })
 @UseGuards(WsThrottlerGuard)
 @Throttle({

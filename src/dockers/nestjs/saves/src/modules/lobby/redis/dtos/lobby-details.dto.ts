@@ -1,6 +1,7 @@
 import z from "zod";
 import { LobbyDetails, LobbyRoomStatus } from "../schemas/lobby-details.redis.schema.js";
 import { ApiProperty, PickType } from "@nestjs/swagger";
+import { v7 } from "uuid";
 
 type lobbyDetailsDtoBase = z.infer<typeof LobbyDetails.schema.full>
 
@@ -8,7 +9,7 @@ export class LobbyDetailsDto implements lobbyDetailsDtoBase {
 
   @ApiProperty({
     description: "game room id of the lobby",
-    example: "067821"
+    example: v7()
   })
   gameRoomId: string | null;
 

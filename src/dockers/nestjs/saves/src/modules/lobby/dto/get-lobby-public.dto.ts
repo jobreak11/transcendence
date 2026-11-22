@@ -15,8 +15,7 @@ export class LobbyGeneralSettingsPublicDto extends IntersectionType (
 }
 
 class LobbyDetailsPublicDto extends IntersectionType(
-  // OmitType(LobbyDetailsDto, ['chatRoomId'] as const)
-  OmitType(LobbyDetailsDto, [] as const)
+  OmitType(LobbyDetailsDto, ['chatRoomId'] as const)
 ) {
   @ApiProperty({
     description: "the host user's display name"

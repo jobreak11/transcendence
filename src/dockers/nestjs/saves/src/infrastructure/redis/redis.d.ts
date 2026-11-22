@@ -30,7 +30,6 @@ declare module 'ioredis' {
       // current date as number
       joinedAt: number,
       userLobbyListLimit: number,
-      tournamentSeedJoin: "true" | "false",
     ): Promise<number>;
 
     lobbyRoomLeave(

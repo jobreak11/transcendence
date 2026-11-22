@@ -10,9 +10,8 @@ import { httpControllerCatch } from "../../../utility/httpControllerCatch.js";
 import { CreateChatRoomSchema, CreateChatRoomZodDto, InviteUserToChatRoomSchema, InviteUserToChatRoomZodDto, KickUserChatRoomSchema, KickUserChatRoomZodDto } from "../../../modules/chat/dtos/chat.dto.js";
 import { ZodValidationPipe } from "../../../pipes/ZodValidationPipe.js";
 import { ChatRoomVisibilityType } from "../../../infrastructure/drizzle/schema/chat_rooms/chat_rooms.schema.js";
-import { IpThrottlerGuard } from "../../../modules/auth/guards/ip-throttler/ip-throttler.guard.js";
 
-@UseGuards(IpThrottlerGuard, JwtAuthGuard, UserThrottlerGuard)
+@UseGuards(JwtAuthGuard, UserThrottlerGuard)
 @UseFilters(HttpAllExceptionsFilter)
 @Throttle({
   default: {
@@ -29,7 +28,6 @@ export class InternalChatController {
   constructor(
     private readonly chatService: ChatService
   ) {}
-
 
   @Get()
   // retrieve all the chat room this user can join
@@ -142,6 +140,7 @@ export class InternalChatController {
     type: KickUserChatRoomZodDto
   })
   @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
   @Post('room/kick')
   kickUserChatRoom(@Req() req: any,
     @Body(new ZodValidationPipe(KickUserChatRoomSchema)) body: KickUserChatRoomZodDto

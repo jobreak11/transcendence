@@ -1,6 +1,6 @@
 import { Controller } from "@nestjs/common";
 
-@Controller('game')
+@Controller()
 export class InternalGameController {
 
 }

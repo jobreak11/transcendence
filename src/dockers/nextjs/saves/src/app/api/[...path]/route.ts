@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ACCESS_TOKEN_COOKIE_EXPIRE_TIME, BACKEND_URL, REFRESH_TOKEN_COOKIE_EXPIRE_TIME, TRANSCENDENCE_BASE_URL } from "../../../lib/constants";
+import { BACKEND_URL } from "../../../lib/constants";
 import { cookies } from "next/headers";
 
 
@@ -12,11 +12,11 @@ const allowedPaths = new Set([
   '/user/profile',
   '/user/profile/uploadProfilePic',
   '/user/update',
-  '/user/dev/setRole',
-  '/user/dev/create',
-  '/user/dev/delete',
-  '/user/dev',
-  '/user/dev/totalCount',
+  '/user/setRole',
+  '/user/create',
+  '/user/delete',
+  '/user',
+  '/user/totalCount',
 
 
   // title api
@@ -28,45 +28,6 @@ const allowedPaths = new Set([
   '/title/revoke',
   '/title/update',
   '/title/delete',
-
-  // throphies api
-  '/trophies',
-  '/trophies/totalUserCount',
-  '/trophies/allTotalCount',
-  '/trophies/find',
-  '/trophies/dev/all',
-  '/trophies/dev/create',
-  '/trophies/dev/uploadPic',
-  '/trophies/dev/update',
-  '/trophies/dev/give',
-  '/trophies/dev/revoke',
-  '/trophies/dev/delete',
-
-
-
-  // achievements api
-  '/achievements',
-  '/achievements/totalUserCount',
-  '/achievements/allTotalCount',
-  '/achievements/find',
-  '/achievements/dev/all',
-  '/achievements/dev/create',
-  '/achievements/dev/update',
-  '/achievements/dev/give',
-  '/achievements/dev/revoke',
-  '/achievements/dev/delete',
-
-  // api request for admin and developer
-  '/users-api',
-  '/users-api/request-new',
-  '/users-api/totalUserApiCount',
-  '/users-api/revoke',
-  '/users-api/remove',
-  '/users-api/find',
-  '/users-api/dev/admin/all',
-  '/users-api/dev/admin/allApiCount',
-  '/users-api/dev/admin/delete',
-  '/users-api/dev/admin/find',
 
   //auth api
   '/auth/check',
@@ -110,127 +71,14 @@ const allowedPaths = new Set([
   '/game/lobby/startgame',
   '/game/lobby/members',
   '/game/lobby',
-  '/tournament',
+
+
 ])
-
-async function handleOAuthLogin(
-  request: NextRequest,
-  apiStartPath: string,
-) {
-
-    const queryParams = request.nextUrl.searchParams;
-    const callbackUrl = queryParams.get('callbackUrl') || "";
-    const apiPath = `${apiStartPath}?callbackUrl=${encodeURIComponent(callbackUrl)}`
-
-    try {
-
-      const res = await fetch(`${BACKEND_URL}${apiPath}`,
-        {
-          redirect: 'manual',
-        }
-      );
-
-      let targetUrl = res.headers.get('location');
-
-      if (!targetUrl && res.url.includes('accounts.google.com')) {
-        targetUrl = res.url
-      }
-
-      if (!targetUrl) {
-        throw new Error('No Redirect URL found from backend')
-      }
-
-      return NextResponse.redirect(targetUrl);
-
-    }
-    catch (error) {
-      console.error('OAuth init error:', error);
-
-      return NextResponse.json({
-        message: `failed to fetch from backend ${apiPath}`,
-        error: error instanceof Error ? error.message : String(error),
-      }, { status: 500 });
-    }
-
-  
-}
-
-async function handleOAuthCallback(
-  request: NextRequest,
-  startApiPath: string
-
-) {
-    const queryParams = request.nextUrl.search;
-
-    try {
-
-      const res = await fetch(`${BACKEND_URL}${startApiPath}${queryParams}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!res.ok) {
-        throw new Error(`Nest Js callback failed with status ${res.status}`);
-      }
-
-      const { accessToken, refreshToken, callbackUrl } = await res.json();
-
-      const strCallbackUrl: string = callbackUrl ?? '/';
-      const safeCallbackUrl = (!strCallbackUrl.startsWith('//') && strCallbackUrl.startsWith('/')) ? strCallbackUrl : '/';
-
-      const response = NextResponse.redirect(new URL(safeCallbackUrl, TRANSCENDENCE_BASE_URL));
-
-      response.cookies.set('accessToken', accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: ACCESS_TOKEN_COOKIE_EXPIRE_TIME
-      })
-
-
-      response.cookies.set('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: REFRESH_TOKEN_COOKIE_EXPIRE_TIME
-      })
-
-      // const cookieStore = cookies();
-
-      // (await cookieStore).set('accessToken', accessToken, {
-      //   httpOnly: true,
-      //   secure: process.env.NODE_ENV === 'production',
-      //   sameSite: 'lax',
-      //   maxAge: ACCESS_TOKEN_COOKIE_EXPIRE_TIME
-      // });
-
-      // (await cookieStore).set('refreshToken', refreshToken, {
-      //   httpOnly: true,
-      //   secure: process.env.NODE_ENV === 'production',
-      //   sameSite: 'lax',
-      //   maxAge: REFRESH_TOKEN_COOKIE_EXPIRE_TIME
-      // });
-
-
-
-      return response;
-    }
-    catch ( error) {
-      console.error('Oauth callback error', error);
-      return NextResponse.redirect(new URL('/auth/signin?error=oauth_failed', TRANSCENDENCE_BASE_URL))
-
-
-    }
-}
-const tournamentPathPattern =
-  /^tournament(?:\/[0-9a-f-]{36}(?:\/(?:register|close-registration))?)?$/i;
 
 async function handleRequest(request: NextRequest, { params }: { params: Promise<{ path: string[] }>}) {
   const resolvedParams = await params;
   const pathString = resolvedParams.path.join('/');
-  if (!allowedPaths.has(`/${pathString}`) && !tournamentPathPattern.test(pathString)) {
+  if (!allowedPaths.has(`/${pathString}`)) {
     return Response.json(
       {
         error: `Not found`,
@@ -240,21 +88,6 @@ async function handleRequest(request: NextRequest, { params }: { params: Promise
       },
     );
   }
-
-  if (pathString.startsWith('auth/42/login')) {
-    return handleOAuthLogin(request, '/auth/42/login');
-  }
-  else if (pathString.startsWith('auth/42/callback')) {
-    return handleOAuthCallback(request, '/auth/42/callback');
-  }
-  else if (pathString.startsWith('auth/google/login')) {
-    return handleOAuthLogin(request, '/auth/google/login');
-  }
-  else if (pathString.startsWith('auth/google/callback')) {
-    return handleOAuthCallback(request, '/auth/google/callback');
-  }
-
-
   const searchParams = request.nextUrl.search;
   const targetUrl = `${BACKEND_URL}/${pathString}${searchParams}`
 

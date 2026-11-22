@@ -1,2 +1,0 @@
-
-export const REDIS_HASHED_API_EXPIRE_TIME = 600;

@@ -20,12 +20,9 @@ import { LobbyUpdateDto } from "../../../modules/lobby/redis/dtos/lobby-update.d
 import { lobbyUpdateSchema } from "../../../modules/lobby/redis/schemas/lobby-update.redis.schema.js";
 import z from "zod";
 import { LobbyDto } from "../../../modules/lobby/redis/dtos/lobby.dto.js";
-import { LobbyDetails } from "../../../modules/lobby/redis/schemas/lobby-details.redis.schema.js";
-import { IpThrottlerGuard } from "../../../modules/auth/guards/ip-throttler/ip-throttler.guard.js";
-import { UserThrottlerGuard } from "../../../modules/auth/guards/user-throttler/user-throttler.guard.js";
 
 @ApiBearerAuth()
-@UseGuards(IpThrottlerGuard, JwtAuthGuard, InternalLobbyGuard, UserThrottlerGuard)
+@UseGuards(JwtAuthGuard, InternalLobbyGuard, ThrottlerGuard)
 @UseFilters(HttpAllExceptionsFilter)
 @Controller('game/lobby')
 export class InternalLobbyController {
@@ -138,6 +135,7 @@ export class InternalLobbyController {
         allLobby.map(async (lobby): Promise<GetLobbyPublicDto> => {
 
           const {password, ...publicGeneralSettings} = lobby.generalSettings;
+          const {chatRoomId, ...publicDetails} = lobby.details;
 
           const pub: LobbyGeneralSettingsPublicDto = {
             catchPhrase: publicGeneralSettings.catchPhrase,
@@ -147,8 +145,8 @@ export class InternalLobbyController {
 
           return {
             details: {
-              ...lobby.details,
-              hostDisplayName: await this.getHostDisplayName(lobby.details.hostUserId),
+              ...publicDetails,
+              hostDisplayName: await this.getHostDisplayName(publicDetails.hostUserId),
             },
             gameSettings: lobby.gameSettings,
             generalSettings: pub
@@ -247,7 +245,7 @@ export class InternalLobbyController {
     const lobbyData = await this.lobbyService.getLobbyDto(lobbyPinId);
 
     const {password, ...publicGeneralSettings} = lobbyData.generalSettings;
-    // const {chatRoomId, ...publicDetails} = lobbyData.details;
+    const {chatRoomId, ...publicDetails} = lobbyData.details;
 
     const pub: LobbyGeneralSettingsPublicDto = {
       catchPhrase: publicGeneralSettings.catchPhrase,
@@ -257,8 +255,8 @@ export class InternalLobbyController {
 
     return {
       details: {
-        ...lobbyData.details,
-        hostDisplayName: await this.getHostDisplayName(lobbyData.details.hostUserId),
+        ...publicDetails,
+        hostDisplayName: await this.getHostDisplayName(publicDetails.hostUserId),
       },
       gameSettings: lobbyData.gameSettings,
       generalSettings: pub,

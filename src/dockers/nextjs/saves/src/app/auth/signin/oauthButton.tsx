@@ -2,7 +2,6 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
-import { TRANSCENDENCE_BASE_URL } from '../../../lib/constants';
 
 export function OauthButton() {
 
@@ -11,11 +10,11 @@ export function OauthButton() {
   console.log({callbackUrl});
 
   const handleGoogleLogin = () => {
-    window.location.href = `${TRANSCENDENCE_BASE_URL}/api/auth/google/login?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+    window.location.href = `https://localhost:4333/api/auth/google/login?callbackUrl=${encodeURIComponent(callbackUrl)}`;
   };
 
   const handle42Login = () => {
-    window.location.href = `${TRANSCENDENCE_BASE_URL}/api/auth/42/login?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+    window.location.href = `https://localhost:4333/api/auth/42/login?callbackUrl=${encodeURIComponent(callbackUrl)}`;
   };
 
   useEffect(() => {
@@ -25,18 +24,18 @@ export function OauthButton() {
 
     if (accessToken) {
       localStorage.setItem('accessToken', accessToken);
-      window.location.href = `${TRANSCENDENCE_BASE_URL}`;
+      window.location.href = 'https://localhost:4333/';
     }
   }, []);
 
   return (
     <div className='flex flex-col justify-center items-center gap-3'>
-        <a href={`/api/auth/42/login?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+        <button onClick={handle42Login}
         className="bg-black w-full hover:bg-cyan-500 hover:text-black hover:border-cyan-500 font-bold rounded-md px-4 py-1.5 cursor-pointer disabled:opacity-50">
-            Continue with 42</a>
-        <a href={`/api/auth/google/login?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+            Continue with 42</button>
+        <button onClick={handleGoogleLogin}
         className="bg-white w-full text-black hover:bg-blue-500 hover:text-white hover:border-neutral-700 font-bold rounded-md px-4 py-1.5 cursor-pointer disabled:opacity-50">
-            Continue with Google</a>
+            Continue with Google</button>
     </div>
   )
 }

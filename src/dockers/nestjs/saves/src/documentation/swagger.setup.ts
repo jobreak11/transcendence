@@ -8,16 +8,8 @@ export function setupSwagger(app: INestApplication): void {
         .setTitle('Public API')
         .setDescription('Endpoints available to external clients.')
         .setVersion('1.0')
-        .addApiKey(
-            {
-                type: 'apiKey',
-                name: "x-api-key",
-                in: "header",
-                description: "Enter your api key"
-            },
-            "x-api-key"
-        )
-        .addServer('/', 'Relative Base Path')
+        .addBearerAuth()
+        .addServer('/api', 'Relative Base Path')
         .build();
 
     const publicDocument = SwaggerModule.createDocument(
@@ -29,7 +21,7 @@ export function setupSwagger(app: INestApplication): void {
         },
     );
 
-    SwaggerModule.setup('public-api/api-docs', app, publicDocument, {
+    SwaggerModule.setup('admin/public/api-docs', app, publicDocument, {
     });
 
     const internalConfig = new DocumentBuilder()
@@ -45,7 +37,7 @@ export function setupSwagger(app: INestApplication): void {
         internalConfig,
         {
             include: [InternalModule],
-            deepScanRoutes: true,
+            deepScanRoutes: true
         },
     );
 

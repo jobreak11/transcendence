@@ -11,13 +11,7 @@ import { ChatMessageType } from "../../../../infrastructure/drizzle/schema/chat_
 @UseFilters(WsAllExceptionsFilter)
 @WebSocketGateway({
   transports: ['websocket'],
-  namespace: "/",
-  cors: {
-    origin: [
-    `https://${process.env.TRANSCENDENCE_DOMAIN_NAME ?? "localhost"}`,
-    `https://${process.env.TRANSCENDENCE_DOMAIN_NAME ?? "localhost"}:${process.env.NGINX_BIND_PORT ?? "4333"}`,
-    ]
-  }
+  namespace: "/"
 })
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 

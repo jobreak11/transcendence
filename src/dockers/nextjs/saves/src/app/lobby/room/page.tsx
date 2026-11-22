@@ -7,6 +7,8 @@ import type { GetLobbyPublicDto } from "../../../types/dto";
 import { useMainSocket } from "../../(protected)/_context/useMainSocket";
 import { LobbyEvent } from "../../../websocket-events/main/lobby/lobby-events";
 
+import Link from "next/link"; 
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -43,11 +45,20 @@ function isLobbyResponse(value: unknown): value is GetLobbyPublicDto {
     && typeof value.generalSettings.hasPassword === "boolean";
 }
 
+// link to each page
+// type LobbyMember = {
+//   userId: string;
+//   tagId: string;
+//   displayName: string;
+// };
+
 type LobbyMembers = {
   playerList: string[];
   spectatorList: string[];
   readyPlayerList: string[];
 };
+
+
 
 function isLobbyMembers(value: unknown): value is LobbyMembers {
   return isRecord(value)
@@ -101,6 +112,61 @@ function LobbyPanel({
     </section>
   );
 }
+
+//edit link to profile of each player
+// function LobbyRoster({
+//   members = [],
+//   readyUserIds = [],
+//   isLoading,
+// }: {
+//   members?: LobbyMember[];
+//   readyUserIds?: string[];
+//   isLoading: boolean;
+// }) {
+//   return (
+//     <ul className="mx-auto min-h-60 w-full max-w-2xl content-start text-sm sm:text-base">
+//       {isLoading ? (
+//         <li className="flex min-h-12 items-center px-2 text-neutral-400">
+//           Loading members…
+//         </li>
+//       ) : members.length > 0 ? (
+//         members.map((member) => {
+//           const isReady =
+//             readyUserIds.includes(
+//               member.userId,
+//             );
+
+//           return (
+//             <li
+//               key={member.userId}
+//               className="flex min-h-12 items-center border-b border-white/10 px-2"
+//             >
+//               <Link
+//                 href={`/profile/${encodeURIComponent(member.tagId)}`}
+//                 className={
+//                   isReady
+//                     ? "font-semibold text-emerald-400 hover:underline"
+//                     : "hover:underline"
+//                 }
+//                 title={
+//                   isReady
+//                     ? `${member.displayName} — Ready`
+//                     : `View ${member.displayName}'s profile`
+//                 }
+//               >
+//                 {member.displayName}
+//               </Link>
+//             </li>
+//           );
+//         })
+//       ) : (
+//         <li className="flex min-h-12 items-center px-2 text-neutral-400">
+//           No members yet.
+//         </li>
+//       )}
+//     </ul>
+//   );
+// }
 
 function LobbyRoster({
   names,
@@ -156,6 +222,7 @@ export default function LobbyRoomPage() {
   const [actionError, setActionError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const currentUserId = getUserIdFromToken(accessToken);
+
 
   const refreshMembers = useCallback(async (
     lobbyId: string,
@@ -497,16 +564,26 @@ export default function LobbyRoomPage() {
               <LobbyPanel
                 title={`Players (${playerCount}/${lobby.gameSettings.maxPlayer})`}
               >
+                {/* <LobbyRoster
+                  members={members.playerList}
+                  readyUserIds={members.readyPlayerList}
+                  isLoading={isMembersLoading}
+                /> */}
                 <LobbyRoster
                   names={members.playerList}
                   readyNames={members.readyPlayerList}
                   isLoading={isMembersLoading}
                 />
+
               </LobbyPanel>
 
               <LobbyPanel
                 title={`Spectators (${spectatorCount}/${lobby.gameSettings.maxSpectator})`}
               >
+                {/* <LobbyRoster
+                  members={members.spectatorList}
+                  isLoading={isMembersLoading}
+                /> */}
                 <LobbyRoster
                   names={members.spectatorList}
                   isLoading={isMembersLoading}

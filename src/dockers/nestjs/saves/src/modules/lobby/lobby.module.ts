@@ -10,7 +10,7 @@ import { ChatModule } from '../chat/chat.module.js';
 import { GameGatewayModule } from '../../api/websocket/game-gateway/game-gateway.module.js';
 
 @Module({
-  imports: [GameGatewayModule, ConnectionGatewayModule, UserModule, forwardRef(() => GameModule), forwardRef(() => LobbyGatewayModule), ChatModule],
+  imports: [GameGatewayModule, ConnectionGatewayModule, UserModule, GameModule, forwardRef(() => LobbyGatewayModule), ChatModule],
   providers: [
     LobbyService,
     LobbyRedisService,

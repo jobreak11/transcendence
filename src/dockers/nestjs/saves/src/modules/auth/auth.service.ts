@@ -119,8 +119,7 @@ export class AuthService {
   }
 
   async validateGoogleUser(googleUser: CreateUserDto) {
-    
-    const user = await this.userService.findByEmail(googleUser.email).catch((error: any) => null);
+    const user = await this.userService.findByEmail(googleUser.email);
 
     if (user) {
       return user;
@@ -130,7 +129,7 @@ export class AuthService {
   }
 
   async validate42User(fortyTwoUser: CreateUserDto) {
-    const user = await this.userService.findByEmail(fortyTwoUser.email).catch((error: any) => null);
+    const user = await this.userService.findByEmail(fortyTwoUser.email);
 
     if (user) {
       return user;

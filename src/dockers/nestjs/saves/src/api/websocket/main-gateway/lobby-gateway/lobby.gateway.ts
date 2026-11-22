@@ -14,13 +14,7 @@ import { UsersRedisService } from "../../../../modules/user/redis/users-redis.se
 @UseFilters(WsAllExceptionsFilter)
 @WebSocketGateway({
   transports: ['websocket'],
-  namespace: '/',
-  cors: {
-    origin: [
-    `https://${process.env.TRANSCENDENCE_DOMAIN_NAME ?? "localhost"}`,
-    `https://${process.env.TRANSCENDENCE_DOMAIN_NAME ?? "localhost"}:${process.env.NGINX_BIND_PORT ?? "4333"}`,
-    ]
-  }
+  namespace: '/'
 })
 export class LobbyGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect{
 

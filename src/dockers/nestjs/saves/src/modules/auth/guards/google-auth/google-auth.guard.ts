@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable, Optional } from '@nestjs/common';
 import { AuthGuard, AuthGuardAuthenticateOptions, AuthModuleOptions } from '@nestjs/passport';
 import { Observable } from 'rxjs';
-import { FastifyReply, FastifyRequest } from 'fastify'; 
+import { FastifyReply } from 'fastify'; 
 
 @Injectable()
 export class GoogleAuthGuard extends AuthGuard('google') {
@@ -15,9 +15,8 @@ export class GoogleAuthGuard extends AuthGuard('google') {
   }
 
   getAuthenticateOptions(context: ExecutionContext) {
-    const req = context.switchToHttp().getRequest<FastifyRequest<{ Querystring: { callbackUrl?: string }}>>();
+    const req = context.switchToHttp().getRequest();
 
-    // const rawCallbackUrl = req.query?.callbackUrl;
     const rawCallbackUrl = req.query?.callbackUrl;
     const isValidRelative =
       typeof rawCallbackUrl === 'string' &&
