@@ -41,7 +41,8 @@ export function SignInForm() {
         <div className="pt-2 flex items-center justify-center w-full gap-2">
         <SubmitButton isPending={isPending}>Login</SubmitButton>
         <span>or</span>
-        <Link className="text-sm underline" href={`/auth/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`}>
+        <Link className="rounded-lg border-transparent bg-red-600 px-2.5 py-2 text-center font-bold text-white no-underline"
+			href={`/auth/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`}>
             Sign Up?
         </Link>
         </div>

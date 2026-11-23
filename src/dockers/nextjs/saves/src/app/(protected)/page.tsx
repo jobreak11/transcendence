@@ -48,17 +48,11 @@ export default function Page() {
         
         <div className="w-[30vw] h-[30vw] relative flex items-center justify-center">
           <div className="w-full h-full flex flex-col items-center justify-center gap-1">
-            <Image 
-              src={logo3D} 
-              alt="Logo" 
-              width={250} 
-              height={250} 
-            />
+            {/* <img src="../logo3D.svg" alt="Transcend 888 Logo"></img> */}
           </div>
         </div>
 
-        {/* <h1 className="goldheader"> */}
-        <h1 className="font-mono text-3xl sm:text-4xl tracking-wide text-transparent bg-clip-text bg-linear-to-b from-[#fce085] via-[#d4af37] to-[#997312] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+        <h1 className="goldheader">
           Transcend 888
         </h1>
 
@@ -73,6 +67,12 @@ export default function Page() {
             href="/auth/signin"
             className="rounded-lg border-transparent bg-red-600 px-2.5 py-2 text-center font-bold text-white no-underline"
           >Login</Link>
+          <form action={signOut}>
+          <button 
+            type="submit"
+            // className="w-full bg-red-600 border-black hover:bg-red-700 text-white font-bold rounded-md px-4 py-1.5 cursor-pointer disabled:opacity-50"
+          >Sign Out</button>
+          </form>
         </div>
       </div>
       <a href="#about" 

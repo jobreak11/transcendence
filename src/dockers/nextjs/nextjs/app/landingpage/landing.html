@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transcend 888</title>
+  <style>
+	:root {
+	  color-scheme: dark;
+	  font-family: sans-serif;
+	  background: #000;
+	  color: #fff;
+	}
+
+	* {
+	  box-sizing: border-box;
+	}
+
+	html {
+	  scroll-behavior: smooth;
+	}
+
+	body {
+	  margin: 0;
+	  background: #000;
+	}
+
+	.hero {
+	  min-height: 100vh;
+	  min-width: 100vw;
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  /* padding: 2rem 1rem; */
+	  background: #000;
+	}
+
+	.hero-content {
+	  display: flex;
+	  flex-direction: column;
+	  align-items: center;
+	  gap: 1.5rem;
+	  width: 100%;
+	  /* max-width: 24rem; */
+	  background: linear-gradient(to bottom, transparent 20%, #14532d 50%, transparent 80%);
+	}
+
+	.logo-placeholder {
+	  position: relative;
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  width: 30vw;
+	  height: 30vw;
+	  /* border: 2px dashed #404040; */
+	  /* border-radius: 1rem; */
+	  /* color: #737373; */
+	  font-size: 0.875rem;
+	}
+
+	.logo-placeholder span {
+	  font-weight: 600;
+	}
+
+	h1 {
+	  margin: 0;
+	  background: linear-gradient(to bottom, #fce085, #d4af37, #997312);
+	  background-clip: text;
+	  color: transparent;
+	  font-family: 'Times New Roman', Times, serif;
+	  font-size: 1.875rem;
+	  font-weight: 800;
+	  line-height: 1.2;
+	  text-align: center;
+	  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+	}
+
+	button {
+		background-color: red;
+		color: white;
+		font-weight: bold;
+		border: transparent;
+		border-radius: 8px;
+		padding: 8px 10px;
+		text-align: center;
+	}
+
+	a.button {
+		background-color: red;
+		color: white;
+		font-weight: bold;
+		border: transparent;
+		border-radius: 8px;
+		padding: 8px 10px;
+		text-align: center;
+		text-decoration: none;
+	}
+
+	/* .learn-more {
+	  display: block;
+	  border: 0;
+	  border-radius: 0.375rem;
+	  background: #dc2626;
+	  color: #fff;
+	  font: inherit;
+	  font-size: 1rem;
+	  font-weight: 700;
+	  text-align: center;
+	  text-decoration: none;
+	  cursor: pointer;
+	  transition: background-color 150ms ease;
+	} */
+
+	a.button:hover {
+	  background: #b91c1c;
+	}
+	button:hover {
+	  background: #b91c1c;
+	}
+	/* .learn-more:hover {
+	  background: #b91c1c;
+	} */
+
+	a.button:active {
+	  transform: scale(0.95);
+	}
+	button:active {
+	  transform: scale(0.95);
+	}
+	/* .learn-more:active {
+	  transform: scale(0.95);
+	} */
+
+
+	.about {
+	  min-height: 100vh;
+	  display: flex;
+	  flex-direction: column;
+	  align-items: center;
+	  justify-content: center;
+	  padding: 4rem 1.5rem;
+	  /* background: #0a0a0a; */
+	  text-align: center;
+	}
+
+	.about-content {
+	  display: flex;
+	  flex-direction: column;
+	  align-items: center;
+	  gap: 1.5rem;
+	  width: 100%;
+	  max-width: 36rem;
+	}
+
+	.about h2 {
+	  margin: 0;
+	  font-size: 1.5rem;
+	  line-height: 1.25;
+	}
+
+	.about p {
+	  margin: 0;
+	  color: #d4d4d4;
+	  font-size: 0.875rem;
+	  line-height: 1.625;
+	}
+
+	/* .learn-more {
+	  margin-top: 0.5rem;
+	  padding: 0.5rem 1.5rem;
+	  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+	} */
+
+	.js .reveal {
+	  opacity: 0;
+	  transform: translateY(2.5rem);
+	  transition: opacity 700ms ease-out, transform 700ms ease-out;
+	  transition-delay: var(--delay, 0ms);
+	}
+
+	.js .reveal.is-visible {
+	  opacity: 1;
+	  transform: translateY(0);
+	}
+
+	@media (min-width: 640px) {
+	  h1 {
+		font-size: 2.25rem;
+	  }
+
+	  .about h2 {
+		font-size: 1.875rem;
+	  }
+
+	  .about p {
+		font-size: 1rem;
+	  }
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+	  html {
+		scroll-behavior: auto;
+	  }
+
+	  .js .reveal {
+		transition: none;
+		transform: none;
+	  }
+	}
+  </style>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="hero">
+	<div class="hero-content">
+	  <div class="logo-placeholder" aria-label="Logo placeholder">
+		<img src="../logo3D.svg"> <!-- <span>Logo</span> -->
+	  </div>
+
+	  <h1>Transcend 888</h1>
+
+	  <nav style="display: flex; flex-direction: column; gap: 0.75rem;" aria-label="Main actions">
+		<a href="/game" class="button">Play</a>
+		<a href="/auth/signin" class="button">Login</a>
+		<button type="button" style="font-size: 1rem;" title="Sign out requires the running app">Sign Out</button>
+	  </nav>
+	</div>
+  </main>
+
+  <section class="about" id="about" aria-labelledby="about-title">
+	<div class="about-content">
+	  <h2 class="reveal" id="about-title" style="--delay: 0ms">About Us</h2>
+	  <p class="reveal" style="--delay: 150ms">
+		Transcend 888 is an online web poker game, created as part of 42 project, transcendence.
+		This project is non-commercialized and will always be free of charge.
+	  </p>
+	  <p class="reveal" style="--delay: 450ms">
+		Here, you can play the well-known poker card game anywhere. Having short fun testing your luck with your
+		friends, or login with an account that tracks your progress to show the world how good you are, we all
+		have it covered. With no coins, chips, nor payment, you can enjoy poker to its fullest.
+	  </p>
+	  <a class="button reveal" href="#about" style="--delay: 600ms">Learn More</a>
+	</div>
+  </section>
+
+  <script>
+	document.documentElement.classList.add("js");
+	const reveals = document.querySelectorAll(".reveal");
+
+	if ("IntersectionObserver" in window) {
+	  const observer = new IntersectionObserver((entries) => {
+		entries.forEach((entry) => {
+		  if (entry.isIntersecting) {
+			entry.target.classList.add("is-visible");
+			observer.unobserve(entry.target);
+		  }
+		});
+	  }, { threshold: 0.2 });
+
+	  reveals.forEach((element) => observer.observe(element));
+	} else {
+	  reveals.forEach((element) => element.classList.add("is-visible"));
+	}
+  </script>
+</body>
+</html>
