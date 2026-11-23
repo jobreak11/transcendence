@@ -236,23 +236,12 @@ export default function GameTable({
                   >
                     {card && (
                       <>
-                        <div
+                        <CardImage
                           key={`${gameState?.handId}-${card}`}
-                          className="community-card-flip h-full w-full"
-                          style={{ animationDelay: `${cardIndex * 100}ms` }}
-                        >
-                          <img
-                            src="/theme/standard/Back.svg"
-                            alt=""
-                            aria-hidden="true"
-                            className="community-card-face community-card-back"
-                          />
-                          <img
-                            src={`/theme/standard/${card}.svg`}
-                            alt={`Community card ${cardIndex + 1}`}
-                            className="community-card-face community-card-front"
-                          />
-                        </div>
+                          card={card}
+                          alt={`Community card ${cardIndex + 1}`}
+                          delay={cardIndex * 100}
+                        />
                         <PopUpUnder>
                           <p className="text-sm font-semibold">{getCardName(card)}</p>
                         </PopUpUnder>

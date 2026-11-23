@@ -199,6 +199,22 @@ function isSuccessfulPokerSyncResponse(
     && value.cards.every((card: unknown) => typeof card === "string");
 }
 
+function preservePlayerProfiles(
+  state: PublicGameState | null,
+  current: PublicGameState | null,
+): PublicGameState | null {
+  if (!state) return null;
+  const previous = current?.tableSessionId === state.tableSessionId
+    ? current
+    : null;
+
+  return {
+    ...state,
+    playerNames: { ...previous?.playerNames, ...state.playerNames },
+    playerAvatars: { ...previous?.playerAvatars, ...state.playerAvatars },
+  };
+}
+
 function isPlayersLoadedEvent(
   value: unknown,
 ): value is GameEvent.players_loaded.to_client.payload {
@@ -392,7 +408,7 @@ export default function Page() {
         return;
       }
       if (state.tableSessionId === tableSessionId) {
-        setGameState(state);
+        setGameState((current) => preservePlayerProfiles(state, current));
         setError("");
         setIsSendingAction(false);
         setIsWaitingToStartFirstHand(false);
@@ -452,6 +468,7 @@ export default function Page() {
     };
   }, [
     gameState?.players,
+    gameState?.playerNames,
     routeToMatchHistory,
     router,
     socket,
@@ -493,7 +510,7 @@ export default function Page() {
           return;
         }
 
-        setGameState(response.state);
+        setGameState((current) => preservePlayerProfiles(response.state, current));
         setMyCards(response.cards);
         setError("");
         if (response.state) {
