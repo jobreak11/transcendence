@@ -19,4 +19,13 @@ export class GameStatisticsService {
         return this.gameStatisticsDatabaseService.findOne(userId);
     }
 
+    findOneV2( userId: string ) {
+        return this.gameStatisticsDatabaseService.findOneV2(userId);
+    }
+
+    getAllUserStats(limit: number = 50, offset: number = 0, orderByRank: boolean = true) {
+        return this.gameStatisticsDatabaseService.getAllUserStats(limit, offset, orderByRank)
+    }
+
+
 }

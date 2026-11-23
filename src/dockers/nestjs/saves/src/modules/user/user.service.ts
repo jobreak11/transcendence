@@ -31,6 +31,7 @@ export class UserService {
   constructor(
     private readonly usersRedisService: UsersRedisService,
     private readonly usersCachingService: UsersCachingService,
+    private readonly userDatabaseService: UsersDatabaseService,
     @Inject(DRIZZLE) private db: NodePgDatabase<typeof dbSchema.dbRelations>,
   )
   {}
@@ -220,6 +221,12 @@ export class UserService {
     return await this.db.select().from(users);
   }
 
+  findAllV2( limit: number = 50, offset: number = 0) {
+
+    return this.userDatabaseService.findAllV2(limit, offset);
+
+  }
+
   async findOne(id: string): Promise<UserAndProfileDto> {
 
     const foundCache = await this.usersCachingService.getCacheById(id);
@@ -390,5 +397,9 @@ export class UserService {
     await this.usersCachingService.cacheDeleteUser(deletedUser.id);
 
     return deletedUser
+  }
+
+  countTotalUser() {
+    return this.userDatabaseService.countAllUser();
   }
 }

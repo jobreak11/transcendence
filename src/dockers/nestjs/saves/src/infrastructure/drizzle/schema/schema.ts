@@ -16,6 +16,7 @@ import { achievements } from './achievements/achievements.schema.js'
 import { user_achievements } from './user_achievements/user_achievements.schema.js'
 import { user_trophies } from './user_trophies/user_trophies.schema.js'
 import { user_api_keys } from './user_api_keys/user_api_keys.schema.js'
+import { optional } from 'zod'
 
 //export * from './users.schema.js'
 //export * from './friendships.schema.js'
@@ -86,14 +87,20 @@ export const dbRelations = defineRelations(
     user_profiles: {
       user: r.one.users({
         from: r.user_profiles.userId,
-        to: r.users.id
+        to: r.users.id,
+        optional: false
+      }),
+      active_title: r.one.titles({
+        from: r.user_profiles.activeTitleId,
+        to: r.titles.id
       })
     },
 
     user_game_statistics: {
       user: r.one.users({
         from: r.user_game_statistics.userId,
-        to: r.users.id
+        to: r.users.id,
+        optional: false
       })
     },
 

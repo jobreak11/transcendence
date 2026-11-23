@@ -16,6 +16,9 @@ import { InternalUsersService } from "./internal-users.service.js";
   controllers: [
     InternalUsersUserController,
     InternalUsersDeveloperController
+  ],
+  exports: [
+    InternalUsersService
   ]
 })
 export class InternalUsersModule {

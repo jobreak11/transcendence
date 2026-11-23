@@ -12,14 +12,4 @@ import { ApiOperation, ApiSecurity } from "@nestjs/swagger";
 @UseFilters(HttpAllExceptionsFilter)
 export class PublicController {
 
-    @ApiOperation({
-        summary: "test public api",
-        description : "this endpoint is used for testing"
-    })
-    @Get()
-    hello() {
-
-        return "Hello world test test"
-    }
-
 }

@@ -8,4 +8,9 @@ export class UserAndProfileDto extends UserDto {
     description: "the profile details of the user",
   })
   user_profile: UserProfileDto;
+
+  // @ApiProperty({
+  //   description: "determine whether user is currently online or not"
+  // })
+  // isUserOnline: boolean;
 }
