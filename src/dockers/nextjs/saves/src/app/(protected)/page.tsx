@@ -67,12 +67,12 @@ export default function Page() {
             href="/auth/signin"
             className="rounded-lg border-transparent bg-red-600 px-2.5 py-2 text-center font-bold text-white no-underline"
           >Login</Link>
-          <form action={signOut}>
+          {/* <form action={signOut}>
           <button 
             type="submit"
             // className="w-full bg-red-600 border-black hover:bg-red-700 text-white font-bold rounded-md px-4 py-1.5 cursor-pointer disabled:opacity-50"
           >Sign Out</button>
-          </form>
+          </form> */}
         </div>
       </div>
       <a href="#about" 

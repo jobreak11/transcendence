@@ -31,14 +31,29 @@ export function OauthButton() {
 
   return (
     <div className='flex flex-col justify-center items-center gap-3'>
-        <a href={`/api/auth/42/login?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+        {/* <a href={`/api/auth/42/login?callbackUrl=${encodeURIComponent(callbackUrl)}`}
         className="oauth bg-black">
             <img src="../../42logoBordered.svg" alt="" className="h-4 w-4 mr-[3%]"/>Continue with 42
 		</a>
         <a href={`/api/auth/google/login?callbackUrl=${encodeURIComponent(callbackUrl)}`}
         className="oauth bg-white">
             <img src="../../googleIcon.svg" alt="" className="h-4 w-4 mr-[3%]"/>Continue with Google
-		</a>
+		</a> */}
+
+        <button onClick={handle42Login}
+        className="oauth bg-black">
+            <img src="../../42logoBordered.svg" alt="" className="h-4 w-4 mr-[3%]"/>Continue with 42
+		</button>
+        <button onClick={handleGoogleLogin}
+        className={`
+        bg-white
+          oauth
+          `}
+        >
+            {/* <img src="../../googleIcon.svg" alt="" className="h-4 w-4 mr-[3%]"/>Continue with Google */}
+            {/* <img src="../../../public/" alt="" className="h-4 w-4 mr-[3%]"/>Continue with Google */}
+		</button>
+
     </div>
   )
 }
