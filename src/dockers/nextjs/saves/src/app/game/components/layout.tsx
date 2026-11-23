@@ -32,7 +32,7 @@ export function PopUpUnder({ children }) {
 export function SeatIcon({ children }){
     return (
         <div id="seat1" 
-          className="w-full h-full aspect-square rounded-full flex justify-center items-center bg-neutral-400 border-[3px] border-neutral-500 cursor-pointer hover:border-blue-500 hover:text-black">
+          className="relative w-full h-full aspect-square rounded-full flex justify-center items-center overflow-visible bg-neutral-400 border-[3px] border-neutral-500 cursor-pointer hover:border-blue-500 hover:text-black">
             {children}
           </div>
     );
