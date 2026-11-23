@@ -3,6 +3,7 @@
 import { useState } from "react";
 import ActionButtons, { type GameDictionary } from "./ActionButtons";
 import { CardSlot, PlayerHand, PopUpTop, PopUpUnder, SeatIcon } from "./layout";
+import ProfileImage from "../../components/profile/ProfileImage";
 import type { PokerActionType, PublicGameState } from "../types";
 
 const SEAT_POSITIONS = [
@@ -100,6 +101,72 @@ function getCardName(card: string) {
   return suit ? `${rank} of ${suit}` : card;
 }
 
+function getBestHandLabel(cards: string[]) {
+  const ranksBySymbol: Record<string, number> = {
+    T: 10,
+    J: 11,
+    Q: 12,
+    K: 13,
+    A: 14,
+  };
+  const rankFive = (hand: string[]) => {
+    const ranks = hand
+      .map((card) => ranksBySymbol[card.slice(0, -1)] ?? Number(card.slice(0, -1)))
+      .sort((left, right) => right - left);
+    if (ranks.some((rank) => !Number.isInteger(rank) || rank < 2 || rank > 14)) {
+      return null;
+    }
+
+    const flush = hand.every((card) => card.slice(-1) === hand[0].slice(-1));
+    const uniqueRanks = [...new Set(ranks)];
+    const straightHigh = uniqueRanks.length === 5
+      ? uniqueRanks[0] - uniqueRanks[4] === 4
+        ? uniqueRanks[0]
+        : uniqueRanks.join(",") === "14,5,4,3,2" ? 5 : 0
+      : 0;
+    const counts = [...new Set(ranks)]
+      .map((rank) => ({ rank, count: ranks.filter((value) => value === rank).length }))
+      .sort((left, right) => right.count - left.count || right.rank - left.rank);
+
+    if (flush && straightHigh) return 8;
+    if (counts[0].count === 4) return 7;
+    if (counts[0].count === 3 && counts[1].count === 2) return 6;
+    if (flush) return 5;
+    if (straightHigh) return 4;
+    if (counts[0].count === 3) return 3;
+    if (counts[0].count === 2 && counts[1].count === 2) return 2;
+    if (counts[0].count === 2) return 1;
+    return 0;
+  };
+  const labels = [
+    "High card",
+    "One pair",
+    "Two pair",
+    "Three of a kind",
+    "Straight",
+    "Flush",
+    "Full house",
+    "Four of a kind",
+    "Straight flush",
+  ];
+  let bestRank = -1;
+
+  for (let a = 0; a < cards.length - 4; a += 1) {
+    for (let b = a + 1; b < cards.length - 3; b += 1) {
+      for (let c = b + 1; c < cards.length - 2; c += 1) {
+        for (let d = c + 1; d < cards.length - 1; d += 1) {
+          for (let e = d + 1; e < cards.length; e += 1) {
+            const rank = rankFive([cards[a], cards[b], cards[c], cards[d], cards[e]]);
+            if (rank !== null) bestRank = Math.max(bestRank, rank);
+          }
+        }
+      }
+    }
+  }
+
+  return labels[bestRank] ?? null;
+}
+
 export default function GameTable({
   gameState,
   userId,
@@ -137,17 +204,16 @@ export default function GameTable({
     : playersInSeatOrder;
 
   const getPlayerName = (playerId: string) => {
-    if (playerId === userId) return "You";
-    const playerIndex = gameState?.players.findIndex(
-      (player) => player.playerId === playerId,
-    ) ?? -1;
-    const player = gameState?.players[playerIndex];
-    return player
-      ? `Player ${(player.seatNumber ?? playerIndex) + 1}`
-      : "Player";
+    return gameState?.playerNames?.[playerId] ?? "Unknown player";
   };
   const matchWinnerId = Object.entries(gameState?.playerPlaces ?? {})
     .find(([, place]) => place === 1)?.[0];
+  const myKnownCards = userId
+    ? gameState?.revealedCards?.[userId] ?? myCards
+    : myCards;
+  const bestHandLabel = gameState
+    ? getBestHandLabel([...myKnownCards, ...gameState.poolCards])
+    : null;
 
   return (
     <>
@@ -170,12 +236,23 @@ export default function GameTable({
                   >
                     {card && (
                       <>
-                        <CardImage
+                        <div
                           key={`${gameState?.handId}-${card}`}
-                          card={card}
-                          alt={`Community card ${cardIndex + 1}`}
-                          delay={cardIndex * 100}
-                        />
+                          className="community-card-flip h-full w-full"
+                          style={{ animationDelay: `${cardIndex * 100}ms` }}
+                        >
+                          <img
+                            src="/theme/standard/Back.svg"
+                            alt=""
+                            aria-hidden="true"
+                            className="community-card-face community-card-back"
+                          />
+                          <img
+                            src={`/theme/standard/${card}.svg`}
+                            alt={`Community card ${cardIndex + 1}`}
+                            className="community-card-face community-card-front"
+                          />
+                        </div>
                         <PopUpUnder>
                           <p className="text-sm font-semibold">{getCardName(card)}</p>
                         </PopUpUnder>
@@ -185,6 +262,11 @@ export default function GameTable({
                 );
               })}
             </div>
+            {bestHandLabel && myKnownCards.length >= 2 && (
+              <p aria-live="polite" className="rounded-full bg-black/75 px-3 py-1 text-xs font-bold text-amber-200">
+                Your best hand: {bestHandLabel}
+              </p>
+            )}
           </div>
           <div className="absolute bottom-[30%] left-1/2 -translate-x-1/2 text-center">
             <p className="font-bold text-xl">Pot: {gameState?.pot ?? 0}</p>
@@ -193,7 +275,7 @@ export default function GameTable({
           </div>
         </div>
 
-        {playersStartingFromMe.map(({ player, seatNumber }, playerIndex) => {
+        {playersStartingFromMe.map(({ player }, playerIndex) => {
           const position = seatPositions[playerIndex];
           if (!position) return null;
 
@@ -204,9 +286,8 @@ export default function GameTable({
               ? myCards
               : [];
           const inTurn = gameState.currentPlayerId === player.playerId;
-          const displayName = isMe
-            ? "You"
-            : `Player ${seatNumber + 1}`;
+          const displayName = gameState.playerNames?.[player.playerId]
+            ?? "Unknown player";
 
           return (
             <div key={player.playerId}>
@@ -222,7 +303,15 @@ export default function GameTable({
                   </div>
                 )}
                 <SeatIcon>
-                  <span className={inTurn ? "font-extrabold text-yellow-300" : ""}>
+                  <ProfileImage
+                    className="h-full w-full rounded-full"
+                    imageUrl={gameState.playerAvatars?.[player.playerId] ?? null}
+                  />
+                  <span
+                    className={`absolute bottom-[4%] left-1/2 max-w-[8rem] -translate-x-1/2 truncate rounded-full bg-black/85 px-2 py-0.5 text-xs font-bold text-white shadow ${
+                      inTurn ? "border border-yellow-300 text-yellow-300" : "border border-white/40"
+                    }`}
+                  >
                     {displayName}
                   </span>
                   <PopUpTop>

@@ -82,6 +82,17 @@ function isPublicGameState(value: unknown): value is PublicGameState {
       )
     )
     && (
+      !("playerAvatars" in value)
+      || (
+        typeof value.playerAvatars === "object"
+        && value.playerAvatars !== null
+        && !Array.isArray(value.playerAvatars)
+        && Object.values(value.playerAvatars).every((avatarUrl: unknown) =>
+          typeof avatarUrl === "string" || avatarUrl === null
+        )
+      )
+    )
+    && (
       !("playerPlaces" in value)
       || (
         typeof value.playerPlaces === "object"
@@ -274,6 +285,59 @@ export default function Page() {
   const userId = getUserIdFromToken(accessToken);
   const isHost = lobbyStatus?.details.hostUserId === userId;
   const dictionary = language === "en" ? enDictionary.game : thDictionary.game;
+  const playerProfileIds = (gameState?.players.map(({ playerId }) => playerId) ?? [])
+    .sort()
+    .join("|");
+
+  useEffect(() => {
+    const playerIds = playerProfileIds ? playerProfileIds.split("|") : [];
+    if (playerIds.length === 0) return;
+
+    const controller = new AbortController();
+    Promise.all(playerIds.map(async (playerId) => {
+      try {
+        const response = await fetch(
+          `/api/user/profile?id=${encodeURIComponent(playerId)}`,
+          { credentials: "include", signal: controller.signal },
+        );
+        if (!response.ok) return null;
+        const profile = await response.json() as {
+          tagId?: string;
+          user_profile?: {
+            displayName?: string | null;
+            avatarUrl?: string | null;
+          } | null;
+        };
+        return {
+          playerId,
+          name: profile.user_profile?.displayName?.trim()
+            || profile.tagId
+            || "Unknown player",
+          avatarUrl: profile.user_profile?.avatarUrl ?? null,
+        };
+      } catch {
+        return null;
+      }
+    })).then((profiles) => {
+      if (controller.signal.aborted) return;
+      const playerNames: Record<string, string> = {};
+      const playerAvatars: Record<string, string | null> = {};
+      profiles.forEach((profile) => {
+        if (!profile) return;
+        playerNames[profile.playerId] = profile.name;
+        playerAvatars[profile.playerId] = profile.avatarUrl;
+      });
+      setGameState((current) => current
+        ? {
+          ...current,
+          playerNames: { ...current.playerNames, ...playerNames },
+          playerAvatars: { ...current.playerAvatars, ...playerAvatars },
+        }
+        : current);
+    });
+
+    return () => controller.abort();
+  }, [playerProfileIds]);
   const scheduledStartTime = scheduledStartAt ? Date.parse(scheduledStartAt) : NaN;
   const secondsUntilTournamentStart = Number.isFinite(scheduledStartTime)
     ? Math.max(0, Math.ceil((scheduledStartTime - currentTime) / 1000))
@@ -341,14 +405,9 @@ export default function Page() {
         setIsSendingAction(false);
         return;
       }
-      const player = gameState?.players.find(
-        ({ playerId }) => playerId === action.playerId,
-      );
       const playerName = action.playerId === userId
-        ? "You"
-        : player
-          ? `Player ${(player.seatNumber ?? gameState?.players.indexOf(player) ?? 0) + 1}`
-          : "A player";
+        ? gameState?.playerNames?.[action.playerId] ?? "Unknown player"
+        : gameState?.playerNames?.[action.playerId] ?? "Unknown player";
       const actionLabel = action.actionType.toLowerCase();
       setLastAction(
         `${playerName} ${actionLabel}${action.amount > 0 ? ` ${action.amount}` : ""}`,

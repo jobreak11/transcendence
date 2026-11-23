@@ -40,6 +40,7 @@ export interface PublicGameState {
     rankEarned: number;
   }>;
   playerNames?: Record<string, string>;
+  playerAvatars?: Record<string, string | null>;
   totalHandsPlayed?: number;
   matchStartedAt?: string;
   matchEndedAt?: string;

@@ -20,8 +20,41 @@ code {
   animation: deal-card 350ms ease-out both;
 }
 
+@keyframes community-card-flip {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(180deg);
+  }
+}
+
+.community-card-flip {
+  position: relative;
+  transform-style: preserve-3d;
+  animation: community-card-flip 500ms ease-in-out both;
+}
+
+.community-card-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  backface-visibility: hidden;
+}
+
+.community-card-front {
+  transform: rotateY(180deg);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .deal-card {
     animation: none;
+  }
+
+  .community-card-flip {
+    animation: none;
+    transform: rotateY(180deg);
   }
 }
