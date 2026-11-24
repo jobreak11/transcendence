@@ -42,6 +42,11 @@ interface IncomingChatMessagePayload {
   createdAt?: string | Date;
 }
 
+const EMOJI_LIST = [
+  '😀', '😂', '🥹', '😎', '😭', '😡', '🤔', '🫡',
+  '👍', '👎', '🔥', '❤️', '🎉', '🙏', '👀', '💀',
+];
+
 interface EventNotifyPayload {
   notifyStatus: 'JOIN_CHAT' | 'LEAVE_CHAT';
   chatRoomId: string;
@@ -110,6 +115,15 @@ export function ChatEmbbed() {
   const roomsRef = useRef<ChatRoom[]>(rooms);
   const fetchedUserIds = useRef<Set<string>>(new Set());
 
+
+
+  const handleEmojiClick = (emoji: string) => {
+    if (!isConnected) return;
+    setInputText((prev) => prev + emoji);
+    inputRef.current?.focus();
+  };
+
+  
   useEffect(() => {
     roomsRef.current = rooms;
   }, [rooms]);
@@ -607,7 +621,33 @@ export function ChatEmbbed() {
                 >
                   Send
                 </button>
-                <span className="text-white/40 cursor-pointer select-none">😊</span>
+              {/* ปุ่มอีโมจิ + กล่อง Popover ตอน Hover */}
+                              <div className="relative group flex items-center">
+                                <button
+                                  type="button"
+                                  disabled={!isConnected}
+                                  // className="text-white/50 hover:text-white cursor-pointer select-none transition-transform group-hover:scale-110 disabled:opacity-40"
+                                  title="Emoji"
+                                >
+                                  😊
+                                </button>
+
+                                {/* กล่องลอยด้านบน (ใช้ pb-3 เป็นสะพานเชื่อม เพื่อไม่ให้เมาส์หลุด hover ตอนเลื่อนขึ้น) */}
+                                <div className="hidden group-hover:block absolute bottom-full right-0 pb-3 z-50">
+                                  <div className="bg-[#1D1D1D] border border-white/15 rounded-lg p-2 shadow-xl grid grid-cols-4 gap-1 w-[164px]">
+                                    {EMOJI_LIST.map((emoji) => (
+                                      <button
+                                        key={emoji}
+                                        type="button"
+                                        onClick={() => handleEmojiClick(emoji)}
+                                        className="w-9 h-9 flex items-center justify-center rounded-md hover:bg-white/10 text-lg transition-transform hover:scale-125 cursor-pointer"
+                                      >
+                                        {emoji}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
               </div>
             </form>
           </div>
