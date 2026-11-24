@@ -65,9 +65,12 @@ export default function PlayRoomHeader({
 
         <div className="ml-auto flex items-center gap-4 pr-[3%] max-[800px]:gap-2 max-[800px]:pr-[4%]">
           <div className="max-w-[25vw] [overflow-wrap:anywhere] font-serif text-[clamp(14px,calc(6px+2vw),30px)] font-bold text-[#ffd700] max-[800px]:max-w-[25vw] max-[800px]:text-[clamp(12px,3vw,18px)]">
-            {profile?.user_profile
-              ?.displayName ??
-              profile?.email ?? "Guest"}
+            <Link href={`/profile`}
+            >
+              {profile?.user_profile
+                ?.displayName ??
+                profile?.email ?? "Guest"}
+            </Link>
           </div>
 
           <LanguageSwitcher />
