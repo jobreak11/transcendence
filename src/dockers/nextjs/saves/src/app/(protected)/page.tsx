@@ -5,7 +5,7 @@ import { signOut } from "../../lib/auth";
 import Link from "next/link";
 import Image from "next/image";
 import { useMainSocket } from "./_context/useMainSocket";
-import logo3D from "../../public/logo3D.svg";
+import logo3D from "../../assets/logo3D.svg";
 
 
 function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
@@ -48,7 +48,7 @@ export default function Page() {
         
         <div className="w-[30vw] h-[30vw] relative flex items-center justify-center">
           <div className="w-full h-full flex flex-col items-center justify-center gap-1">
-            {/* <img src="../logo3D.svg" alt="Transcend 888 Logo"></img> */}
+            <Image src={logo3D} alt="Transcend 888 Logo"></Image>
           </div>
         </div>
 

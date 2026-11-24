@@ -5,7 +5,7 @@ import {
   useState,
 } from "react";
 
-import defaultProfilePicture from "../../../public/profile_sample.png";
+// import defaultProfilePicture from "../../../assets/profile_sample.png";
 
 type ProfileImageProps = {
   className: string;
@@ -67,7 +67,8 @@ export default function ProfileImage({
     normalizedImageUrl &&
     !hasImageError
       ? normalizedImageUrl
-      : defaultProfilePicture.src;
+      : `/img/defaultProfilePic.svg`
+      // : defaultProfilePicture.src;
 
   console.log(
     "API avatar URL:",

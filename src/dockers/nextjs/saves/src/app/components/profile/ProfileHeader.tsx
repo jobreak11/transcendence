@@ -13,16 +13,16 @@ import type {
   UserProfileResponse,
 } from "../../../lib/profile-api";
 
-import {
-  getMyTitles,
-  type UserTitle,
-} from "../../../lib/title-api";
+// import {
+//   getMyTitles,
+//   type UserTitle,
+// } from "../../../lib/title-api";
 
 import { signOut } from "../../../lib/auth";
 
 type ProfileHeaderProps = {
   profile: UserProfileResponse;
-  title: UserTitle;
+  // title: UserTitle;
   activeTab: ProfileTab;
   onTabChange: (
     tab: ProfileTab,
