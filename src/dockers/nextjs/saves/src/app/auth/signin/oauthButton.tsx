@@ -35,7 +35,7 @@ export function OauthButton() {
             <img src="../../42logoBordered.svg" alt="" className="h-4 w-4 mr-[3%]"/>Continue with 42
 		</button>
         <button onClick={handleGoogleLogin}
-        className="oauth bg-white">
+        className="oauth bg-white text-black">
             <img src="../../googleIcon.svg" alt="" className="h-4 w-4 mr-[3%]"/>Continue with Google
 		</button>
     </div>
