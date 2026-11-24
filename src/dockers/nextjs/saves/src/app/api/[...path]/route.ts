@@ -112,6 +112,8 @@ const allowedPaths = new Set([
   '/game/lobby',
   '/game/matches',
   '/game/statistics',
+  '/game/statistics/find',
+  '/game/statistics/findRankIndex',
   '/tournament',
 ])
 

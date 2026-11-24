@@ -5,7 +5,7 @@
 
 @layer base {
 	html {
-		@apply font-sans [-webkit-text-size-adjust:100%] [-ms-text-size-adjust:100%] m-0 min-h-[600px] min-w-[800px];
+		@apply font-sans [-webkit-text-size-adjust:100%] [-ms-text-size-adjust:100%] m-0 min-h-full w-full max-w-full overflow-x-clip;
 	}
 
 	summary {

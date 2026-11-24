@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { GameStatisticsDatabaseService } from "./database/game-statistics-database.service.js";
 import { GameStatisticsCachingService } from "./caching/game-statistics-caching.service.js";
+import { UserService } from "../user/user.service.js";
 
 @Injectable()
 export class GameStatisticsService {
@@ -10,6 +11,7 @@ export class GameStatisticsService {
     constructor(
         private readonly gameStatisticsDatabaseService: GameStatisticsDatabaseService,
         private readonly gameStatisticsCachingService: GameStatisticsCachingService,
+        private readonly userService: UserService,
     ) {}
 
 
@@ -27,5 +29,17 @@ export class GameStatisticsService {
         return this.gameStatisticsDatabaseService.getAllUserStats(limit, offset, orderByRank)
     }
 
+    async getUserRankIndex(userId: string) {
+
+        const [userRank, totaluserCount] = await Promise.all([
+            this.gameStatisticsDatabaseService.getUserRankIndex(userId),
+            this.userService.countTotalUser()
+        ])
+
+        return  {
+            userRankIndex: userRank,
+            totalUserCount: totaluserCount
+        }
+    }
 
 }

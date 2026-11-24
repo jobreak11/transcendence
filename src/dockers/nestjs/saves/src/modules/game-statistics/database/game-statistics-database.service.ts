@@ -6,6 +6,9 @@ import { UserService } from "../../user/user.service.js";
 import { user_game_statistics } from "../../../infrastructure/drizzle/schema/user_game_statistics/user_game_statistics.schema.js";
 import { logError } from "../../../utility/logError.js";
 import { errorWithCode } from "../../../utility/errorWithCode.js";
+import { and, eq, gt, or, sql } from "drizzle-orm";
+import { from } from "rxjs";
+import { users } from "../../../infrastructure/drizzle/schema/users/users.schema.js";
 
 @Injectable()
 export class GameStatisticsDatabaseService {
@@ -16,6 +19,28 @@ export class GameStatisticsDatabaseService {
         @Inject(DRIZZLE) private readonly db: NodePgDatabase<typeof dbSchema.dbRelations>,
         private readonly userService: UserService,
     ) {}
+
+    async getUserRankIndex(userId: string) {
+
+        const userStatsData = await this.findOne(userId);
+
+        const [result] = await this.db
+            .select({
+                index: sql<number>`count(*)`,
+            })
+            .from(user_game_statistics)
+            .where(
+                or(
+                    gt(user_game_statistics.rankPoint, userStatsData.rankPoint),
+                    and(
+                        eq(user_game_statistics.rankPoint, userStatsData.rankPoint),
+                        sql`${user_game_statistics.userId} < ${userStatsData.userId}`
+                    )
+                )
+            )
+            
+        return Number(result.index);
+    }
 
     async getAllUserStats(limit: number = 50, offset: number = 0, orderByRank: boolean = true) {
 

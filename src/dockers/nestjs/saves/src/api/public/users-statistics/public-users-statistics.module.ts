@@ -8,7 +8,8 @@ import { PublicUsersStatisticsUserController } from "./public-users-statistics-u
 @Module({
     imports: [UsersApiModule, GameStatisticsModule, PublicUsersModule],
     providers: [PublicUsersStatisticsService],
-    controllers: [PublicUsersStatisticsUserController]
+    controllers: [PublicUsersStatisticsUserController],
+    exports: [PublicUsersStatisticsService]
 })
 export class PublicUsersStatisticsModule {
 

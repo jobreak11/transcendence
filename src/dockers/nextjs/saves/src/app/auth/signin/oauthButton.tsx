@@ -40,8 +40,9 @@ export function OauthButton() {
 		    </button>
         <button onClick={handleGoogleLogin}
         className={`
+        oauth
         bg-white
-          oauth
+        text-black
           `}
         >
             <Image src={googleIcon} alt="" className="h-4 w-4 mr-[3%]"/>Continue with Google

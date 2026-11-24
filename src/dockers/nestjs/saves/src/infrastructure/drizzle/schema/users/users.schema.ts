@@ -1,6 +1,6 @@
 
-import { pgEnum, pgTable, serial, text, uuid, varchar, timestamp } from "drizzle-orm/pg-core";
-import { defineRelations, sql } from 'drizzle-orm'
+import { pgEnum, pgTable, serial, text, uuid, varchar, timestamp, index } from "drizzle-orm/pg-core";
+import { defineRelations, desc, sql } from 'drizzle-orm'
 import { v7 as uuidv7 } from 'uuid'
 import { randomInt } from "node:crypto";
 import { titles } from "../titles.schema.js";
@@ -49,7 +49,10 @@ export const users = pgTable("users", {
   //{onDelete: "set null"}),
 
   //cardTheme: pokerCardThemeEnum("card_theme").notNull().default(PokerCardTheme.STANDARD),
-})
+}, (t) => [
+  index("users_email_asc_idx").on(t.email),
+  index("users_created_at_idx").on(desc(t.createdAt))
+])
 
 const insertUserSchema = createInsertSchema(users, {
   email: z.email(),
