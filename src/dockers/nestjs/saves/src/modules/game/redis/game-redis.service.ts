@@ -30,6 +30,22 @@ export class GameRedisService {
     return this.redis.del(redis_game_table_hand(gameRoomId));
   }
 
+  delCompletedMatchState(gameRoomId: string) {
+    return this.redis.del(redis_game_table_completed_match(gameRoomId));
+  }
+
+  delButton(gameRoomId: string) {
+    return this.redis.del(redis_game_table_button(gameRoomId));
+  }
+
+  delMatchProgress(gameRoomId: string) {
+    return this.redis.del(redis_game_table_match_progress(gameRoomId));
+  }
+
+  delStacks(gameRoomId: string) {
+    return this.redis.del(redis_game_table_stack(gameRoomId));
+  }
+
   async getCompletedMatchState(gameRoomId: string) {
     const stored = await this.redis.get(redis_game_table_completed_match(gameRoomId));
     return stored

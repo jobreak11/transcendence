@@ -1,4 +1,4 @@
-FROM redis:alpine
+FROM redis:8.10.3-alpine
 USER root
 RUN apk update && apk add --no-cache sed grep shadow su-exec
 RUN mkdir -p /app

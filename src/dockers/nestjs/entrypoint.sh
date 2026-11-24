@@ -59,7 +59,7 @@ if [ ! -f "package.json" ]; then
   printf "Create new project\n"
   cd ${WORK_DIRECTORY}
   #run_suexec ${USER_ID} ${GROUP_ID} npx -y @nestjs/cli new nestjs -p npm --strict --skip-git
-  run_suexec ${USER_ID} ${GROUP_ID} pnpm dlx @nestjs/cli new nestjs -p pnpm --strict --skip-git
+  run_suexec ${USER_ID} ${GROUP_ID} pnpm dlx @nestjs/cli@12.0.15 new nestjs -p pnpm --strict --skip-git
   cd ${NESTJS_DIR}
 
   # run_suexec ${USER_ID} ${GROUP_ID} printf "allowBuilds:\n  argon2: true\n  '@scarf/scarf': true\n  esbuild: true\n\npackages:\n  - '.'\n\noverrides:\n  '@nestjs/common': '@nestjs/common'\n  '@nestjs/core': '@nestjs/core'\n" > pnpm-workspace.yaml

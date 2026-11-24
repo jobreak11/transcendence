@@ -434,7 +434,7 @@ export class ChatRedisService {
     )
     pipeline2.srem(
       redis_chat_user_room_list(toLeaveUserId),
-      toLeaveUserId
+      chatRoomId
     )
 
     if (memberDetails.role === ChatRoomMemberRole.SPECTATOR) {

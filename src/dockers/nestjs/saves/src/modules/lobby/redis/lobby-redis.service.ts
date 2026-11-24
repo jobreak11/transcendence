@@ -708,7 +708,7 @@ export class LobbyRedisService implements OnModuleInit {
     if (lobbyData.details.roomStatus === LobbyRoomStatus.PLAYING && lobbyData.details.gameRoomId) {
       this.gameGatewayService.leaveGameSession(userId, lobbyData.details.gameRoomId);
     }
-    if (!lobbyDestroyed) {
+    if (lobbyDestroyed === false) {
       await this.chatService.leaveRoom(userId, lobbyData.details.chatRoomId);
     }
     const role = lobbyMembers.playerList.includes(userId)

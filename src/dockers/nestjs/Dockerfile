@@ -1,4 +1,4 @@
-FROM node:alpine
+FROM node:alpine3.24
 WORKDIR /app
 RUN apk update && apk add --no-cache grep shadow sed su-exec python3 make g++ linux-headers
 RUN npm install -g pnpm

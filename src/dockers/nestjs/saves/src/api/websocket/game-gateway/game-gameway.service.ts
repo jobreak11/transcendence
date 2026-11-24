@@ -795,8 +795,12 @@ export class GameGatewayService implements OnModuleInit {
         matchProgress,
       );
 
-      // await this.gameRedisService.
-
+      await Promise.all([
+        this.gameRedisService.delButton(result.tableSessionId),
+        this.gameRedisService.delCompletedMatchState(result.tableSessionId),
+        this.gameRedisService.delMatchProgress(result.tableSessionId),
+        this.gameRedisService.delStacks(result.tableSessionId),
+      ]);
       
     } else {
       this.scheduleNextHand(state.tableSessionId);
