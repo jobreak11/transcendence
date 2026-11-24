@@ -222,10 +222,6 @@ export async function updateMyProfile(
     );
   }
 
-  /*
-   * Swagger requires the editable fields to be
-   * nested inside user_profile.
-   */
   const requestBody:
     UpdateUserRequest = {
       user_profile: profileChanges,
@@ -264,10 +260,6 @@ export async function updateMyProfile(
     );
   }
 
-  /*
-   * The PATCH response may contain only a success
-   * message, so fetch the complete updated profile.
-   */
   return getMyProfile();
 }
 
@@ -318,10 +310,68 @@ export async function uploadProfilePicture(
       response,
     );
   }
-
-  /*
-   * Reload the profile to receive the new avatarUrl.
-   */
   return getMyProfile();
 }
 
+
+// Friend Profile
+export type PublicUserProfileResponse = {
+  /*
+   * Internal UUID used by the friend API.
+   */
+  userId: string;
+  /*
+   * Public identifier used in the URL.
+   */
+  tagId: string;
+
+  createdAt: string;
+  titleName: string | null;
+  isSelf?: boolean;
+
+  user_profile: {
+    displayName: string | null;
+    avatarUrl: string | null;
+    pronoun: PronounType | null;
+    signature: string | null;
+    activeTitleId: string | null;
+    cardTheme: PokerCardTheme;
+  } | null;
+};
+
+export async function getPublicProfileByTagId(
+  tagId: string,
+  signal?: AbortSignal,
+): Promise<PublicUserProfileResponse> {
+  const trimmedTagId =
+    tagId.trim();
+
+  if (!trimmedTagId) {
+    throw new Error(
+      "A profile tag ID is required.",
+    );
+  }
+
+  const searchParams =
+    new URLSearchParams({
+      tagId: trimmedTagId,
+    });
+
+  const response = await fetch(
+    `/api/user/profile?${searchParams.toString()}`,
+    {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+      signal,
+    },
+  );
+
+  if (!response.ok) {
+    throw await createApiError(
+      response,
+    );
+  }
+
+  return response.json();
+}

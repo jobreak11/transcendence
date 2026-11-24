@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type enDictionary from "../../../dictionaries/en.json";
+import type enDictionary from "../../../../dictionaries/en.json";
 
 type PokerAction = "FOLD" | "CHECK" | "CALL" | "RAISE";
 export type GameLanguage = "en" | "th" | "cn";

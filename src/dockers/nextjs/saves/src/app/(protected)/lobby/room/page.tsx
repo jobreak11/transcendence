@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { signOut } from "../../../lib/auth";
-import type { GetLobbyPublicDto } from "../../../types/dto";
-import { useMainSocket } from "../../(protected)/_context/useMainSocket";
-import { LobbyEvent } from "../../../websocket-events/main/lobby/lobby-events";
+import { signOut } from "../../../../lib/auth";
+import type { GetLobbyPublicDto } from "../../../../types/dto";
+import { useMainSocket } from "../../_context/useMainSocket";
+import { LobbyEvent } from "../../../../websocket-events/main/lobby/lobby-events";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;

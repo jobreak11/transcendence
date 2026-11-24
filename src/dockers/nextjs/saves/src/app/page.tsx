@@ -1,11 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from "react";
-import { signOut } from "../../lib/auth";
 import Link from "next/link";
 import Image from "next/image";
-import { useMainSocket } from "./_context/useMainSocket";
-import logo3D from "../../assets/logo3D.svg";
+import logo3D from "../assets/logo3D.svg";
 
 
 function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {

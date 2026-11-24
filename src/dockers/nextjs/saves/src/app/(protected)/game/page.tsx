@@ -2,16 +2,16 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import enDictionary from "../../dictionaries/en.json";
-import thDictionary from "../../dictionaries/th.json";
+import enDictionary from "../../../dictionaries/en.json";
+import thDictionary from "../../../dictionaries/th.json";
 import type { GameLanguage } from "./components/ActionButtons";
 import HandInfo from "./components/handInfo";
 import GameTable from "./components/GameTable";
 import type { PokerActionType, PublicGameState } from "./types";
-import { useGameSocket } from "../(protected)/_context/useGameSocket";
-import { PokerEvent } from "../../websocket-events/game/poker/poker-events";
-import { GameEvent } from "../../websocket-events/game/game-events";
-import { GetLobbyPublicDto, JoinLobbyDto, LobbyDto, LobbyUserCreateDto } from "../../types/dto";
+import { useGameSocket } from "../_context/useGameSocket";
+import { PokerEvent } from "../../../websocket-events/game/poker/poker-events";
+import { GameEvent } from "../../../websocket-events/game/game-events";
+import { GetLobbyPublicDto, JoinLobbyDto, LobbyDto, LobbyUserCreateDto } from "../../../types/dto";
 
 interface PokerActionEvent {
   playerId: string;

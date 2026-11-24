@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent, type ReactNode } from "react";
-import { signOut } from "../../lib/auth";
+import { signOut } from "../../../lib/auth";
 
 type RoomTab = "Casual" | "Ranked" | "Tournament" | "Custom";
 type CustomTab = "casual" | "tournament";

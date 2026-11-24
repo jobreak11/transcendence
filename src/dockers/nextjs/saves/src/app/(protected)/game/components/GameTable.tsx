@@ -3,7 +3,7 @@
 import { useState } from "react";
 import ActionButtons, { type GameDictionary } from "./ActionButtons";
 import { CardSlot, PlayerHand, PopUpTop, PopUpUnder, SeatIcon } from "./layout";
-import ProfileImage from "../../components/profile/ProfileImage";
+import ProfileImage from "../../../components/profile/ProfileImage";
 import type { PokerActionType, PublicGameState } from "../types";
 
 const SEAT_POSITIONS = [

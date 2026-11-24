@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { MainSocketProvider } from "../(protected)/_context/useMainSocket";
+import { MainSocketProvider } from "../_context/useMainSocket";
 
 export default async function LobbyLayout({
   children,
