@@ -43,7 +43,7 @@ export default function Page() {
     <main className="min-h-screen w-full flex flex-col items-center justify-center bg-black">
       <div className="flex flex-col items-center gap-6 w-full bg-linear-to-b from-transparent from-20% via-green-900 via-50% to-transparent to-80%">
         
-        <div className="w-[30vw] h-[30vw] relative flex items-center justify-center">
+        <div className="w-[30vw] w-max-[200px] h-[30vw] h-max-[200px] relative flex items-center justify-center">
           <div className="w-full h-full flex flex-col items-center justify-center gap-1">
             {/* <img src="../logo3D.svg" alt="Transcend 888 Logo"></img> */}
           </div>
