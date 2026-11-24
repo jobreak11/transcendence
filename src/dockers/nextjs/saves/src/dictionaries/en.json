@@ -11,6 +11,7 @@
     "call": "Call",
     "check": "Check",
     "raise": "Raise",
+    "allIn": "All in",
     "cancelRaise": "Cancel raise",
     "additionalChips": "Additional chips to raise",
     "confirmRaise": "Confirm raise",

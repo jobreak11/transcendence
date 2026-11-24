@@ -8,6 +8,7 @@ export type GameDictionary = typeof enDictionary.game;
 interface ActionButtonsProps {
   disabled: boolean;
   callAmount: number;
+  stack: number;
   dictionary: GameDictionary;
   onAction: (action: PokerAction, amount?: number) => void;
 }
@@ -15,42 +16,73 @@ interface ActionButtonsProps {
 export default function ActionButtons({
   disabled,
   callAmount,
+  stack,
   dictionary,
   onAction,
 }: ActionButtonsProps) {
   const [showRaiseOptions, setShowRaiseOptions] = useState(false);
   const [raiseAmount, setRaiseAmount] = useState(100);
+  const selectedRaiseAmount = Math.min(Math.max(raiseAmount, 1), stack);
 
   const submitRaise = () => {
-    if (!Number.isSafeInteger(raiseAmount) || raiseAmount < 1) return;
-    onAction("RAISE", raiseAmount);
+    if (
+      !Number.isSafeInteger(selectedRaiseAmount)
+      || selectedRaiseAmount < 1
+      || selectedRaiseAmount > stack
+    ) return;
+    onAction("RAISE", selectedRaiseAmount);
+    setShowRaiseOptions(false);
+  };
+
+  const submitAllIn = () => {
+    if (stack < 1) return;
+    if (callAmount >= stack) {
+      onAction("CALL");
+    } else {
+      onAction("RAISE", stack);
+    }
     setShowRaiseOptions(false);
   };
 
   return (
     <div className="fixed bottom-[3vh] right-[3vw] z-70 flex flex-col items-end gap-[1.5vh]">
       {showRaiseOptions && (
-        <div className="flex w-[25vw] flex-col gap-[1vh] rounded-[1vw] border border-neutral-800 bg-neutral-950 p-[1.5vw]">
-          <label className="flex flex-col gap-1 text-sm text-white">
-            {dictionary.additionalChips}
+        <div className="flex w-[min(90vw,25rem)] flex-col gap-3 rounded-xl border border-blue-300/30 bg-neutral-950 p-4 shadow-xl">
+          <label className="flex flex-col gap-2 text-sm text-white">
+            <span className="flex items-center justify-between gap-4">
+              <span>{dictionary.additionalChips}</span>
+              <output className="font-bold tabular-nums">{selectedRaiseAmount}</output>
+            </span>
             <input
-              type="number"
+              type="range"
               min={1}
+              max={Math.max(stack, 1)}
               step={1}
-              value={raiseAmount}
+              value={selectedRaiseAmount}
               onChange={(event) => setRaiseAmount(Number(event.target.value))}
-              disabled={disabled}
-              className="rounded bg-neutral-800 px-3 py-2 text-white"
+              disabled={disabled || stack < 1}
+              aria-label={dictionary.additionalChips}
+              className="w-full accent-amber-400 disabled:opacity-50"
             />
           </label>
-          <button
-            type="button"
-            onClick={submitRaise}
-            disabled={disabled || !Number.isSafeInteger(raiseAmount) || raiseAmount < 1}
-            className="w-full rounded bg-amber-500 py-[1vh] font-extrabold uppercase text-neutral-950 disabled:opacity-50"
-          >
-            {dictionary.confirmRaise}
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={submitRaise}
+              disabled={disabled || stack < 1}
+              className="flex-1 rounded bg-amber-500 py-2 font-extrabold uppercase text-neutral-950 transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {dictionary.confirmRaise}
+            </button>
+            <button
+              type="button"
+              onClick={submitAllIn}
+              disabled={disabled || stack < 1}
+              className="flex-1 rounded border border-red-400 bg-red-700 py-2 font-extrabold uppercase text-white transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {dictionary.allIn}
+            </button>
+          </div>
         </div>
       )}
 

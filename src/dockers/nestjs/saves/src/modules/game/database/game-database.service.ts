@@ -124,7 +124,7 @@ export class GameDatabaseService {
                 target: user_game_statistics.userId,
                 set: {
                     expPoint: sql`${user_game_statistics.expPoint} + excluded.exp_point`,
-                    rankPoint: sql`${user_game_statistics.rankPoint} + excluded.rank_point`,
+                    rankPoint: sql`greatest(0, ${user_game_statistics.rankPoint} + excluded.rank_point)`,
                     matchPlayed: sql`${user_game_statistics.matchPlayed} + excluded.match_played`,
                     level: sql`${user_game_statistics.level} + excluded.level`,
                     totalHandsPlayed: sql`${user_game_statistics.totalHandsPlayed} + excluded.total_hands_played`,
