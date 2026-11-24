@@ -110,6 +110,8 @@ const allowedPaths = new Set([
   '/game/lobby/startgame',
   '/game/lobby/members',
   '/game/lobby',
+  '/game/matches',
+  '/game/statistics',
   '/tournament',
 ])
 

@@ -6,9 +6,125 @@ import { rankings } from "../../../lib/mock-data";
 import { useMainSocket } from "../../(protected)/_context/useMainSocket";
 import { useLanguage } from "../language/LanguageProvider";
 
+const MATCH_HISTORY_PAGE_SIZE = 1000;
 const MATCH_FOUND_EVENT = "ranked:match-found";
 const GAME_READY_EVENT = "ranked:game-ready";
 const MATCH_FAILED_EVENT = "ranked:match-failed";
+
+type GameStatistics = {
+  rankPoint: number;
+};
+
+type RankedMatchResult = {
+  playerPlace: number;
+  endedAt: string;
+};
+
+type RankedMatchPageItem = {
+  playerPlace: number;
+  gameMatch: {
+    gameType: string;
+    endedAt: string;
+  };
+};
+
+function isGameStatistics(value: unknown): value is GameStatistics {
+  return typeof value === "object"
+    && value !== null
+    && "rankPoint" in value
+    && typeof value.rankPoint === "number"
+    && Number.isSafeInteger(value.rankPoint);
+}
+
+function isRankedMatchPage(value: unknown): value is RankedMatchPageItem[] {
+  return Array.isArray(value)
+    && value.every((match) =>
+      typeof match === "object"
+      && match !== null
+      && "playerPlace" in match
+      && typeof match.playerPlace === "number"
+      && Number.isSafeInteger(match.playerPlace)
+      && match.playerPlace > 0
+      && "gameMatch" in match
+      && typeof match.gameMatch === "object"
+      && match.gameMatch !== null
+      && "gameType" in match.gameMatch
+      && typeof match.gameMatch.gameType === "string"
+      && "endedAt" in match.gameMatch
+      && typeof match.gameMatch.endedAt === "string"
+      && Number.isFinite(Date.parse(match.gameMatch.endedAt)),
+    );
+}
+
+async function fetchRankPoint(): Promise<number> {
+  const response = await fetch("/api/game/statistics", {
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error(`Could not load ranked points (${response.status}).`);
+  }
+
+  const payload: unknown = await response.json();
+  if (!isGameStatistics(payload)) {
+    throw new Error("The server returned invalid ranked statistics.");
+  }
+  return Math.max(0, payload.rankPoint);
+}
+
+async function fetchRankedStreaks(): Promise<{
+  winstreak: number;
+  highestStreak: number;
+}> {
+  const matches: RankedMatchResult[] = [];
+  let offset = 0;
+
+  while (true) {
+    const response = await fetch(
+      `/api/game/matches?limit=${MATCH_HISTORY_PAGE_SIZE}&offset=${offset}`,
+      { cache: "no-store" },
+    );
+    if (!response.ok) {
+      throw new Error(`Could not load ranked match history (${response.status}).`);
+    }
+
+    const payload: unknown = await response.json();
+    if (!isRankedMatchPage(payload)) {
+      throw new Error("The server returned invalid match history.");
+    }
+
+    matches.push(
+      ...payload
+        .filter((match) => match.gameMatch.gameType === "RANKED")
+        .map((match) => ({
+          playerPlace: match.playerPlace,
+          endedAt: match.gameMatch.endedAt,
+        })),
+    );
+
+    if (payload.length < MATCH_HISTORY_PAGE_SIZE) break;
+    offset += payload.length;
+  }
+
+  matches.sort((matchA, matchB) =>
+    Date.parse(matchA.endedAt) - Date.parse(matchB.endedAt),
+  );
+
+  let currentRun = 0;
+  let highestStreak = 0;
+  for (const match of matches) {
+    currentRun = match.playerPlace <= 2 ? currentRun + 1 : 0;
+    highestStreak = Math.max(highestStreak, currentRun);
+  }
+
+  let winstreak = 0;
+  for (let index = matches.length - 1; index >= 0; index -= 1) {
+    const match = matches[index];
+    if (!match || match.playerPlace > 2) break;
+    winstreak += 1;
+  }
+
+  return { winstreak, highestStreak };
+}
 
 function isMatchFoundEvent(
   value: unknown,
@@ -45,6 +161,34 @@ export default function RankedMode() {
   const [matchId, setMatchId] = useState<string | null>(null);
   const [hasAccepted, setHasAccepted] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
+  const [rankPoint, setRankPoint] = useState<number | null>(null);
+  const [winstreak, setWinstreak] = useState<number | null>(null);
+  const [highestStreak, setHighestStreak] = useState<number | null>(null);
+  const [statisticsError, setStatisticsError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    void Promise.all([fetchRankPoint(), fetchRankedStreaks()])
+      .then(([points, streaks]) => {
+        if (!active) return;
+        setRankPoint(points);
+        setWinstreak(streaks.winstreak);
+        setHighestStreak(streaks.highestStreak);
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        setStatisticsError(
+          error instanceof Error
+            ? error.message
+            : "Could not load ranked statistics.",
+        );
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!socket) return;
@@ -207,7 +351,7 @@ export default function RankedMode() {
                     dictionary.lobby
                       .point
                   }
-                  : 1000
+                  : {rankPoint ?? "—"}
                 </td>
 
                 <td className="text-right">
@@ -225,7 +369,7 @@ export default function RankedMode() {
                     dictionary.lobby
                       .winstreak
                   }
-                  : 0
+                  : {winstreak ?? "—"}
                 </td>
 
                 <td className="text-right">
@@ -233,11 +377,16 @@ export default function RankedMode() {
                     dictionary.lobby
                       .highestStreak
                   }
-                  : 0
+                  : {highestStreak ?? "—"}
                 </td>
               </tr>
             </tbody>
           </table>
+          {statisticsError && (
+            <p className="mt-2 text-center text-sm text-red-300" role="alert">
+              {statisticsError}
+            </p>
+          )}
 
           <div className="text-center">
             <button

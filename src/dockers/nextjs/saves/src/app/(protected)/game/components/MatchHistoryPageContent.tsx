@@ -237,10 +237,40 @@ export default function MatchHistoryPageContent({
     : undefined;
 
   async function handleReturnToLobby() {
+    setIsReturning(true);
+    setReturnError("");
+
     if (isRankedMatch) {
-      window.sessionStorage.removeItem("gameTableSessionId");
-      window.sessionStorage.removeItem("gameMatchHistory");
-      window.location.assign("/lobby?tab=ranked");
+      try {
+        if (history) {
+          const response = await fetch(
+            `/api/game/lobby/leave?lobbyPinId=${encodeURIComponent(history.tableSessionId)}`,
+            { method: "DELETE" },
+          );
+          if (!response.ok && response.status !== 404) {
+            const body: unknown = await response.json().catch(() => null);
+            const message = typeof body === "object"
+              && body !== null
+              && "message" in body
+              && typeof body.message === "string"
+              ? body.message
+              : `Could not leave the ranked match lobby (${response.status}).`;
+            throw new Error(message);
+          }
+        }
+
+        window.sessionStorage.removeItem("gameTableSessionId");
+        window.sessionStorage.removeItem("gameMatchHistory");
+        window.location.assign("/lobby?tab=ranked");
+      } catch (error) {
+        setReturnError(
+          error instanceof Error
+            ? error.message
+            : "Could not leave the ranked match lobby.",
+        );
+      } finally {
+        setIsReturning(false);
+      }
       return;
     }
 
@@ -249,8 +279,6 @@ export default function MatchHistoryPageContent({
       return;
     }
 
-    setIsReturning(true);
-    setReturnError("");
     try {
       const currentMatchLobby =
         matchLobby ?? await findMatchLobby(history.tableSessionId);

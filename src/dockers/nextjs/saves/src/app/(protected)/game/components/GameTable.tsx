@@ -404,6 +404,7 @@ export default function GameTable({
         <ActionButtons
           disabled={!isMyTurn}
           callAmount={callAmount}
+          stack={myPlayer?.stack ?? 0}
           dictionary={dictionary}
           onAction={onAction}
         />
