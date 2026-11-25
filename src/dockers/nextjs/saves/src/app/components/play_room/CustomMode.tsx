@@ -35,7 +35,7 @@ export default function CustomMode() {
         </div>
 
         {activeTab === "casual-settings" ? (
-          <CasualRoomForm />
+          <CasualRoomForm onCreated={() => {}}/>
         ) : (
           <TournamentRequestForm />
         )}

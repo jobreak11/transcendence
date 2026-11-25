@@ -2,6 +2,7 @@ import { SignInForm } from "./signInForm"
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { OauthButton } from "./oauthButton";
+import { Suspense } from "react";
 
 export default async function SignInPage() {
   const cookieStore = await cookies();
@@ -19,7 +20,10 @@ export default async function SignInPage() {
       <h1 className="goldheader">
         Transcend 888
       </h1> 
-      <SignInForm/>
+
+      <Suspense fallback={null}>
+        <SignInForm/>
+      </Suspense>
       <OauthButton/>
     </div>
   )

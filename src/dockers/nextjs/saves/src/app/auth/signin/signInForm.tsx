@@ -1,5 +1,5 @@
 'use client';
-import { useActionState } from "react";
+import { Suspense, useActionState } from "react";
 import { SubmitButton } from "../signup/submitButton";
 import { signIn } from "../../../lib/auth";
 import Link from "next/link";
@@ -14,6 +14,7 @@ export function SignInForm() {
   const [state, action, isPending] = useActionState(signIn, undefined);
 
   return (
+
     <form action={action}>
 
       <input type="hidden" name="callbackUrl" value={callbackUrl}/>

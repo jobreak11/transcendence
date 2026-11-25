@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import ActionButtons, { type GameDictionary } from "./ActionButtons";
-import { CardSlot, PlayerHand, PopUpTop, PopUpUnder, SeatIcon } from "./layout";
+import { CardSlot, PlayerHand, PopUpTop, PopUpUnder, SeatIcon } from "./BoardLayout";
 import ProfileImage from "../../../components/profile/ProfileImage";
 import type { PokerActionType, PublicGameState } from "../types";
 

@@ -1,6 +1,6 @@
 'use client'
 import { SubmitButton } from "./submitButton";
-import React, { useActionState, useState } from "react";
+import React, { Suspense, useActionState, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Signup } from "../../../lib/auth";
 import Link from "next/link"

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import SignupForm from "./signupForm";
 
 const SignUpPage = () => {
@@ -12,7 +13,9 @@ const SignUpPage = () => {
       <h1 className="goldheader">
         Sign Up
       </h1>
-      <SignupForm />
+      <Suspense fallback={null}>
+        <SignupForm />
+      </Suspense>
     </div>
   )
 }
