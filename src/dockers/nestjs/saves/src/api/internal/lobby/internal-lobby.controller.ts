@@ -120,6 +120,22 @@ export class InternalLobbyController {
   }
 
   @ApiOperation({
+    summary: "switch between a lobby player and spectator role",
+    description: "Role changes are allowed while the lobby is waiting and the target role has capacity."
+  })
+  @Post('swap-role')
+  async swapLobbyMemberRole(
+    @Req() req: any,
+    @Query('lobbyPinId') lobbyPinId: string,
+  ) {
+    try {
+      return await this.lobbyService.swapLobbyMemberRole(req.user.id, lobbyPinId);
+    } catch (error: any) {
+      throw httpControllerCatch(error);
+    }
+  }
+
+  @ApiOperation({
     summary: "get all lobby rooms details",
     description: "get all details of the lobby room"
   })

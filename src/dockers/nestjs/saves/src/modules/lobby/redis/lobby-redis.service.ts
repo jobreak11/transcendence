@@ -166,6 +166,70 @@ export class LobbyRedisService implements OnModuleInit {
       `,
     });
 
+    await this.redis.defineCommand("lobbyRoomSwapRole", {
+      numberOfKeys: 5,
+      readOnly: false,
+      lua: `
+        local playerMemberListKey = KEYS[1]
+        local spectatorMemberListKey = KEYS[2]
+        local gameSettingsKey = KEYS[3]
+        local lobbyDetailsKey = KEYS[4]
+        local readyPlayerListKey = KEYS[5]
+
+        local userId = ARGV[1]
+        local roomStatus = redis.call('HGET', lobbyDetailsKey, 'roomStatus')
+
+        if not roomStatus then
+          return 1
+        end
+        if roomStatus ~= 'WAITING' then
+          return 2
+        end
+
+        local playerScore = redis.call('ZSCORE', playerMemberListKey, userId)
+        local spectatorScore = redis.call('ZSCORE', spectatorMemberListKey, userId)
+
+        if playerScore and spectatorScore then
+          return 5
+        elseif playerScore then
+          local spectatorCount = redis.call('ZCARD', spectatorMemberListKey)
+          local maxSpectator = tonumber(redis.call('HGET', gameSettingsKey, 'maxSpectator') or 0)
+          if spectatorCount >= maxSpectator then
+            return 4
+          end
+
+          redis.call('ZREM', playerMemberListKey, userId)
+          redis.call('ZADD', spectatorMemberListKey, playerScore, userId)
+          redis.call('SREM', readyPlayerListKey, userId)
+        elseif spectatorScore then
+          local playerCount = redis.call('ZCARD', playerMemberListKey)
+          local maxPlayer = tonumber(redis.call('HGET', gameSettingsKey, 'maxPlayer') or 0)
+          if playerCount >= maxPlayer then
+            return 4
+          end
+
+          redis.call('ZREM', spectatorMemberListKey, userId)
+          redis.call('ZADD', playerMemberListKey, spectatorScore, userId)
+        else
+          return 3
+        end
+
+        redis.call(
+          'HSET',
+          lobbyDetailsKey,
+          'currentPlayerCount',
+          redis.call('ZCARD', playerMemberListKey),
+          'currentSpectatorCount',
+          redis.call('ZCARD', spectatorMemberListKey)
+        )
+
+        if playerScore then
+          return 'SPECTATOR'
+        end
+        return 'PLAYER'
+      `,
+    });
+
     await this.redis.defineCommand("lobbyRoomLeave", {
       numberOfKeys: 8,
       readOnly: false,
@@ -809,6 +873,57 @@ export class LobbyRedisService implements OnModuleInit {
     );
 
     return updatedLobbyData;
+  }
+
+  async lobbyUserSwapRole(userId: string, lobbyPinId: string) {
+    const result = await this.redis.lobbyRoomSwapRole(
+      redis_lobby_player_member_list(lobbyPinId),
+      redis_lobby_spectator_member_list(lobbyPinId),
+      redis_lobby_game_settings(lobbyPinId),
+      redis_lobby_details(lobbyPinId),
+      redis_lobby_ready_player_list(lobbyPinId),
+      userId,
+    );
+
+    if (result === "PLAYER" || result === "SPECTATOR") {
+      const role = result === "PLAYER"
+        ? LobbyMemberNotifyRole.PLAYER
+        : LobbyMemberNotifyRole.SPECTATOR;
+      this.lobbyGatewayService.memberNotifyChangeRole(userId, lobbyPinId, role);
+      return { role };
+    }
+
+    if (result === 1) {
+      throw errorWithCode(HttpStatus.NOT_FOUND, "the target lobby is not found");
+    }
+    if (result === 2) {
+      throw errorWithCode(
+        HttpStatus.FORBIDDEN,
+        "lobby roles can only be changed while the lobby is waiting",
+      );
+    }
+    if (result === 3) {
+      throw errorWithCode(HttpStatus.NOT_FOUND, "user is not in the target lobby");
+    }
+    if (result === 4) {
+      throw errorWithCode(HttpStatus.CONFLICT, "the target role is full");
+    }
+    if (result === 5) {
+      throw logError(
+        this.logger,
+        "error from lobbyUserSwapRole()",
+        "user belongs to both lobby roles",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    throw logError(
+      this.logger,
+      "error from lobbyUserSwapRole()",
+      "unknown result from Redis role swap",
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      { result },
+    );
   }
 
   async lobbySetHost(userId: string, lobbyPinId: string) {

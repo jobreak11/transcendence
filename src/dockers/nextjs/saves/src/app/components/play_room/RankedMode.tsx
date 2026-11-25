@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { rankings } from "../../../lib/mock-data";
 import { useMainSocket } from "../../(protected)/_context/useMainSocket";
 import { useLanguage } from "../language/LanguageProvider";
 
@@ -13,6 +12,15 @@ const MATCH_FAILED_EVENT = "ranked:match-failed";
 
 type GameStatistics = {
   rankPoint: number;
+};
+
+type RankedUserStatistics = {
+  user: {
+    tagId: string;
+    userProfile: {
+      displayName: string | null;
+    };
+  };
 };
 
 type RankedMatchResult = {
@@ -36,6 +44,36 @@ function isGameStatistics(value: unknown): value is GameStatistics {
     && Number.isSafeInteger(value.rankPoint);
 }
 
+function isRankedUserStatisticsPage(
+  value: unknown,
+): value is RankedUserStatistics[] {
+  return Array.isArray(value)
+    && value.every((item) =>
+      typeof item === "object"
+      && item !== null
+      && "user" in item
+      && typeof item.user === "object"
+      && item.user !== null
+      && "tagId" in item.user
+      && typeof item.user.tagId === "string"
+      && "userProfile" in item.user
+      && typeof item.user.userProfile === "object"
+      && item.user.userProfile !== null
+      && "displayName" in item.user.userProfile
+      && (typeof item.user.userProfile.displayName === "string"
+        || item.user.userProfile.displayName === null),
+    );
+}
+
+function isRankIndex(value: unknown): value is { rankIndex: number } {
+  return typeof value === "object"
+    && value !== null
+    && "rankIndex" in value
+    && typeof value.rankIndex === "number"
+    && Number.isSafeInteger(value.rankIndex)
+    && value.rankIndex >= 0;
+}
+
 function isRankedMatchPage(value: unknown): value is RankedMatchPageItem[] {
   return Array.isArray(value)
     && value.every((match) =>
@@ -56,10 +94,11 @@ function isRankedMatchPage(value: unknown): value is RankedMatchPageItem[] {
     );
 }
 
-async function fetchRankPoint(): Promise<number> {
-  const response = await fetch("/api/game/statistics", {
+async function fetchRankPoint(): Promise<number | null> {
+  const response = await fetch("/api/game/statistics/find", {
     cache: "no-store",
   });
+  if (response.status === 404) return null;
   if (!response.ok) {
     throw new Error(`Could not load ranked points (${response.status}).`);
   }
@@ -69,6 +108,38 @@ async function fetchRankPoint(): Promise<number> {
     throw new Error("The server returned invalid ranked statistics.");
   }
   return Math.max(0, payload.rankPoint);
+}
+
+async function fetchRankIndex(): Promise<number> {
+  const response = await fetch("/api/game/statistics/findRankIndex", {
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error(`Could not load ranked position (${response.status}).`);
+  }
+
+  const payload: unknown = await response.json();
+  if (!isRankIndex(payload)) {
+    throw new Error("The server returned an invalid ranked position.");
+  }
+  return payload.rankIndex;
+}
+
+async function fetchTopRankings(): Promise<string[]> {
+  const response = await fetch("/api/game/statistics?limit=10&offset=0", {
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error(`Could not load top rankings (${response.status}).`);
+  }
+
+  const payload: unknown = await response.json();
+  if (!isRankedUserStatisticsPage(payload)) {
+    throw new Error("The server returned invalid top rankings.");
+  }
+  return payload.slice(0, 10).map(({ user }) =>
+    user.userProfile.displayName?.trim() || user.tagId,
+  );
 }
 
 async function fetchRankedStreaks(): Promise<{
@@ -165,25 +236,70 @@ export default function RankedMode() {
   const [winstreak, setWinstreak] = useState<number | null>(null);
   const [highestStreak, setHighestStreak] = useState<number | null>(null);
   const [statisticsError, setStatisticsError] = useState("");
+  const [rankPosition, setRankPosition] = useState<number | null | "unrank">(null);
+  const [topRankings, setTopRankings] = useState<string[]>([]);
+  const [topRankingError, setTopRankingError] = useState("");
 
   useEffect(() => {
     let active = true;
 
-    void Promise.all([fetchRankPoint(), fetchRankedStreaks()])
-      .then(([points, streaks]) => {
+    const loadRankedData = async () => {
+      let hasStatistics = false;
+      try {
+        const points = await fetchRankPoint();
         if (!active) return;
         setRankPoint(points);
-        setWinstreak(streaks.winstreak);
-        setHighestStreak(streaks.highestStreak);
-      })
-      .catch((error: unknown) => {
+
+        if (points === null) {
+          setWinstreak(0);
+          setHighestStreak(0);
+          setRankPosition("unrank");
+        } else {
+          hasStatistics = true;
+          const streaks = await fetchRankedStreaks();
+          if (!active) return;
+          setWinstreak(streaks.winstreak);
+          setHighestStreak(streaks.highestStreak);
+        }
+      } catch (error: unknown) {
         if (!active) return;
         setStatisticsError(
           error instanceof Error
             ? error.message
             : "Could not load ranked statistics.",
         );
-      });
+      }
+
+      if (hasStatistics) {
+        try {
+          const index = await fetchRankIndex();
+          if (!active) return;
+          setRankPosition(index);
+        } catch (error: unknown) {
+          if (!active) return;
+          setStatisticsError(
+            error instanceof Error
+              ? error.message
+              : "Could not load ranked position.",
+          );
+        }
+      }
+
+      try {
+        const leaders = await fetchTopRankings();
+        if (!active) return;
+        setTopRankings(leaders);
+      } catch (error: unknown) {
+        if (!active) return;
+        setTopRankingError(
+          error instanceof Error
+            ? error.message
+            : "Could not load top rankings.",
+        );
+      }
+    };
+
+    void loadRankedData();
 
     return () => {
       active = false;
@@ -359,7 +475,11 @@ export default function RankedMode() {
                     dictionary.lobby
                       .position
                   }
-                  : 80%
+                  : {rankPosition === "unrank"
+                    ? "Unrank"
+                    : rankPosition === null
+                      ? "—"
+                      : `#${rankPosition + 1}`}
                 </td>
               </tr>
 
@@ -425,7 +545,7 @@ export default function RankedMode() {
           </h2>
 
           <ol className="mx-auto mt-[1%] list-none p-0 text-center">
-            {rankings.map(
+            {topRankings.map(
               (name, index) => (
                 <li
                   key={`${name}-${index}`}
@@ -436,6 +556,11 @@ export default function RankedMode() {
               ),
             )}
           </ol>
+          {topRankingError && (
+            <p className="mt-2 text-center text-sm text-red-300" role="alert">
+              {topRankingError}
+            </p>
+          )}
         </div>
       </div>
       {matchId && (

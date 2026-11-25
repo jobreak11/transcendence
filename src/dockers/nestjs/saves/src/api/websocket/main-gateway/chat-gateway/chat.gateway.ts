@@ -59,7 +59,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   ) {
     this.logger.debug("message received");
 
-    await this.chatGatewayService.newChatMessage({
+    return this.chatGatewayService.newChatMessage({
       messageText: body.messageText,
       chatRoomId: body.chatRoomId,
       type: ChatMessageType.USER_MESSAGE,
