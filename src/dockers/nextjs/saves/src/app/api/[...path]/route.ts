@@ -103,6 +103,7 @@ const allowedPaths = new Set([
   '/game/lobby/formats',
   '/game/lobby/create',
   '/game/lobby/join',
+  '/game/lobby/swap-role',
   '/game/lobby/leave',
   '/game/lobby/allRooms',
   '/game/lobby/my-lobby',

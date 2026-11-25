@@ -120,6 +120,22 @@ export class InternalLobbyController {
   }
 
   @ApiOperation({
+    summary: "switch between a lobby player and spectator role",
+    description: "Role changes are allowed while the lobby is waiting and the target role has capacity."
+  })
+  @Post('swap-role')
+  async swapLobbyMemberRole(
+    @Req() req: any,
+    @Query('lobbyPinId') lobbyPinId: string,
+  ) {
+    try {
+      return await this.lobbyService.swapLobbyMemberRole(req.user.id, lobbyPinId);
+    } catch (error: any) {
+      throw httpControllerCatch(error);
+    }
+  }
+
+  @ApiOperation({
     summary: "get all lobby rooms details",
     description: "get all details of the lobby room"
   })
@@ -244,7 +260,11 @@ export class InternalLobbyController {
     @Query('lobbyPinId') lobbyPinId: string
   ): Promise<GetLobbyPublicDto> {
 
+    this.logger.debug(`req user Id: ${req.user.id} lobbyPinid: ${lobbyPinId}`);
+
     const lobbyData = await this.lobbyService.getLobbyDto(lobbyPinId);
+
+    this.logger.debug(`lobby fetch data passed`);
 
     const {password, ...publicGeneralSettings} = lobbyData.generalSettings;
     // const {chatRoomId, ...publicDetails} = lobbyData.details;
@@ -254,6 +274,8 @@ export class InternalLobbyController {
       roomType: publicGeneralSettings.roomType,
       hasPassword: password === null ? false : true
     }
+
+    this.logger.debug(`returning...`);
 
     return {
       details: {

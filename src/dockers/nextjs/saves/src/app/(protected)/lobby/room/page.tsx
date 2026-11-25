@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import type { ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { signOut } from "../../../../lib/auth";
 import type { GetLobbyPublicDto } from "../../../../types/dto";
 import { useMainSocket } from "../../_context/useMainSocket";
 import { LobbyEvent } from "../../../../websocket-events/main/lobby/lobby-events";
+import { ChatEvent } from "../../../../websocket-events/main/chat/chat-events";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -25,6 +26,7 @@ function isLobbyResponse(value: unknown): value is GetLobbyPublicDto {
       || typeof value.details.createdByUserId === "string")
     && (value.details.hostUserId === null
       || typeof value.details.hostUserId === "string")
+    && typeof value.details.chatRoomId === "string"
     && typeof value.details.hostDisplayName === "string"
     && typeof value.details.currentPlayerCount === "number"
     && (value.details.currentSpectatorCount === undefined
@@ -138,6 +140,322 @@ function LobbyRoster({
   );
 }
 
+type LobbyChatMessage = {
+  id: string;
+  senderUserId: string | null;
+  messageText: string;
+  type: "USER_MESSAGE" | "SYSTEM_MESSAGE";
+  createdAt: string;
+  createdAtMs: number;
+};
+
+const CHAT_EMOJIS = ["😀", "😂", "👍", "❤️", "🔥", "🎉", "🙏", "👀"];
+
+function parseLobbyChatMessage(
+  value: unknown,
+  chatRoomId: string,
+): LobbyChatMessage | null {
+  if (
+    !isRecord(value)
+    || typeof value.messageText !== "string"
+    || (value.userId !== null && typeof value.userId !== "string")
+    || (value.type !== "USER_MESSAGE" && value.type !== "SYSTEM_MESSAGE")
+    || typeof value.createdAt !== "string"
+  ) {
+    return null;
+  }
+
+  const createdAtMs = Date.parse(value.createdAt);
+  if (!Number.isFinite(createdAtMs)) return null;
+
+  const senderUserId: string | null = typeof value.userId !== "string" ? null : value.userId;
+  return {
+    id: `${chatRoomId}-${senderUserId ?? "System"}-${createdAtMs}-${value.messageText}`,
+    senderUserId,
+    messageText: value.messageText,
+    type: value.type,
+    createdAt: value.createdAt,
+    createdAtMs,
+  };
+}
+
+function mergeLobbyChatMessages(
+  current: LobbyChatMessage[],
+  incoming: LobbyChatMessage[],
+): LobbyChatMessage[] {
+  const messages = new Map(current.map((message) => [message.id, message]));
+  for (const message of incoming) messages.set(message.id, message);
+  return [...messages.values()]
+    .sort((messageA, messageB) => messageA.createdAtMs - messageB.createdAtMs)
+    .slice(-250);
+}
+
+function LobbyChat({ chatRoomId }: { chatRoomId: string }) {
+  const { socket, isConnected, accessToken } = useMainSocket();
+  const [messages, setMessages] = useState<LobbyChatMessage[]>([]);
+  const [memberNames, setMemberNames] = useState<Record<string, string>>({});
+  const [messageText, setMessageText] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [showEmojis, setShowEmojis] = useState(false);
+  const [chatError, setChatError] = useState("");
+  const messagesRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const fetchedUserIds = useRef(new Set<string>());
+
+  const addMessage = useCallback((message: LobbyChatMessage) => {
+    setMessages((current) => mergeLobbyChatMessages(current, [message]));
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setMessages([]);
+    setChatError("");
+
+    async function loadHistory() {
+      try {
+        const headers = new Headers();
+        if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
+        const response = await fetch(
+          `/api/chat/message?chatRoomId=${encodeURIComponent(chatRoomId)}`,
+          { cache: "no-store", headers, signal: controller.signal },
+        );
+        const payload: unknown = await response.json();
+
+        if (!response.ok) {
+          const message = isRecord(payload) && typeof payload.message === "string"
+            ? payload.message
+            : `Could not load lobby chat (${response.status}).`;
+          throw new Error(message);
+        }
+        if (!Array.isArray(payload)) {
+          throw new Error("The server returned invalid lobby chat history.");
+        }
+
+        const history = payload.map((item) =>
+          parseLobbyChatMessage(item, chatRoomId),
+        );
+        if (history.some((message) => message === null)) {
+          throw new Error("The server returned invalid lobby chat history.");
+        }
+
+        setMessages((current) =>
+          mergeLobbyChatMessages(
+            current,
+            history.filter((message): message is LobbyChatMessage => message !== null),
+          ),
+        );
+      } catch (loadError) {
+        if (controller.signal.aborted) return;
+        setChatError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Could not load lobby chat history.",
+        );
+      }
+    }
+
+    void loadHistory();
+    return () => controller.abort();
+  }, [accessToken, chatRoomId]);
+
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    const handleIncomingMessage = (payload: unknown) => {
+      if (!isRecord(payload) || payload.chatRoomId !== chatRoomId) return;
+      const message = parseLobbyChatMessage(payload, chatRoomId);
+      if (message) addMessage(message);
+    };
+
+    socket.on(ChatEvent.message.to_client.event_name, handleIncomingMessage);
+    return () => {
+      socket.off(ChatEvent.message.to_client.event_name, handleIncomingMessage);
+    };
+  }, [addMessage, chatRoomId, isConnected, socket]);
+
+  const loadMemberName = useCallback(async (userId: string) => {
+    const headers = new Headers();
+    if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
+
+    const response = await fetch(
+      `/api/user/profile?id=${encodeURIComponent(userId)}`,
+      { headers },
+    );
+    const payload: unknown = await response.json();
+    if (!response.ok) {
+      throw new Error(`Could not load a chat member profile (${response.status}).`);
+    }
+    if (!isRecord(payload)) {
+      throw new Error("The server returned invalid chat member details.");
+    }
+
+    const profile = isRecord(payload.user_profile) ? payload.user_profile : null;
+    const displayName = profile && typeof profile.displayName === "string"
+      ? profile.displayName.trim()
+      : "";
+    const tagId = typeof payload.tagId === "string" ? payload.tagId.trim() : "";
+    if (displayName || tagId) {
+      setMemberNames((current) => ({
+        ...current,
+        [userId]: displayName || tagId,
+      }));
+    }
+  }, [accessToken]);
+
+  useEffect(() => {
+    const senderIds = new Set(
+      messages
+        .map((message) => message.senderUserId)
+        .filter((userId): userId is string =>
+          Boolean(userId)
+          && !memberNames[userId]
+          && !fetchedUserIds.current.has(userId),
+        ),
+    );
+
+    for (const userId of senderIds) {
+      fetchedUserIds.current.add(userId);
+      void loadMemberName(userId).catch((profileError: unknown) => {
+        setChatError(
+          profileError instanceof Error
+            ? profileError.message
+            : "Could not load a chat member profile.",
+        );
+      });
+    }
+  }, [loadMemberName, memberNames, messages]);
+
+  useEffect(() => {
+    if (!messagesRef.current) return;
+    messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+  }, [messages]);
+
+  function handleSend(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const content = messageText.trim();
+    if (!content || !socket || !isConnected || isSending) return;
+
+    setChatError("");
+    setIsSending(true);
+    socket.timeout(10_000).emit(
+      ChatEvent.message.to_server.event_name,
+      { chatRoomId, messageText: content },
+      (timeoutError: Error | null, payload: unknown) => {
+        setIsSending(false);
+        if (timeoutError) {
+          setChatError("The chat server did not respond. Please try again.");
+          return;
+        }
+
+        const sentMessage = parseLobbyChatMessage(payload, chatRoomId);
+        if (!sentMessage) {
+          setChatError("The server returned an invalid chat message.");
+          return;
+        }
+
+        addMessage(sentMessage);
+        setMessageText("");
+        inputRef.current?.focus();
+      },
+    );
+  }
+
+  return (
+    <div className="flex h-80 min-h-60 flex-col gap-3">
+      <div
+        ref={messagesRef}
+        aria-label="Lobby chat messages"
+        aria-live="polite"
+        className="flex-1 space-y-3 overflow-y-auto rounded-md bg-black/30 p-3"
+      >
+        {messages.length === 0 ? (
+          <p className="text-sm text-neutral-400">
+            {isConnected ? "No messages yet. Say hello!" : "Connecting to lobby chat…"}
+          </p>
+        ) : messages.map((message) => {
+          const senderName = message.senderUserId
+            ? memberNames[message.senderUserId] || message.senderUserId.slice(0, 8)
+            : "System";
+
+          return (
+            <article key={message.id} className="break-words text-sm">
+              <p className="text-xs text-neutral-400">
+                <span className="font-semibold text-amber-200">{senderName}</span>
+                {" · "}
+                {new Date(message.createdAtMs).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                })}
+              </p>
+              <p className={message.type === "SYSTEM_MESSAGE" ? "text-amber-300" : "text-white"}>
+                {message.messageText}
+              </p>
+            </article>
+          );
+        })}
+      </div>
+
+      {chatError && (
+        <p className="text-sm text-amber-200" role="alert">
+          {chatError}
+        </p>
+      )}
+
+      <form onSubmit={handleSend} className="flex items-center gap-2">
+        <input
+          ref={inputRef}
+          aria-label="Message lobby members"
+          autoComplete="off"
+          maxLength={5000}
+          value={messageText}
+          onChange={(event) => setMessageText(event.target.value)}
+          disabled={!isConnected || isSending}
+          placeholder={isConnected ? "Message everyone in the room…" : "Connecting…"}
+          className="min-w-0 flex-1 rounded-md border border-white/15 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-neutral-500 focus-visible:outline-2 focus-visible:outline-amber-300 disabled:opacity-50"
+        />
+        <div className="relative">
+          <button
+            type="button"
+            aria-label="Choose emoji"
+            aria-expanded={showEmojis}
+            onClick={() => setShowEmojis((visible) => !visible)}
+            className="rounded-md border border-white/15 px-3 py-2 hover:bg-white/10"
+          >
+            😊
+          </button>
+          {showEmojis && (
+            <div className="absolute bottom-full right-0 mb-2 grid grid-cols-4 gap-1 rounded-md border border-white/15 bg-neutral-900 p-2 shadow-lg">
+              {CHAT_EMOJIS.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  aria-label={`Add ${emoji}`}
+                  onClick={() => {
+                    setMessageText((current) => current + emoji);
+                    setShowEmojis(false);
+                    inputRef.current?.focus();
+                  }}
+                  className="rounded p-1 text-lg hover:bg-white/10"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <button
+          type="submit"
+          disabled={!messageText.trim() || !isConnected || isSending}
+          className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-neutral-950 hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isSending ? "Sending…" : "Send"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 export default function LobbyRoomPage() {
   const { socket, isConnected, accessToken } = useMainSocket();
   const [lobby, setLobby] = useState<GetLobbyPublicDto | null>(null);
@@ -197,6 +515,45 @@ export default function LobbyRoomPage() {
     }
   }, []);
 
+  const refreshLobbyDetails = useCallback(async (
+    lobbyId: string,
+    isCurrent: () => boolean = () => true,
+  ) => {
+    try {
+      const response = await fetch(
+        `/api/game/lobby?lobbyPinId=${encodeURIComponent(lobbyId)}`,
+        { cache: "no-store" },
+      );
+      const body: unknown = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const errorMessage =
+          isRecord(body) && typeof body.message === "string"
+            ? body.message
+            : `Could not load lobby (${response.status}).`;
+        throw new Error(errorMessage);
+      }
+      if (!isLobbyResponse(body)) {
+        throw new Error("The server returned invalid lobby details.");
+      }
+
+      if (isCurrent()) {
+        setLobby(body);
+        setError("");
+      }
+    } catch (loadError) {
+      if (isCurrent()) {
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Could not load lobby details.",
+        );
+      }
+    } finally {
+      if (isCurrent()) setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     let isCurrent = true;
     const lobbyId = new URLSearchParams(window.location.search).get("lobbyPinId")?.trim() ?? "";
@@ -208,40 +565,6 @@ export default function LobbyRoomPage() {
       return () => {
         isCurrent = false;
       };
-    }
-
-    async function loadLobby() {
-      try {
-        const response = await fetch(
-          `/api/game/lobby?lobbyPinId=${encodeURIComponent(lobbyId)}`,
-          { cache: "no-store" },
-        );
-        const body: unknown = await response.json().catch(() => null);
-
-        if (!response.ok) {
-          const errorMessage =
-            isRecord(body) && typeof body.message === "string"
-              ? body.message
-              : `Could not load lobby (${response.status}).`;
-          throw new Error(errorMessage);
-        }
-
-        if (!isLobbyResponse(body)) {
-          throw new Error("The server returned invalid lobby details.");
-        }
-
-        if (isCurrent) setLobby(body);
-      } catch (loadError) {
-        if (isCurrent) {
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : "Could not load lobby details.",
-          );
-        }
-      } finally {
-        if (isCurrent) setIsLoading(false);
-      }
     }
 
     async function loadUsername() {
@@ -274,14 +597,14 @@ export default function LobbyRoomPage() {
       }
     }
 
-    void loadLobby();
+    void refreshLobbyDetails(lobbyId, () => isCurrent);
     void loadUsername();
     void refreshMembers(lobbyId, () => isCurrent);
 
     return () => {
       isCurrent = false;
     };
-  }, [refreshMembers]);
+  }, [refreshLobbyDetails, refreshMembers]);
 
   useEffect(() => {
     if (!socket || !lobbyPinId) return;
@@ -325,6 +648,28 @@ export default function LobbyRoomPage() {
       }
       void refreshMembers(lobbyPinId);
     };
+    const onMemberChanged = (event: unknown) => {
+      if (
+        !isRecord(event)
+        || typeof event.lobbyPinId !== "string"
+        || typeof event.userId !== "string"
+        || typeof event.status !== "string"
+        || ![
+          "MEMBER_JOIN",
+          "MEMBER_LEAVE",
+          "MEMBER_CHANGE_ROLE",
+          "MEMBER_CHANGE_HOST",
+        ].includes(event.status)
+        || (event.role !== "PLAYER" && event.role !== "SPECTATOR")
+      ) {
+        setActionError("The server sent an invalid lobby member update.");
+        return;
+      }
+      if (event.lobbyPinId !== lobbyPinId) return;
+
+      void refreshMembers(lobbyPinId);
+      void refreshLobbyDetails(lobbyPinId);
+    };
     const onSocketException = (exception: unknown) => {
       const message = typeof exception === "string"
         ? exception
@@ -337,13 +682,15 @@ export default function LobbyRoomPage() {
 
     socket.on(LobbyEvent.game_started.to_client.event_name, onGameStarted);
     socket.on(LobbyEvent.ready.to_client.event_name, onReadyChanged);
+    socket.on(LobbyEvent.member_notify.to_client.event_name, onMemberChanged);
     socket.on("exception", onSocketException);
     return () => {
       socket.off(LobbyEvent.game_started.to_client.event_name, onGameStarted);
       socket.off(LobbyEvent.ready.to_client.event_name, onReadyChanged);
+      socket.off(LobbyEvent.member_notify.to_client.event_name, onMemberChanged);
       socket.off("exception", onSocketException);
     };
-  }, [currentUserId, lobbyPinId, refreshMembers, socket]);
+  }, [currentUserId, lobbyPinId, refreshLobbyDetails, refreshMembers, socket]);
 
   useEffect(() => {
     const returnedFromMatch =
@@ -381,6 +728,45 @@ export default function LobbyRoomPage() {
     setActionError("");
     setIsSubmitting(true);
     socket.emit(LobbyEvent.ready.to_server.event_name, { lobbyPinId });
+  }
+
+  async function handleSwapRole() {
+    if (!lobbyPinId || !isWaiting || isSubmitting) return;
+
+    setActionError("");
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(
+        `/api/game/lobby/swap-role?lobbyPinId=${encodeURIComponent(lobbyPinId)}`,
+        { method: "POST" },
+      );
+      const body: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        const message = isRecord(body) && typeof body.message === "string"
+          ? body.message
+          : `Could not switch lobby role (${response.status}).`;
+        throw new Error(message);
+      }
+      if (
+        !isRecord(body)
+        || (body.role !== "PLAYER" && body.role !== "SPECTATOR")
+      ) {
+        throw new Error("The server returned an invalid lobby role.");
+      }
+
+      await Promise.all([
+        refreshMembers(lobbyPinId),
+        refreshLobbyDetails(lobbyPinId),
+      ]);
+    } catch (swapError) {
+      setActionError(
+        swapError instanceof Error
+          ? swapError.message
+          : "Could not switch lobby role.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   async function handleStart() {
@@ -521,10 +907,7 @@ export default function LobbyRoomPage() {
 
             <div className="grid gap-6 lg:grid-cols-2">
               <LobbyPanel title="Lobby Chat">
-                <div
-                  aria-label="Lobby chat history"
-                  className="min-h-60 space-y-3"
-                />
+                <LobbyChat chatRoomId={lobby.details.chatRoomId} />
               </LobbyPanel>
 
               <section className="flex flex-col justify-center gap-6 rounded-lg p-4 sm:p-6">
@@ -590,6 +973,14 @@ export default function LobbyRoomPage() {
                     {isSubmitting
                       ? (isHost ? "Starting…" : "Updating…")
                       : (isHost ? "Start" : (isReady ? "Unready" : "Ready"))}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSwapRole}
+                    disabled={isSubmitting || !isWaiting || isMembersLoading}
+                    className="rounded border border-amber-300/60 px-5 py-2 font-semibold text-amber-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  >
+                    {isSubmitting ? "Updating…" : " Swap ⇄"}
                   </button>
                   {actionError && (
                     <p className="text-right text-sm text-amber-200" role="alert">
