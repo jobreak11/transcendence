@@ -1,4 +1,4 @@
-FROM node:alpine
+FROM node:alpine3.24
 RUN apk update && apk add --no-cache grep sed shadow su-exec
 RUN npm install -g pnpm
 WORKDIR /app
