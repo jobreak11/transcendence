@@ -5,6 +5,9 @@ RUN npm install -g pnpm
 COPY ./saves ./saves
 COPY entrypoint.sh ./entrypoint.sh
 COPY healthcheckscript.sh ./healthcheckscript.sh
+COPY ./pnpm-lock.yaml ./pnpm-lock.yaml
+COPY ./pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY ./package.json ./package.json
 RUN chmod +x ./entrypoint.sh ./healthcheckscript.sh
 # RUN chmod -R 777 /home/node/app
 # USER node

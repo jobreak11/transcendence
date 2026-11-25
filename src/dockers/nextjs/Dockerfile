@@ -5,6 +5,8 @@ WORKDIR /app
 # && chmod -R 777 /home/node/app
 COPY ./saves ./saves
 COPY ./entrypoint.sh ./entrypoint.sh
+COPY ./pnpm-lock.yaml ./pnpm-lock.yaml
+COPY ./package.json ./package.json
 COPY ./healthcheckscript.sh ./healthcheckscript.sh
 RUN chmod +x ./entrypoint.sh ./healthcheckscript.sh
 # RUN chmod -R 777 /home/node/app
