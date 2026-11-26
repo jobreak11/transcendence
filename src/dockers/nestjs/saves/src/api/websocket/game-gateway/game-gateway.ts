@@ -13,6 +13,15 @@ import { WsAllExceptionsFilter } from "../filters/WsAllExceptionsFilter.js";
 import { LobbyRedisService } from "../../../modules/lobby/redis/lobby-redis.service.js";
 import { UsersRedisService } from "../../../modules/user/redis/users-redis.service.js";
 import { GameRedisService } from "../../../modules/game/redis/game-redis.service.js";
+import { randomUUID } from "node:crypto";
+import {
+  gameChatHistorySchema,
+  gameChatMessageSchema,
+  type GameChatHistoryDto,
+  type GameChatMessageDto,
+} from "./dtos/game-chat.dto.js";
+import { event_game_chat_history, event_game_chat_message } from "./events/game-chat.event.js";
+import { room_game_private_user } from "./rooms/user.room.js";
 
 @UseFilters(WsAllExceptionsFilter)
 @WebSocketGateway({
@@ -223,6 +232,54 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       state: hand?.state ?? null,
       cards: hand?.cards ?? [],
     };
+  }
+
+  @SubscribeMessage(event_game_chat_history.to_server())
+  async handleChatHistory(
+    @ConnectedSocket() client: Socket,
+    @MessageBody(new WsZodValidationPipe(gameChatHistorySchema))
+    body: GameChatHistoryDto,
+  ) {
+    const playerIds = await this.lobbyRedisService.getPlayerMemberList(
+      body.tableSessionId,
+    );
+    if (!playerIds.includes(client.data.user)) {
+      return { ok: false, message: "Only players at this table can chat." };
+    }
+
+    await client.join(room_game_specific_room(body.tableSessionId));
+    return {
+      ok: true,
+      messages: await this.gameRedisService.getChatMessages(body.tableSessionId),
+    };
+  }
+
+  @SubscribeMessage(event_game_chat_message.to_server())
+  async handleChatMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody(new WsZodValidationPipe(gameChatMessageSchema))
+    body: GameChatMessageDto,
+  ) {
+    const playerIds = await this.lobbyRedisService.getPlayerMemberList(
+      body.tableSessionId,
+    );
+    if (!playerIds.includes(client.data.user)) {
+      return { ok: false, message: "Only players at this table can chat." };
+    }
+
+    await client.join(room_game_specific_room(body.tableSessionId));
+    const message = {
+      id: randomUUID(),
+      tableSessionId: body.tableSessionId,
+      playerId: client.data.user,
+      messageText: body.messageText,
+      createdAt: new Date().toISOString(),
+    };
+    await this.gameRedisService.addChatMessage(body.tableSessionId, message);
+    this.server
+      .to(playerIds.map((playerId) => room_game_private_user(playerId)))
+      .emit(event_game_chat_message.to_client(), message);
+    return { ok: true, message };
   }
 
   @SubscribeMessage(event_game_poker_action.to_server())
