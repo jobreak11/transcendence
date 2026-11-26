@@ -374,7 +374,9 @@ export class UserService {
 
     // FIXED. joined the BASEURL e.g. https://localhost:4333 now it is a valid url
     // and will pass the payload validation
-    const newAvatarURL = path.join(BASEURL, STORAGE_URL_PATH, `${id}/profile.jpg`);
+    // const newAvatarURL = path.join(BASEURL, STORAGE_URL_PATH, `${id}/profile.jpg`);
+    const newAvatarURL = new URL(path.posix.join(STORAGE_URL_PATH, `${id}/profile.jpg`), BASEURL).toString();
+    
 
     // # would store only /storage/${id}/profile.jpg which result in invalid URL in schema
     //const newAvatarURL = path.join( STORAGE_URL_PATH, `${id}/profile.jpg`);

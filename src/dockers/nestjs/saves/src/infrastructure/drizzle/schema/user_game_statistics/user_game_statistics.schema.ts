@@ -7,7 +7,7 @@ export const user_game_statistics = pgTable("user_game_statistics", {
   userId: uuid("user_id").primaryKey().references(() => users.id, {onDelete: "cascade"}),
 
   expPoint: integer("exp_point").notNull().default(0),
-  level: integer("level").notNull().default(0),
+  level: integer("level").notNull().default(1),
 
   rankPoint: integer("rank_point").notNull().default(0),
 
