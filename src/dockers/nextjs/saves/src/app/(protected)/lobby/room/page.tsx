@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signOut } from "../../../../lib/auth";
 import type { GetLobbyPublicDto } from "../../../../types/dto";
 import { useMainSocket } from "../../_context/useMainSocket";
@@ -13,8 +14,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isLobbyResponse(value: unknown): value is GetLobbyPublicDto {
-  if (!isRecord(value) || !isRecord(value.details)
-    || !isRecord(value.gameSettings) || !isRecord(value.generalSettings)) {
+  if (
+    !isRecord(value)
+    || !isRecord(value.details)
+    || !isRecord(value.gameSettings)
+    || !isRecord(value.generalSettings)
+  ) {
     return false;
   }
 
@@ -72,10 +77,7 @@ function getUserIdFromToken(token?: string): string | null {
     const decoded: unknown = JSON.parse(
       atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, "=")),
     );
-    if (
-      isRecord(decoded)
-      && typeof decoded.sub === "string"
-    ) {
+    if (isRecord(decoded) && typeof decoded.sub === "string") {
       return decoded.sub;
     }
   } catch {
@@ -207,6 +209,8 @@ function LobbyChat({ chatRoomId }: { chatRoomId: string }) {
   }, []);
 
   useEffect(() => {
+    if (!isConnected) return;
+
     const controller = new AbortController();
     setMessages([]);
     setChatError("");
@@ -256,7 +260,7 @@ function LobbyChat({ chatRoomId }: { chatRoomId: string }) {
 
     void loadHistory();
     return () => controller.abort();
-  }, [accessToken, chatRoomId]);
+  }, [accessToken, chatRoomId, isConnected]);
 
   useEffect(() => {
     if (!socket || !isConnected) return;
@@ -456,7 +460,9 @@ function LobbyChat({ chatRoomId }: { chatRoomId: string }) {
   );
 }
 
-export default function LobbyRoomPage() {
+function LobbyRoomPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { socket, isConnected, accessToken } = useMainSocket();
   const [lobby, setLobby] = useState<GetLobbyPublicDto | null>(null);
   const [members, setMembers] = useState<LobbyMembers>({
@@ -464,7 +470,6 @@ export default function LobbyRoomPage() {
     spectatorList: [],
     readyPlayerList: [],
   });
-  const [lobbyPinId, setLobbyPinId] = useState("");
   const [username, setUsername] = useState("You");
   const [isLoading, setIsLoading] = useState(true);
   const [isMembersLoading, setIsMembersLoading] = useState(true);
@@ -473,11 +478,15 @@ export default function LobbyRoomPage() {
   const [profileError, setProfileError] = useState("");
   const [actionError, setActionError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const lobbyPinId = searchParams.get("lobbyPinId")?.trim() ?? "";
+  const returnedFromMatch = searchParams.get("returnFromMatch") === "1";
   const currentUserId = getUserIdFromToken(accessToken);
 
   const refreshMembers = useCallback(async (
     lobbyId: string,
     isCurrent: () => boolean = () => true,
+    retriesLeft = 2,
   ) => {
     try {
       const response = await fetch(
@@ -485,6 +494,14 @@ export default function LobbyRoomPage() {
         { cache: "no-store" },
       );
       const body: unknown = await response.json().catch(() => null);
+
+      if (response.status === 403 && retriesLeft > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        if (isCurrent()) {
+          return refreshMembers(lobbyId, isCurrent, retriesLeft - 1);
+        }
+        return;
+      }
 
       if (!response.ok) {
         const errorMessage =
@@ -518,6 +535,7 @@ export default function LobbyRoomPage() {
   const refreshLobbyDetails = useCallback(async (
     lobbyId: string,
     isCurrent: () => boolean = () => true,
+    retriesLeft = 2,
   ) => {
     try {
       const response = await fetch(
@@ -525,6 +543,14 @@ export default function LobbyRoomPage() {
         { cache: "no-store" },
       );
       const body: unknown = await response.json().catch(() => null);
+
+      if (response.status === 403 && retriesLeft > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        if (isCurrent()) {
+          return refreshLobbyDetails(lobbyId, isCurrent, retriesLeft - 1);
+        }
+        return;
+      }
 
       if (!response.ok) {
         const errorMessage =
@@ -554,18 +580,9 @@ export default function LobbyRoomPage() {
     }
   }, []);
 
+  // โหลดข้อมูลโปรไฟล์ผู้ใช้ (ไม่ต้องรอ LobbyGuard)
   useEffect(() => {
     let isCurrent = true;
-    const lobbyId = new URLSearchParams(window.location.search).get("lobbyPinId")?.trim() ?? "";
-    setLobbyPinId(lobbyId);
-
-    if (!lobbyId) {
-      setError("A lobby ID is required to view this room.");
-      setIsLoading(false);
-      return () => {
-        isCurrent = false;
-      };
-    }
 
     async function loadUsername() {
       try {
@@ -597,17 +614,38 @@ export default function LobbyRoomPage() {
       }
     }
 
-    void refreshLobbyDetails(lobbyId, () => isCurrent);
     void loadUsername();
-    void refreshMembers(lobbyId, () => isCurrent);
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
+
+  // รอให้ isConnected จาก useMainSocket เป็น true ก่อนเรียก API ที่ติด LobbyGuard
+  useEffect(() => {
+    if (!lobbyPinId) {
+      setError("A lobby ID is required to view this room.");
+      setIsLoading(false);
+      setIsMembersLoading(false);
+      return;
+    }
+
+    if (!socket || !isConnected) {
+      setIsLoading(true);
+      setIsMembersLoading(true);
+      return;
+    }
+
+    let isCurrent = true;
+    void refreshLobbyDetails(lobbyPinId, () => isCurrent);
+    void refreshMembers(lobbyPinId, () => isCurrent);
 
     return () => {
       isCurrent = false;
     };
-  }, [refreshLobbyDetails, refreshMembers]);
+  }, [isConnected, lobbyPinId, refreshLobbyDetails, refreshMembers, socket]);
 
   useEffect(() => {
-    if (!socket || !lobbyPinId) return;
+    if (!socket || !isConnected || !lobbyPinId) return;
 
     const onGameStarted = (event: LobbyEvent.game_started.to_client.payload) => {
       if (
@@ -620,9 +658,7 @@ export default function LobbyRoomPage() {
       }
       if (event.lobbyPinId !== lobbyPinId) return;
 
-      window.location.assign(
-        `/game?tableSessionId=${encodeURIComponent(event.tableSessionId)}`,
-      );
+      router.push(`/game?tableSessionId=${encodeURIComponent(event.tableSessionId)}`);
     };
     const onReadyChanged = (event: LobbyEvent.ready.to_client.payload) => {
       if (
@@ -690,20 +726,16 @@ export default function LobbyRoomPage() {
       socket.off(LobbyEvent.member_notify.to_client.event_name, onMemberChanged);
       socket.off("exception", onSocketException);
     };
-  }, [currentUserId, lobbyPinId, refreshLobbyDetails, refreshMembers, socket]);
+  }, [currentUserId, isConnected, lobbyPinId, refreshLobbyDetails, refreshMembers, router, socket, username]);
 
   useEffect(() => {
-    const returnedFromMatch =
-      new URLSearchParams(window.location.search).get("returnFromMatch") === "1";
     if (returnedFromMatch) return;
 
     const gameRoomId = lobby?.details.gameRoomId;
     if (lobby?.details.roomStatus !== "PLAYING" || !gameRoomId) return;
 
-    window.location.assign(
-      `/game?tableSessionId=${encodeURIComponent(gameRoomId)}`,
-    );
-  }, [lobby]);
+    router.replace(`/game?tableSessionId=${encodeURIComponent(gameRoomId)}`);
+  }, [lobby, returnedFromMatch, router]);
 
   const title =
     lobby?.generalSettings.catchPhrase || (lobbyPinId ? `Lobby ${lobbyPinId}` : "Lobby");
@@ -731,7 +763,7 @@ export default function LobbyRoomPage() {
   }
 
   async function handleSwapRole() {
-    if (!lobbyPinId || !isWaiting || isSubmitting) return;
+    if (!lobbyPinId || !isWaiting || isSubmitting || !isConnected) return;
 
     setActionError("");
     setIsSubmitting(true);
@@ -770,7 +802,7 @@ export default function LobbyRoomPage() {
   }
 
   async function handleStart() {
-    if (!lobbyPinId) return;
+    if (!lobbyPinId || !isConnected) return;
 
     setActionError("");
     setIsSubmitting(true);
@@ -794,22 +826,19 @@ export default function LobbyRoomPage() {
         throw new Error("The server did not return a game room ID.");
       }
 
-      window.location.assign(
-        `/game?tableSessionId=${encodeURIComponent(body.details.gameRoomId)}`,
-      );
+      router.push(`/game?tableSessionId=${encodeURIComponent(body.details.gameRoomId)}`);
     } catch (startError) {
       setActionError(
         startError instanceof Error
           ? startError.message
           : "Could not start the game.",
       );
-    } finally {
       setIsSubmitting(false);
     }
   }
 
   async function handleLeave() {
-    if (!lobbyPinId) return;
+    if (!lobbyPinId || !isConnected) return;
 
     setActionError("");
     setIsSubmitting(true);
@@ -826,14 +855,13 @@ export default function LobbyRoomPage() {
         throw new Error(message);
       }
 
-      window.location.assign("/lobby");
+      router.replace("/lobby");
     } catch (leaveError) {
       setActionError(
         leaveError instanceof Error
           ? leaveError.message
           : "Could not leave the lobby.",
       );
-    } finally {
       setIsSubmitting(false);
     }
   }
@@ -866,7 +894,11 @@ export default function LobbyRoomPage() {
       </header>
 
       <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 sm:px-8 sm:py-10">
-        {isLoading && <p role="status">Loading lobby details…</p>}
+        {isLoading && (
+          <p role="status">
+            {!isConnected ? "Connecting to lobby server…" : "Loading lobby details…"}
+          </p>
+        )}
         {error && (
           <p className="text-amber-200" role="alert">
             {error}
@@ -965,8 +997,9 @@ export default function LobbyRoomPage() {
                     disabled={
                       isSubmitting
                       || !isWaiting
+                      || !isConnected
                       || (isHost && (isMembersLoading || !allPlayersReady))
-                      || (!isHost && (!socket || !isConnected))
+                      || (!isHost && !socket)
                     }
                     className="rounded bg-amber-500 px-5 py-2 font-semibold text-neutral-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                   >
@@ -977,7 +1010,7 @@ export default function LobbyRoomPage() {
                   <button
                     type="button"
                     onClick={handleSwapRole}
-                    disabled={isSubmitting || !isWaiting || isMembersLoading}
+                    disabled={isSubmitting || !isWaiting || isMembersLoading || !isConnected}
                     className="rounded border border-amber-300/60 px-5 py-2 font-semibold text-amber-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                   >
                     {isSubmitting ? "Updating…" : " Swap ⇄"}
@@ -990,7 +1023,7 @@ export default function LobbyRoomPage() {
                   <button
                     type="button"
                     onClick={handleLeave}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !isConnected}
                     className="rounded bg-red-700 px-5 py-2 font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
                   >
                     {isSubmitting ? "Please wait…" : "Leave"}
@@ -1002,5 +1035,13 @@ export default function LobbyRoomPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function LobbyRoomPage() {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-black text-white" />}>
+      <LobbyRoomPageContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMainSocket } from "../../_context/useMainSocket";
 
 interface MatchHistory {
   tableSessionId: string;
@@ -50,11 +52,19 @@ function isMatchLobbyList(value: unknown): value is MatchLobby[] {
     );
 }
 
-async function findMatchLobby(tableSessionId: string): Promise<MatchLobby | null> {
+async function findMatchLobby(
+  tableSessionId: string,
+  retriesLeft = 2,
+): Promise<MatchLobby | null> {
   const response = await fetch("/api/game/lobby/my-lobby", {
     cache: "no-store",
   });
   if (response.status === 404) return null;
+
+  if (response.status === 403 && retriesLeft > 0) {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    return findMatchLobby(tableSessionId, retriesLeft - 1);
+  }
 
   const body: unknown = await response.json().catch(() => null);
   if (!response.ok) {
@@ -182,6 +192,8 @@ export default function MatchHistoryPageContent({
 }: {
   isRankedMatch: boolean;
 }) {
+  const router = useRouter();
+  const { isConnected: isMainConnected } = useMainSocket();
   const [history, setHistory] = useState<MatchHistory | null>(null);
   const [isReturning, setIsReturning] = useState(false);
   const [returnError, setReturnError] = useState("");
@@ -207,6 +219,11 @@ export default function MatchHistoryPageContent({
   useEffect(() => {
     if (!history || isRankedMatch) return;
 
+    if (!isMainConnected) {
+      setIsLoadingMatchLobby(true);
+      return;
+    }
+
     let active = true;
     setIsLoadingMatchLobby(true);
     void findMatchLobby(history.tableSessionId)
@@ -228,7 +245,7 @@ export default function MatchHistoryPageContent({
     return () => {
       active = false;
     };
-  }, [history, isRankedMatch]);
+  }, [history, isRankedMatch, isMainConnected]);
 
   const rankedPlayers = Object.entries(history?.playerPlaces ?? {})
     .sort(([, placeA], [, placeB]) => placeA - placeB);
@@ -237,6 +254,7 @@ export default function MatchHistoryPageContent({
     : undefined;
 
   async function handleReturnToLobby() {
+    if (isReturning) return;
     setIsReturning(true);
     setReturnError("");
 
@@ -261,40 +279,42 @@ export default function MatchHistoryPageContent({
 
         window.sessionStorage.removeItem("gameTableSessionId");
         window.sessionStorage.removeItem("gameMatchHistory");
-        window.location.assign("/lobby?tab=ranked");
+        router.replace("/lobby?tab=ranked");
       } catch (error) {
         setReturnError(
           error instanceof Error
             ? error.message
             : "Could not leave the ranked match lobby.",
         );
-      } finally {
         setIsReturning(false);
       }
       return;
     }
 
     if (!history) {
-      window.location.assign("/lobby");
+      window.sessionStorage.removeItem("gameTableSessionId");
+      router.replace("/lobby");
       return;
     }
 
     try {
       const currentMatchLobby =
         matchLobby ?? await findMatchLobby(history.tableSessionId);
+      window.sessionStorage.removeItem("gameTableSessionId");
+      window.sessionStorage.removeItem("gameMatchHistory");
+
       if (!currentMatchLobby) {
-        window.location.assign("/lobby");
+        router.replace("/lobby");
         return;
       }
 
-      window.location.assign(
+      router.replace(
         `/lobby/room?lobbyPinId=${encodeURIComponent(currentMatchLobby.details.roomPinId)}&returnFromMatch=1`,
       );
     } catch (error) {
       setReturnError(
         error instanceof Error ? error.message : "Could not return to the lobby.",
       );
-    } finally {
       setIsReturning(false);
     }
   }
@@ -310,25 +330,25 @@ export default function MatchHistoryPageContent({
         {history ? (
           <>
             <dl className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-xl border-4 border-neatral-900 bg-neutral-950 p-4">
+              <div className="rounded-xl border-4 border-neutral-900 bg-neutral-950 p-4">
                 <dt className="text-sm text-yellow-500/75">Hands played</dt>
                 <dd className="mt-1 text-2xl font-semibold">
                   {history.totalHandsPlayed}
                 </dd>
               </div>
-              <div className="rounded-xl border-4 border-neatral-900 bg-neutral-950 p-4">
+              <div className="rounded-xl border-4 border-neutral-900 bg-neutral-950 p-4">
                 <dt className="text-sm text-yellow-500/75">Started at</dt>
                 <dd className="mt-1 font-semibold">
-                  {formatDateTime(history.matchStartedAt)} 
+                  {formatDateTime(history.matchStartedAt)}
                 </dd>
               </div>
-              <div className="rounded-xl border-4 border-neatral-900 bg-neutral-950 p-4">
+              <div className="rounded-xl border-4 border-neutral-900 bg-neutral-950 p-4">
                 <dt className="text-sm text-yellow-500/75">Ended at</dt>
                 <dd className="mt-1 font-semibold">
                   {formatDateTime(history.matchEndedAt)}
                 </dd>
               </div>
-              <div className="rounded-xl border-4 border-neatral-900 bg-neutral-950 p-4">
+              <div className="rounded-xl border-4 border-neutral-900 bg-neutral-950 p-4">
                 <dt className="text-sm text-yellow-500/75">Total time</dt>
                 <dd className="mt-1 text-2xl font-semibold">
                   {formatDuration(history.matchStartedAt, history.matchEndedAt)}
@@ -385,7 +405,7 @@ export default function MatchHistoryPageContent({
           type="button"
           onClick={handleReturnToLobby}
           disabled={isReturning || isLoadingMatchLobby}
-          className="mt-8 inline-flex rounded-lg border border-red-700 bg-red-800 px-5 py-3 font-semibold text-yellow-300 transition hover:bg-red-700"
+          className="mt-8 inline-flex rounded-lg border border-red-700 bg-red-800 px-5 py-3 font-semibold text-yellow-300 transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isReturning
             ? "Returning…"

@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import enDictionary from "../../../dictionaries/en.json";
 import thDictionary from "../../../dictionaries/th.json";
 import type { GameLanguage } from "./components/ActionButtons";
@@ -12,13 +12,13 @@ import { useGameSocket } from "../_context/useGameSocket";
 import { PokerEvent } from "../../../websocket-events/game/poker/poker-events";
 import { GameEvent } from "../../../websocket-events/game/game-events";
 import { GetLobbyPublicDto, JoinLobbyDto, LobbyDto, LobbyUserCreateDto } from "../../../types/dto";
+import { useMainSocket } from "../_context/useMainSocket";
 
 interface PokerActionEvent {
   playerId: string;
   actionType: "FOLD" | "CHECK" | "CALL" | "RAISE";
   amount: number;
 }
-
 
 function isPublicGameState(value: unknown): value is PublicGameState {
   if (
@@ -269,14 +269,17 @@ function getUserIdFromToken(token?: string): string | null {
   return null;
 }
 
-export default function Page() {
+function GamePageContent() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const {
     socket,
     isConnected,
     accessToken,
     connectionError,
   } = useGameSocket();
+  const { isConnected: isMainConnected } = useMainSocket();
   const [tableSessionId, setTableSessionId] = useState("");
   const [lobbyStatus, setLobbyStatus] = useState<GetLobbyPublicDto | null>(null);
   const [lobbyStatusError, setLobbyStatusError] = useState("");
@@ -298,12 +301,24 @@ export default function Page() {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [scheduledStartAt, setScheduledStartAt] = useState<string | null>(null);
   const [language, setLanguage] = useState<GameLanguage>("en");
+
+  const hasRoutedToHistoryRef = useRef(false);
+  const playerNamesRef = useRef<Record<string, string> | undefined>(undefined);
+
   const userId = getUserIdFromToken(accessToken);
   const isHost = lobbyStatus?.details.hostUserId === userId;
   const dictionary = language === "en" ? enDictionary.game : thDictionary.game;
+  const queryTableId =
+    searchParams.get("tableSessionId")?.trim()
+    || searchParams.get("roomPinId")?.trim()
+    || "";
   const playerProfileIds = (gameState?.players.map(({ playerId }) => playerId) ?? [])
     .sort()
     .join("|");
+
+  useEffect(() => {
+    playerNamesRef.current = gameState?.playerNames;
+  }, [gameState?.playerNames]);
 
   useEffect(() => {
     const playerIds = playerProfileIds ? playerProfileIds.split("|") : [];
@@ -354,6 +369,7 @@ export default function Page() {
 
     return () => controller.abort();
   }, [playerProfileIds]);
+
   const scheduledStartTime = scheduledStartAt ? Date.parse(scheduledStartAt) : NaN;
   const secondsUntilTournamentStart = Number.isFinite(scheduledStartTime)
     ? Math.max(0, Math.ceil((scheduledStartTime - currentTime) / 1000))
@@ -361,42 +377,49 @@ export default function Page() {
 
   const routeToMatchHistory = useCallback((state: PublicGameState) => {
     if (
-      state.matchComplete
-      && state.playerPlaces
-      && state.totalHandsPlayed !== undefined
-      && state.matchStartedAt
-      && state.matchEndedAt
-      && !window.location.pathname.startsWith("/game/history")
+      hasRoutedToHistoryRef.current
+      || !state.matchComplete
+      || !state.playerPlaces
+      || state.totalHandsPlayed === undefined
+      || !state.matchStartedAt
+      || !state.matchEndedAt
+      || pathname.startsWith("/game/history")
     ) {
-      const historyPath = state.isRankedMatch
-        ? "/game/history/rank"
-        : "/game/history";
-      window.sessionStorage.setItem(
-        "gameMatchHistory",
-        JSON.stringify({
-          tableSessionId: state.tableSessionId,
-          totalHandsPlayed: state.totalHandsPlayed,
-          matchStartedAt: state.matchStartedAt,
-          matchEndedAt: state.matchEndedAt,
-          isRankedMatch: state.isRankedMatch ?? false,
-          playerId: userId,
-          playerPlaces: state.playerPlaces,
-          playerStats: state.playerStats ?? {},
-          playerNames: state.playerNames ?? {},
-        }),
-      );
-      router.push(historyPath);
+      return;
     }
-  }, [router, userId]);
+
+    hasRoutedToHistoryRef.current = true;
+    const historyPath = state.isRankedMatch
+      ? "/game/history/rank"
+      : "/game/history";
+
+    window.sessionStorage.setItem(
+      "gameMatchHistory",
+      JSON.stringify({
+        tableSessionId: state.tableSessionId,
+        totalHandsPlayed: state.totalHandsPlayed,
+        matchStartedAt: state.matchStartedAt,
+        matchEndedAt: state.matchEndedAt,
+        isRankedMatch: state.isRankedMatch ?? false,
+        playerId: userId,
+        playerPlaces: state.playerPlaces,
+        playerStats: state.playerStats ?? {},
+        playerNames: state.playerNames ?? {},
+      }),
+    );
+    router.replace(historyPath);
+  }, [pathname, router, userId]);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const queryTableId = params.get("tableSessionId") ?? params.get("roomPinId") ?? "";
     const savedTableId = window.sessionStorage.getItem("gameTableSessionId") ?? "";
-    const initialTableId = queryTableId || savedTableId;
-    setTableSessionId(initialTableId);
-    setTableInput(initialTableId);
-  }, []);
+    const nextTableId = queryTableId || savedTableId;
+    if (queryTableId) {
+      window.sessionStorage.setItem("gameTableSessionId", queryTableId);
+    }
+    hasRoutedToHistoryRef.current = false;
+    setTableSessionId(nextTableId);
+    setTableInput(nextTableId);
+  }, [queryTableId]);
 
   useEffect(() => {
     if (!socket || !tableSessionId) return;
@@ -421,9 +444,7 @@ export default function Page() {
         setIsSendingAction(false);
         return;
       }
-      const playerName = action.playerId === userId
-        ? gameState?.playerNames?.[action.playerId] ?? "Unknown player"
-        : gameState?.playerNames?.[action.playerId] ?? "Unknown player";
+      const playerName = playerNamesRef.current?.[action.playerId] ?? "Unknown player";
       const actionLabel = action.actionType.toLowerCase();
       setLastAction(
         `${playerName} ${actionLabel}${action.amount > 0 ? ` ${action.amount}` : ""}`,
@@ -447,10 +468,6 @@ export default function Page() {
       setIsSendingAction(false);
       setIsWaitingToStartFirstHand(false);
     };
-    //socket.on("poker:state", onState);
-    //socket.on("poker:action", onAction);
-    //socket.on("poker:private-cards", onPrivateCards);
-    //socket.on("exception", onSocketException);
 
     socket.on(PokerEvent.state.to_client.event_name, onState);
     socket.on(PokerEvent.action.to_client.event_name, onAction);
@@ -458,23 +475,12 @@ export default function Page() {
     socket.on("exception", onSocketException);
 
     return () => {
-      //socket.off("poker:state", onState);
-      //socket.off("poker:action", onAction);
-      //socket.off("poker:private-cards", onPrivateCards);
       socket.off(PokerEvent.state.to_client.event_name, onState);
       socket.off(PokerEvent.action.to_client.event_name, onAction);
       socket.off(PokerEvent.private_cards.to_client.event_name, onPrivateCards);
       socket.off("exception", onSocketException);
     };
-  }, [
-    gameState?.players,
-    gameState?.playerNames,
-    routeToMatchHistory,
-    router,
-    socket,
-    tableSessionId,
-    userId,
-  ]);
+  }, [routeToMatchHistory, socket, tableSessionId]);
 
   useEffect(() => {
     setAllPlayersLoaded(false);
@@ -579,7 +585,7 @@ export default function Page() {
 
     setLobbyStatus(null);
     setLobbyStatusError("");
-    if (!isConnected) return;
+    if (!isConnected || !isMainConnected) return;
 
     let active = true;
     const checkLobbyStatus = async () => {
@@ -623,7 +629,7 @@ export default function Page() {
       active = false;
       window.clearInterval(intervalId);
     };
-  }, [isConnected, lobbyStatusRefresh, tableSessionId]);
+  }, [isConnected, isMainConnected, lobbyStatusRefresh, tableSessionId]);
 
   const myPlayer = gameState?.players.find(
     (player) => player.playerId === userId,
@@ -653,14 +659,14 @@ export default function Page() {
     try {
       const sendBody: LobbyUserCreateDto = {
         generalSettings: {},
-        gameSettings: {}
-      }
+        gameSettings: {},
+      };
       const response = await fetch("/api/game/lobby/create", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(sendBody)
+        body: JSON.stringify(sendBody),
       });
       const body: LobbyDto = (await response.json()) as LobbyDto;
       if (!response.ok) {
@@ -673,15 +679,6 @@ export default function Page() {
         throw new Error(message);
       }
 
-      //if (
-      //  typeof body !== "object"
-      //  || body === null
-      //  || !("roomPinId" in body)
-      //  || typeof body.roomPinId !== "string"
-      //) {
-      //  throw new Error("Lobby response did not contain a roomPinId.");
-      //}
-
       const newTableId = body.details.roomPinId;
       setTableInput(newTableId);
       setTableSessionId(newTableId);
@@ -690,11 +687,9 @@ export default function Page() {
       setLastAction("");
       setIsSendingAction(false);
       window.sessionStorage.setItem("gameTableSessionId", newTableId);
-      window.history.replaceState(
-        null,
-        "",
-        `/game?tableSessionId=${encodeURIComponent(newTableId)}`,
-      );
+      router.replace(`/game?tableSessionId=${encodeURIComponent(newTableId)}`, {
+        scroll: false,
+      });
     } catch (createError) {
       setError(
         createError instanceof Error
@@ -723,14 +718,14 @@ export default function Page() {
       const sendBody: JoinLobbyDto = {
         lobbyPinId: tableSessionId,
         password: joinPassword ? joinPassword : undefined,
-        isSpectator: false
-      }
+        isSpectator: false,
+      };
       const response = await fetch("/api/game/lobby/join", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(sendBody)
+        body: JSON.stringify(sendBody),
       });
       if (!response.ok) {
         const body: unknown = await response.json();
@@ -764,140 +759,16 @@ export default function Page() {
     if (!socket || !tableSessionId || !isMyTurn) return;
     setIsSendingAction(true);
     setError("");
-    //socket.emit("poker:action", { tableSessionId, actionType, amount });
     const payload: PokerEvent.action.to_server.payload = {
-      tableSessionId: tableSessionId,
-      actionType: actionType,
-      amount: amount
-    }
+      tableSessionId,
+      actionType,
+      amount,
+    };
     socket.emit(PokerEvent.action.to_server.event_name, payload);
   };
 
   return (
     <main className="min-h-screen w-full bg-radial from-green-900 via-green-950 via-55% to-black flex justify-center items-center relative overflow-hidden text-white">
-      {/* <div className="absolute top-4 left-4 z-70 rounded bg-black/70 px-4 py-2 text-sm">
-        <form
-          className="mb-2 flex gap-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            const nextTableId = tableInput.trim();
-            if (!nextTableId) return;
-            window.sessionStorage.setItem("gameTableSessionId", nextTableId);
-            setTableSessionId(nextTableId);
-            setGameState(null);
-            setMyCards([]);
-            setLastAction("");
-            setIsSendingAction(false);
-            setError("");
-            window.history.replaceState(
-              null,
-              "",
-              `/game?tableSessionId=${encodeURIComponent(nextTableId)}`,
-            );
-          }}
-        >
-          <label className="sr-only" htmlFor="table-session-id">Table ID</label>
-          <input
-            id="table-session-id"
-            value={tableInput}
-            onChange={(event) => setTableInput(event.target.value)}
-            placeholder="Enter lobby roomPinId"
-            className="w-52 rounded border border-white/30 bg-black px-2 py-1 text-white"
-          />
-          <button
-            type="submit"
-            disabled={!tableInput.trim()}
-            className="rounded bg-sky-700 px-3 py-1 disabled:opacity-50"
-          >
-            Set table
-          </button>
-        </form>
-        <p>Table: {tableSessionId || "Enter your lobby roomPinId above"}</p>
-        {tableSessionId && !gameState && lobbyStatus?.details.roomStatus !== "PLAYING" && (
-          <div className="mt-2 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={joinLobby}
-              disabled={!isConnected || isJoiningLobby || !/^\d{6}$/.test(tableSessionId)}
-              className="rounded bg-sky-700 px-3 py-1 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isJoiningLobby ? "Joining..." : "Join as player"}
-            </button>
-          </div>
-        )}
-        {tableSessionId && (
-          <p aria-live="polite">
-            Lobby members:{" "}
-            {lobbyStatus
-              ? `${lobbyStatus.details.currentPlayerCount 
-                  ?? 0}/${lobbyStatus.gameSettings?.maxPlayer 
-                  ?? "?"} players · ${lobbyStatus.details.currentSpectatorCount 
-                  ?? 0}/${lobbyStatus.gameSettings?.maxSpectator ?? "?"} spectators${lobbyStatus.details.roomStatus ? ` · ${lobbyStatus.details.roomStatus}` : ""}`
-              : lobbyStatusError
-                ? "Status unavailable"
-                : isConnected
-                  ? "Checking lobby members..."
-                  : "Connect to check lobby members"}
-          </p>
-        )}
-        {tableSessionId && (
-          <p aria-live="polite">
-            {secondsUntilTournamentStart !== null && !gameState
-              ? secondsUntilTournamentStart > 0
-                ? `Tournament round starts in ${Math.floor(secondsUntilTournamentStart / 60)}:${String(secondsUntilTournamentStart % 60).padStart(2, "0")}.`
-                : "Tournament round starting now..."
-              : !allPlayersLoaded
-              ? "Waiting for all players to load the game..."
-              : isWaitingToStartFirstHand
-                ? "All players loaded. Starting the first hand in 5 seconds..."
-                : "All players loaded."}
-          </p>
-        )}
-        {lobbyStatusError && (
-          <p role="status" className="text-amber-200">{lobbyStatusError}</p>
-        )}
-        <button
-          type="button"
-          onClick={createLobby}
-          disabled={!isConnected || isCreatingLobby}
-          className="mt-2 rounded bg-emerald-700 px-3 py-1 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {isCreatingLobby ? "Creating lobby..." : "Create lobby"}
-        </button>
-        <p>
-          {!socket
-            ? "Preparing connection..."
-            : isConnected
-              ? "Connected"
-              : connectionError
-                ? `Connection failed: ${connectionError}`
-                : "Connecting..."}
-        </p>
-        {gameState && (
-          <p>
-            {gameState.round}
-            {gameState.roundNumber && !gameState.settled
-              ? ` · Round ${gameState.roundNumber}/4`
-              : ""}
-            {gameState.cycleNumber
-              ? ` · Cycle ${gameState.cycleNumber}, hand ${gameState.handNumber ?? 1}`
-              : ""}
-          </p>
-        )}
-        {gameState?.currentPlayerId && actionSecondsLeft !== null && (
-          <p aria-live="polite">
-            {gameState.currentPlayerId === userId ? "Your action" : "Player action"}
-            {" · "}
-            {actionSecondsLeft}s remaining
-          </p>
-        )}
-        {lastAction && <p aria-live="polite">Last action: {lastAction}</p>}
-        {error && <p role="alert" className="text-red-300">{error}</p>}
-        {successMessage && (
-          <p role="status" className="text-emerald-300">{successMessage}</p>
-        )}
-      </div> */}
-
       <GameTable
         gameState={gameState}
         userId={userId}
@@ -961,5 +832,13 @@ export default function Page() {
         <HandInfo handleHandInfo={() => setShowHandInfo(false)} />
       )}
     </main>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<main className="min-h-screen w-full bg-black" />}>
+      <GamePageContent />
+    </Suspense>
   );
 }

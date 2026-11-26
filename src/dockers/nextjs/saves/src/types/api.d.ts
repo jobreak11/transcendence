@@ -1979,12 +1979,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a21744-7e1e-7620-b55b-64810a00840d
+             * @example 01a2176b-5bb2-771a-b326-137d0852a4c2
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a21744-7e20-70b8-add2-7c872a85500b
+             * @example 01a2176b-5bb4-7162-b5e2-00809ddd9619
              */
             chatRoomId: string;
             /**
@@ -2426,18 +2426,18 @@ export interface components {
             condition: string | null;
             /**
              * @description title uuid linked to this achievement.
-             * @example 01a21744-7e2c-7163-8299-01dd374dd62d
+             * @example 01a2176b-5bc1-7472-a59d-20cda51e1fd6
              */
             titleId: string | null;
             /**
              * @description trophy uuid linked to this achievement
-             * @example 01a21744-7e2c-7163-8299-04feda295cf1
+             * @example 01a2176b-5bc1-7472-a59d-27122cdda31b
              */
             trophyId: string | null;
             /**
              * Format: date-time
              * @description the time this achivement was created
-             * @example 2026-11-26T09:51:34.444Z
+             * @example 2026-11-26T10:34:01.537Z
              */
             createdAt: string;
             /** @description the title details */
@@ -2448,18 +2448,18 @@ export interface components {
         GetUserAchievementDto: {
             /**
              * @description the uuid of user that have this achievement
-             * @example 01a21744-7e2d-701d-8453-0d125d549db9
+             * @example 01a2176b-5bc2-7377-b79a-c4104923f13c
              */
             userId: string;
             /**
              * @description this uuid of the achievement this user got
-             * @example 01a21744-7e2d-701d-8453-10080fbba4fd
+             * @example 01a2176b-5bc2-7377-b79a-c97ec4ad0b60
              */
             achievementId: string;
             /**
              * Format: date-time
              * @description the date when this user got the achievement
-             * @example 2026-11-26T09:51:34.445Z
+             * @example 2026-11-26T10:34:01.538Z
              */
             unlockedAt: string;
             /** @description the achievement data */
@@ -2476,7 +2476,7 @@ export interface components {
         GetAchievementDto: {
             /**
              * @description the uuid
-             * @example 01a21744-7e2c-7163-8298-fe467cd5d528
+             * @example 01a2176b-5bc1-7472-a59d-1e2acc50503f
              */
             id: string;
             /**
@@ -2496,18 +2496,18 @@ export interface components {
             condition: string | null;
             /**
              * @description title uuid linked to this achievement.
-             * @example 01a21744-7e2c-7163-8299-01dd374dd62d
+             * @example 01a2176b-5bc1-7472-a59d-20cda51e1fd6
              */
             titleId: string | null;
             /**
              * @description trophy uuid linked to this achievement
-             * @example 01a21744-7e2c-7163-8299-04feda295cf1
+             * @example 01a2176b-5bc1-7472-a59d-27122cdda31b
              */
             trophyId: string | null;
             /**
              * Format: date-time
              * @description the time this achivement was created
-             * @example 2026-11-26T09:51:34.444Z
+             * @example 2026-11-26T10:34:01.537Z
              */
             createdAt: string;
             /** @description the title details */
@@ -2533,25 +2533,25 @@ export interface components {
             condition?: string | null;
             /**
              * @description title uuid linked to this achievement.
-             * @example 01a21744-7e2c-7163-8299-01dd374dd62d
+             * @example 01a2176b-5bc1-7472-a59d-20cda51e1fd6
              */
             titleId?: string | null;
             /**
              * @description trophy uuid linked to this achievement
-             * @example 01a21744-7e2c-7163-8299-04feda295cf1
+             * @example 01a2176b-5bc1-7472-a59d-27122cdda31b
              */
             trophyId?: string | null;
             /**
              * Format: date-time
              * @description the time this achivement was created
-             * @example 2026-11-26T09:51:34.444Z
+             * @example 2026-11-26T10:34:01.537Z
              */
             createdAt?: string;
         };
         AchievementDto: {
             /**
              * @description the uuid
-             * @example 01a21744-7e2c-7163-8298-fe467cd5d528
+             * @example 01a2176b-5bc1-7472-a59d-1e2acc50503f
              */
             id: string;
             /**
@@ -2571,18 +2571,18 @@ export interface components {
             condition: string | null;
             /**
              * @description title uuid linked to this achievement.
-             * @example 01a21744-7e2c-7163-8299-01dd374dd62d
+             * @example 01a2176b-5bc1-7472-a59d-20cda51e1fd6
              */
             titleId: string | null;
             /**
              * @description trophy uuid linked to this achievement
-             * @example 01a21744-7e2c-7163-8299-04feda295cf1
+             * @example 01a2176b-5bc1-7472-a59d-27122cdda31b
              */
             trophyId: string | null;
             /**
              * Format: date-time
              * @description the time this achivement was created
-             * @example 2026-11-26T09:51:34.444Z
+             * @example 2026-11-26T10:34:01.537Z
              */
             createdAt: string;
         };
@@ -2604,43 +2604,43 @@ export interface components {
             condition: string | null;
             /**
              * @description title uuid linked to this achievement.
-             * @example 01a21744-7e2c-7163-8299-01dd374dd62d
+             * @example 01a2176b-5bc1-7472-a59d-20cda51e1fd6
              */
             titleId: string | null;
             /**
              * @description trophy uuid linked to this achievement
-             * @example 01a21744-7e2c-7163-8299-04feda295cf1
+             * @example 01a2176b-5bc1-7472-a59d-27122cdda31b
              */
             trophyId: string | null;
             /**
              * Format: date-time
              * @description the time this achivement was created
-             * @example 2026-11-26T09:51:34.444Z
+             * @example 2026-11-26T10:34:01.537Z
              */
             createdAt: string;
         };
         UserAchievementDto: {
             /**
              * @description the uuid of user that have this achievement
-             * @example 01a21744-7e2d-701d-8453-0d125d549db9
+             * @example 01a2176b-5bc2-7377-b79a-c4104923f13c
              */
             userId: string;
             /**
              * @description this uuid of the achievement this user got
-             * @example 01a21744-7e2d-701d-8453-10080fbba4fd
+             * @example 01a2176b-5bc2-7377-b79a-c97ec4ad0b60
              */
             achievementId: string;
             /**
              * Format: date-time
              * @description the date when this user got the achievement
-             * @example 2026-11-26T09:51:34.445Z
+             * @example 2026-11-26T10:34:01.538Z
              */
             unlockedAt: string;
         };
         TrophyDto: {
             /**
              * @description the id of the trophy
-             * @example 01a21744-7e2c-7163-8299-0ba60105966e
+             * @example 01a2176b-5bc1-7472-a59d-29f923013af9
              */
             id: string;
             /**
@@ -2662,7 +2662,7 @@ export interface components {
             /**
              * Format: date-time
              * @description the date this trophy unlocked to this user
-             * @example 2026-11-26T09:51:34.447Z
+             * @example 2026-11-26T10:34:01.540Z
              */
             unlockedAt: string;
             /** @description the trophy details */
@@ -2679,7 +2679,7 @@ export interface components {
         GetTrophyDto: {
             /**
              * @description the id of the trophy
-             * @example 01a21744-7e2c-7163-8299-0ba60105966e
+             * @example 01a2176b-5bc1-7472-a59d-29f923013af9
              */
             id: string;
             /**
@@ -2732,36 +2732,36 @@ export interface components {
         NewUserTrophyDto: {
             /**
              * @description the uuid of the user that got this trophy
-             * @example 01a21744-7e2f-7218-b5da-7b2ea90dcf92
+             * @example 01a2176b-5bc4-7050-ac77-f2f10c3554ff
              */
             userId: string;
             /**
              * @description the uuid of the trophy
-             * @example 01a21744-7e2f-7218-b5da-7c9c29895607
+             * @example 01a2176b-5bc4-7050-ac77-f6273c6393cb
              */
             trophyId: string;
             /**
              * Format: date-time
              * @description the date this trophy unlocked to this user
-             * @example 2026-11-26T09:51:34.447Z
+             * @example 2026-11-26T10:34:01.540Z
              */
             unlockedAt: string;
         };
         UserTrophyDto: {
             /**
              * @description the uuid of the user that got this trophy
-             * @example 01a21744-7e2f-7218-b5da-7b2ea90dcf92
+             * @example 01a2176b-5bc4-7050-ac77-f2f10c3554ff
              */
             userId: string;
             /**
              * @description the uuid of the trophy
-             * @example 01a21744-7e2f-7218-b5da-7c9c29895607
+             * @example 01a2176b-5bc4-7050-ac77-f6273c6393cb
              */
             trophyId: string;
             /**
              * Format: date-time
              * @description the date this trophy unlocked to this user
-             * @example 2026-11-26T09:51:34.447Z
+             * @example 2026-11-26T10:34:01.540Z
              */
             unlockedAt: string;
         };
