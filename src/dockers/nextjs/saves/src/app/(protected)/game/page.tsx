@@ -7,6 +7,7 @@ import thDictionary from "../../../dictionaries/th.json";
 import type { GameLanguage } from "./components/ActionButtons";
 import HandInfo from "./components/handInfo";
 import GameTable from "./components/GameTable";
+import GameChat from "./components/GameChat";
 import type { PokerActionType, PublicGameState } from "./types";
 import { useGameSocket } from "../_context/useGameSocket";
 import { PokerEvent } from "../../../websocket-events/game/poker/poker-events";
@@ -910,7 +911,7 @@ export default function Page() {
       />
 
       <aside
-        className={`fixed bottom-[3vh] left-[3vw] z-[70] w-[25vw] overflow-hidden rounded-t-xl border border-white/20 bg-black/90 shadow-2xl transition-[height] duration-300 ease-in-out ${
+        className={`fixed bottom-[3vh] left-[3vw] z-[70] w-[25vw] overflow-hidden rounded-t-xl border border-[#7E090B] bg-[#1D1D1D] shadow-2xl transition-[height] duration-300 ease-in-out ${
           isChatOpen ? "h-[50vh]" : "h-12"
         }`}
       >
@@ -919,7 +920,7 @@ export default function Page() {
           aria-expanded={isChatOpen}
           aria-controls="game-chat-panel"
           onClick={() => setIsChatOpen((open) => !open)}
-          className="flex h-12 w-full items-center justify-between bg-slate-900 px-4 text-left font-semibold text-white hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400"
+          className="flex h-12 w-full items-center justify-between bg-[#7E090B] px-4 text-left font-semibold text-white hover:bg-[#B23441] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FFD700]"
         >
           <span>Chat</span>
           <span aria-hidden="true">{isChatOpen ? "−" : "+"}</span>
@@ -927,8 +928,17 @@ export default function Page() {
         <div
           id="game-chat-panel"
           aria-hidden={!isChatOpen}
-          className="h-[calc(100%-3rem)] border-t border-white/10 bg-slate-950/70"
-        />
+          className="h-[calc(100%-3rem)] border-t border-[#7E090B] bg-[#1D1D1D]"
+        >
+          {isChatOpen && (
+            <GameChat
+              socket={socket}
+              isConnected={isConnected}
+              tableSessionId={tableSessionId}
+              playerNames={gameState?.playerNames ?? {}}
+            />
+          )}
+        </div>
       </aside>
 
       <div className="fixed top-[3vh] right-[3vw] flex gap-2">

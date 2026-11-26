@@ -8,6 +8,8 @@ import { LOCK_TTL_MS, PLAYER_ACTION_TIMEOUT_MS } from "../../../api/websocket/ga
 import { MatchProgress } from "../../../api/websocket/game-gateway/dtos/match-progress.dto.js";
 import { randomUUID } from "node:crypto";
 import type { EventGameFinishStateToClientDto } from "../../../api/websocket/game-gateway/events/poker.event.js";
+import type { EventGameChatMessage } from "../../../api/websocket/game-gateway/events/game-chat.event.js";
+import { redis_game_chat_messages } from "../../../infrastructure/redis/namespaces/game/chat.namespace.js";
 
 @Injectable()
 export class GameRedisService {
@@ -182,6 +184,23 @@ export class GameRedisService {
     return this.redis.hset(redis_game_table_stack(state.tableSessionId), value);
   }
 
+  async addChatMessage(tableSessionId: string, message: EventGameChatMessage) {
+    const key = redis_game_chat_messages(tableSessionId);
+    await this.redis.lpush(key, JSON.stringify(message));
+    await this.redis.ltrim(key, 0, 99);
+    await this.redis.expire(key, 7 * 24 * 60 * 60);
+  }
+
+  async getChatMessages(tableSessionId: string) {
+    const messages = await this.redis.lrange(
+      redis_game_chat_messages(tableSessionId),
+      0,
+      99,
+    );
+    return messages
+      .map((message) => JSON.parse(message) as EventGameChatMessage)
+      .reverse();
+  }
 
   async withTableLock<T>(
     gameRoomId: string,

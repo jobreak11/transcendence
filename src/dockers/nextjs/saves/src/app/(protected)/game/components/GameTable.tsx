@@ -269,11 +269,13 @@ export default function GameTable({
           if (!position) return null;
 
           const isMe = player.playerId === userId;
-          const cards = gameState.settled
-            ? gameState.revealedCards?.[player.playerId] ?? (isMe ? myCards : [])
-            : isMe
-              ? myCards
-              : [];
+          const cards = player.folded
+            ? []
+            : gameState.settled
+              ? gameState.revealedCards?.[player.playerId] ?? (isMe ? myCards : [])
+              : isMe
+                ? myCards
+                : [];
           const inTurn = gameState.currentPlayerId === player.playerId;
           const displayName = gameState.playerNames?.[player.playerId]
             ?? "Unknown player";
@@ -283,7 +285,7 @@ export default function GameTable({
               <div
                 className={`group absolute h-[11%] aspect-square -translate-x-1/2 -translate-y-1/2 ${hoveredCard?.playerId === player.playerId ? "z-[1000]" : "z-60"} ${position.seat}`}
               >
-                {hoveredCard?.playerId === player.playerId && (
+                {!player.folded && hoveredCard?.playerId === player.playerId && (
                   <div
                     role="tooltip"
                     className="pointer-events-none absolute bottom-full left-1/2 z-[100] mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-white bg-black px-3 py-2 text-sm font-semibold text-white shadow-lg"
@@ -297,11 +299,15 @@ export default function GameTable({
                     imageUrl={gameState.playerAvatars?.[player.playerId] ?? null}
                   />
                   <span
-                    className={`absolute bottom-[4%] left-1/2 max-w-[8rem] -translate-x-1/2 truncate rounded-full bg-black/85 px-2 py-0.5 text-xs font-bold text-white shadow ${
-                      inTurn ? "border border-yellow-300 text-yellow-300" : "border border-white/40"
+                    className={`absolute bottom-[4%] left-1/2 -translate-x-1/2 truncate rounded-full px-2 py-0.5 text-xs font-bold shadow ${
+                      player.folded
+                        ? "bg-red-500 text-black"
+                        : `max-w-[8rem] bg-black/85 text-white ${
+                          inTurn ? "border border-yellow-300 text-yellow-300" : "border border-white/40"
+                        }`
                     }`}
                   >
-                    {displayName}
+                    {player.folded ? "FOLDED" : displayName}
                   </span>
                   <PopUpTop>
                     <h2 className="font-bold text-sm">{displayName}</h2>
@@ -400,7 +406,7 @@ export default function GameTable({
         </section>
       )}
 
-      {isHandInProgress && (
+      {isHandInProgress && isMyTurn && (
         <ActionButtons
           disabled={!isMyTurn}
           callAmount={callAmount}
