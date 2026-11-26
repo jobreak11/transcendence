@@ -94,6 +94,19 @@ export default function GameChat({
           );
           return;
         }
+        // if (!("messages" in response) || !Array.isArray(response.messages)) {
+        //   setError("The server returned invalid game chat history.");
+        //   return;
+        // }
+        // if (!response.messages.every(isGameChatMessage)) {
+        //   setError("The server returned invalid game chat history.");
+        //   return;
+        // }
+        // setMessages((current) => mergeMessages(
+        //   current,
+        //   response.messages.filter((message) => message.tableSessionId === tableSessionId),
+        // ));
+        // setError("");
         if (!("messages" in response) || !Array.isArray(response.messages)) {
           setError("The server returned invalid game chat history.");
           return;
@@ -102,10 +115,12 @@ export default function GameChat({
           setError("The server returned invalid game chat history.");
           return;
         }
-        setMessages((current) => mergeMessages(
-          current,
-          response.messages.filter((message) => message.tableSessionId === tableSessionId),
-        ));
+
+        // Capture the narrowed GameChatMessage[] in a const before the closure
+        const validMessages = response.messages.filter(
+          (message) => message.tableSessionId === tableSessionId,
+        );
+        setMessages((current) => mergeMessages(current, validMessages));
         setError("");
       },
     );
@@ -158,16 +173,27 @@ export default function GameChat({
           );
           return;
         }
+        const sentMessage = "message" in response ? response.message : null;
         if (
-          !("message" in response)
-          || !isGameChatMessage(response.message)
-          || response.message.tableSessionId !== tableSessionId
+          !isGameChatMessage(sentMessage)
+          || sentMessage.tableSessionId !== tableSessionId
         ) {
           setError("The server returned an invalid game chat message.");
           return;
         }
-        setMessages((current) => mergeMessages(current, [response.message]));
+
+        setMessages((current) => mergeMessages(current, [sentMessage]));
         setMessageText("");
+        // if (
+        //   !("message" in response)
+        //   || !isGameChatMessage(response.message)
+        //   || response.message.tableSessionId !== tableSessionId
+        // ) {
+        //   setError("The server returned an invalid game chat message.");
+        //   return;
+        // }
+        // setMessages((current) => mergeMessages(current, [response.message]));
+        // setMessageText("");
       },
     );
   };
