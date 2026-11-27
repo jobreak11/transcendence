@@ -14,6 +14,7 @@ import { ConnectionGatewayService } from "./connection-gateway.service.js";
     origin: [
     `https://${process.env.TRANSCENDENCE_DOMAIN_NAME ?? "localhost"}`,
     `https://${process.env.TRANSCENDENCE_DOMAIN_NAME ?? "localhost"}:${process.env.NGINX_BIND_PORT ?? "4333"}`,
+    `https://${process.env.TRANSCENDENCE_LOCAL_IP_ADDRESS ?? "192.168.1.1"}.sslip.io:${process.env.NGINX_BIND_PORT ?? "4333"}`
     ]
   }
 

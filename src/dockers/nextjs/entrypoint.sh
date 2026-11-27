@@ -100,12 +100,14 @@ if [ ! -d "./node_modules" ] || [ -z "$(ls -A ./node_modules)" ]; then
 const nextConfig = {
   allowedDevOrigins: [
     '${TRANSCENDENCE_DOMAIN_NAME}',
+    '${TRANSCENDENCE_LOCAL_IP_ADDRESS}.sslip.io',
     'localhost',
   ],
   experimental: {
     serverActions: {
       allowedOrigins: [
         '${TRANSCENDENCE_DOMAIN_NAME}',
+        '${TRANSCENDENCE_LOCAL_IP_ADDRESS}.sslip.io',
         'localhost',
       ],
     },
