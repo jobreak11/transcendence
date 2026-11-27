@@ -8,6 +8,10 @@
 		@apply font-sans [-webkit-text-size-adjust:100%] [-ms-text-size-adjust:100%] m-0 min-h-full w-full max-w-full overflow-x-clip;
 	}
 
+	body {
+		@apply text-[clamp(14px,calc(6px+2vw),28px)];
+	}
+
 	summary {
 		@apply block;
 	}
