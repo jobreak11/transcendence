@@ -208,7 +208,8 @@ async function handleOAuthCallback(
 
       const { accessToken, refreshToken, callbackUrl } = await res.json();
 
-      const strCallbackUrl: string = callbackUrl ?? '/';
+      // const strCallbackUrl: string = callbackUrl ?? '/';
+      const strCallbackUrl: string = '/profile';
       const safeCallbackUrl = (!strCallbackUrl.startsWith('//') && strCallbackUrl.startsWith('/')) ? strCallbackUrl : '/';
 
       const response = NextResponse.redirect(new URL(safeCallbackUrl, origin));
