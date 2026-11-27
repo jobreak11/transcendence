@@ -9,7 +9,7 @@
 	}
 
 	body {
-		@apply text-[clamp(14px, calc(6px + 2vw), 28px)];
+		@apply text-[clamp(14px,calc(6px+2vw),28px)];
 	}
 
 	summary {
