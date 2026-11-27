@@ -1,5 +1,6 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Post, Query, Req, UseFilters, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, Req, UseFilters, UseGuards } from "@nestjs/common";
 import { AuthService } from "../../../modules/auth/auth.service.js";
+import { JwtAuthGuard } from "../../../modules/auth/guards/jwt-auth/jwt-auth.guard.js";
 import { UserThrottlerGuard } from "../../../modules/auth/guards/user-throttler/user-throttler.guard.js";
 import { RolesGuard } from "../../../modules/auth/guards/roles/roles.guard.js";
 import { Roles } from "../../../modules/auth/decorators/roles.decorators.js";
@@ -19,14 +20,10 @@ import { UsersRedisService } from "../../../modules/user/redis/users-redis.servi
 import { IpThrottlerGuard } from "../../../modules/auth/guards/ip-throttler/ip-throttler.guard.js";
 import { InternalAuthService } from "./internal-auth.service.js";
 import { HttpAllExceptionsFilter } from "../../filters/HttpAllExceptionsFilter.js";
-import { JwtAuthGuard } from "../../../modules/auth/guards/jwt-auth/jwt-auth.guard.js";
 
 @Controller('auth')
 @UseFilters(HttpAllExceptionsFilter)
 export class InternalAuthController {
-
-  private readonly logger = new Logger(InternalAuthController.name);
-
   constructor(
     private readonly authService: AuthService,
     private readonly internalAuthService: InternalAuthService
@@ -129,9 +126,6 @@ export class InternalAuthController {
   @UseGuards(IpThrottlerGuard, RefreshAuthGuard)
   @Post('refresh')
   refreshToken(@Req() req: any) {
-
-    this.logger.debug(` REFRESH TOKEN FOR USER ${req.user.id}`)
-
     return this.authService.refreshToken(req.user.id)
   }
 

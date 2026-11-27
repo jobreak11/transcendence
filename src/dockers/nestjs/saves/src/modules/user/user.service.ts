@@ -85,15 +85,9 @@ export class UserService {
 
         const [updateUser] = await tx
           .update(users)
-          .set({
-            hashedRefreshToken: hashedRefreshToken
-          })
+          .set({hashedRefreshToken: hashedRefreshToken})
           .where(eq(users.id, userId))
           .returning();
-
-          this.logger.debug("UPDATED HASHED REFRESH", {
-            user: updateUser
-          });
 
         if (!updateUser) {
           this.logger.error(`update user id ${userId} not found`);
@@ -119,8 +113,6 @@ export class UserService {
 
       })
 
-
-      await this.usersCachingService.cachingUser(res);
       return res
     } catch (error: any) {
       this.logger.error({

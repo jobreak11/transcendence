@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ACCESS_TOKEN_COOKIE_EXPIRE_TIME, BACKEND_URL, REFRESH_TOKEN_COOKIE_EXPIRE_TIME, TRANSCENDENCE_BASE_URL } from "../../../lib/constants";
+import { ACCESS_TOKEN_COOKIE_EXPIRE_TIME, BACKEND_URL, REFRESH_TOKEN_COOKIE_EXPIRE_TIME } from "../../../lib/constants";
 import { cookies } from "next/headers";
 
 
@@ -118,6 +118,27 @@ const allowedPaths = new Set([
   '/tournament',
 ])
 
+function getForwardedHeaders(request: NextRequest): Record<string, string> {
+  const forwardedHost = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
+  const forwardedProto =
+    request.headers.get('x-forwarded-proto') ||
+    request.nextUrl.protocol.replace(':', '') ||
+    'https';
+
+  return {
+    'x-forwarded-host': forwardedHost,
+    'x-forwarded-proto': forwardedProto,
+  };
+}
+
+function getRequestOrigin(request: NextRequest): string {
+  const { 'x-forwarded-host': host, 'x-forwarded-proto': proto } = getForwardedHeaders(request);
+  if (host) {
+    return `${proto}://${host}`;
+  }
+  return request.nextUrl.origin;
+}
+
 async function handleOAuthLogin(
   request: NextRequest,
   apiStartPath: string,
@@ -132,6 +153,9 @@ async function handleOAuthLogin(
       const res = await fetch(`${BACKEND_URL}${apiPath}`,
         {
           redirect: 'manual',
+          headers: {
+            ...getForwardedHeaders(request)
+          }
         }
       );
 
@@ -166,6 +190,7 @@ async function handleOAuthCallback(
 
 ) {
     const queryParams = request.nextUrl.search;
+    const origin = getRequestOrigin(request);
 
     try {
 
@@ -173,6 +198,7 @@ async function handleOAuthCallback(
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          ...getForwardedHeaders(request)
         },
       });
 
@@ -185,7 +211,7 @@ async function handleOAuthCallback(
       const strCallbackUrl: string = callbackUrl ?? '/';
       const safeCallbackUrl = (!strCallbackUrl.startsWith('//') && strCallbackUrl.startsWith('/')) ? strCallbackUrl : '/';
 
-      const response = NextResponse.redirect(new URL(safeCallbackUrl, TRANSCENDENCE_BASE_URL));
+      const response = NextResponse.redirect(new URL(safeCallbackUrl, origin));
 
       response.cookies.set('accessToken', accessToken, {
         httpOnly: true,
@@ -224,8 +250,7 @@ async function handleOAuthCallback(
     }
     catch ( error) {
       console.error('Oauth callback error', error);
-      return NextResponse.redirect(new URL('/auth/signin?error=oauth_failed', TRANSCENDENCE_BASE_URL))
-
+      return NextResponse.redirect(new URL('/auth/signin?error=oauth_failed', origin))
 
     }
 }
@@ -263,12 +288,14 @@ async function handleRequest(request: NextRequest, { params }: { params: Promise
   const searchParams = request.nextUrl.search;
   const targetUrl = `${BACKEND_URL}/${pathString}${searchParams}`
 
-  console.debug(`reach passthrough targetUrl: ${targetUrl}`)
-
   // Pre pare headers (strip host, add auth bearer token)
   const headers = new Headers(request.headers);
 
   headers.delete("host"); // if not might host mismatch error on backend.
+  const forwardedHost = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+  headers.set('x-forwarded-host', forwardedHost);
+  headers.set('x-forwarded-proto', forwardedProto);
 
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("accessToken")?.value;

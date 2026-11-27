@@ -7,7 +7,6 @@ import type { ConfigType } from '@nestjs/config';
 import * as argon2 from 'argon2'
 import { CurrentUser } from './types/current-user.js';
 import { CreateUserDto } from '../user/dto/create-user.dto.js';
-import { JSONSchema } from 'zod/v4/core';
 
 @Injectable()
 export class AuthService {
@@ -18,10 +17,7 @@ export class AuthService {
     private userService: UserService,
     private jwtService: JwtService,
     @Inject(refreshJwtConfig.KEY) private refreshTokenConfig: ConfigType<typeof refreshJwtConfig>
-  ) {
-
-    console.log('AuthService Refresh Secret:', this.refreshTokenConfig?.secret);
-  }
+  ) {}
 
   registerUser(createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
@@ -60,38 +56,18 @@ export class AuthService {
     };
   }
 
-  // async generateTokens(userId: string) {
-  //   const payload: AuthJwtPayload = { sub: userId}
-  //   const [accessToken, refreshToken] = await Promise.all([
-  //     this.jwtService.signAsync(payload),
-  //     this.jwtService.signAsync(payload, this.refreshTokenConfig),
-  //   ]);
-
-  //   return ({
-  //     accessToken,
-  //     refreshToken
-  //   })
-  // }
   async generateTokens(userId: string) {
-  const payload: AuthJwtPayload = { sub: userId };
+    const payload: AuthJwtPayload = { sub: userId}
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload),
+      this.jwtService.signAsync(payload, this.refreshTokenConfig),
+    ]);
 
-  console.log('--- [SIGNING TOKENS] ---');
-  console.log('1. AuthService refreshTokenConfig:', this.refreshTokenConfig);
-
-  const [accessToken, refreshToken] = await Promise.all([
-    this.jwtService.signAsync(payload),
-    this.jwtService.signAsync(payload, this.refreshTokenConfig),
-  ]);
-
-  console.log('2. AccessToken ends with :', accessToken.slice(-15));
-  console.log('3. RefreshToken ends with:', refreshToken.slice(-15));
-
-  return {
-    accessToken,
-    refreshToken,
-  };
-}
-
+    return ({
+      accessToken,
+      refreshToken
+    })
+  }
 
   async refreshToken(userId: string) {
     const {accessToken, refreshToken} = await this.generateTokens(userId)
@@ -109,13 +85,13 @@ export class AuthService {
     const user = await this.userService.findOne(userId);
 
     if (!user || !user.hashedRefreshToken) {
-      throw new UnauthorizedException(`Invalid Refresh Token`);
+      throw new UnauthorizedException('Invalid Refresh Token');
     }
 
     const refreshTokenMatch = await argon2.verify(user.hashedRefreshToken, refreshToken);
 
     if (!refreshTokenMatch) {
-      throw new UnauthorizedException('Invalid Refresh Token hashed check failed');
+      throw new UnauthorizedException('Invalid Refresh Token');
     }
 
     return ({
