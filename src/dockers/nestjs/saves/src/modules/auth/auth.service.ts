@@ -10,6 +10,7 @@ import { CreateUserDto } from '../user/dto/create-user.dto.js';
 import { ModuleRef } from '@nestjs/core';
 import { LobbyService } from '../lobby/lobby.service.js';
 import { ValidationError } from 'class-validator';
+import jwtConfig from './config/jwt.config.js';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -22,6 +23,7 @@ export class AuthService implements OnModuleInit {
     private userService: UserService,
     private jwtService: JwtService,
     @Inject(refreshJwtConfig.KEY) private refreshTokenConfig: ConfigType<typeof refreshJwtConfig>,
+    @Inject(jwtConfig.KEY) private tokenConfig: ConfigType<typeof jwtConfig>,
     private readonly moduleRef: ModuleRef,
   ) {}
 
@@ -72,9 +74,17 @@ export class AuthService implements OnModuleInit {
   async generateTokens(userId: string) {
     const payload: AuthJwtPayload = { sub: userId}
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload),
-      this.jwtService.signAsync(payload, this.refreshTokenConfig),
+      this.jwtService.signAsync(payload, {
+        secret: this.tokenConfig.secret,
+        expiresIn: this.tokenConfig.signOptions?.expiresIn
+      }),
+      this.jwtService.signAsync(payload, {
+        secret: this.refreshTokenConfig.secret,
+        expiresIn: this.refreshTokenConfig.expiresIn
+      }),
     ]);
+
+    console.log('Sign Secret:', this.refreshTokenConfig.secret);
 
     return ({
       accessToken,

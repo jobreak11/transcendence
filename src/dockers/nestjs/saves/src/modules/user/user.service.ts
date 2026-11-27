@@ -113,6 +113,7 @@ export class UserService {
 
       })
 
+      this.usersCachingService.cachingUser(res);
       return res
     } catch (error: any) {
       this.logger.error({
