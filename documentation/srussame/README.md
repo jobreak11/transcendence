@@ -18,6 +18,7 @@
 
 ### NestJS
 
+```text
 nestjs@0.0.1 /app/nestjs (PRIVATE)
 │
 │   dependencies:
@@ -85,10 +86,11 @@ nestjs@0.0.1 /app/nestjs (PRIVATE)
 ├── tsx@4.23.15
 ├── vite@8.3.8
 └── vitest@4.1.12
-
+```
 
 ### Nextjs
 
+```text
 nextjs@1.0.0 /app/nextjs
 │
 │   dependencies:
@@ -112,6 +114,7 @@ nextjs@1.0.0 /app/nextjs
 ├── @types/react@19.3.0
 ├── @types/react-dom@19.3.0
 └── typescript@npm:@typescript/typescript6@6.0.2
+```
 
 # Database Schema backend stuff
 
