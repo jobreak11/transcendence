@@ -388,7 +388,7 @@ export default function AccountSettings({
             </div>
 
             <div>
-              {dictionary.profile.title}: {profile.email}
+              {dictionary.profile.email}: {profile.email}
             </div>
           </div>
 
