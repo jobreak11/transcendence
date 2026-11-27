@@ -23,7 +23,7 @@ export interface UnifiedMessage {
   roomName: string;
   roomType: string;
   senderUserId: string;
-  senderUserName: string;
+  senderUserName?: string; // <-- Make optional with '?' (or remove if unused)
   message: string;
   type: 'USER_MESSAGE' | 'SYSTEM_MESSAGE' | string;
   timestamp: string;
@@ -41,6 +41,11 @@ interface IncomingChatMessagePayload {
   type?: 'USER_MESSAGE' | 'SYSTEM_MESSAGE' | string;
   createdAt?: string | Date;
 }
+
+const EMOJI_LIST = [
+  '😀', '😂', '🥹', '😎', '😭', '😡', '🤔', '🫡',
+  '👍', '👎', '🔥', '❤️', '🎉', '🙏', '👀', '💀',
+];
 
 interface EventNotifyPayload {
   notifyStatus: 'JOIN_CHAT' | 'LEAVE_CHAT';
@@ -110,6 +115,15 @@ export function ChatEmbbed() {
   const roomsRef = useRef<ChatRoom[]>(rooms);
   const fetchedUserIds = useRef<Set<string>>(new Set());
 
+
+
+  const handleEmojiClick = (emoji: string) => {
+    if (!isConnected) return;
+    setInputText((prev) => prev + emoji);
+    inputRef.current?.focus();
+  };
+
+  
   useEffect(() => {
     roomsRef.current = rooms;
   }, [rooms]);
@@ -174,20 +188,23 @@ export function ChatEmbbed() {
 
         return data.map((item: any) => {
           const { timestamp, rawCreatedAt } = formatTimestamp(item.createdAt);
-          const senderName = fetchUserProfileName(item.senderUserId);
+          const resolvedSenderId = item.userId || item.senderUserId || 'System';
+          void fetchUserProfileName(resolvedSenderId);
+
           return {
             id: buildMessageId(roomId, item),
             chatRoomId: roomId,
             roomName: targetRoom?.roomName || roomId.slice(0, 6),
             roomType: targetRoom?.visibilityType || 'PUBLIC',
-            senderUserId: item.userId || item.senderUserId || 'System',
-            senderUserName: senderName,
+            senderUserId: resolvedSenderId,
+            senderUserName: userNames[resolvedSenderId] || resolvedSenderId, // <-- Now a string!
             message: item.messageText || item.message || '',
             type: item.type || 'USER_MESSAGE',
             timestamp,
             rawCreatedAt,
           };
         });
+
       } catch (err) {
         console.error(`Failed to fetch history for room ${roomId}:`, err);
         return null;
@@ -354,20 +371,24 @@ export function ChatEmbbed() {
       const targetRoomId = payload.chatRoomId || 'public';
       const roomData = roomsRef.current.find((r) => r.id === targetRoomId);
 
+      const resolvedSenderId = payload.userId || payload.senderUserId || 'System';
+
       const newMsg: UnifiedMessage = {
         id: buildMessageId(targetRoomId, payload),
         chatRoomId: targetRoomId,
         roomName:
           roomData?.roomName || (targetRoomId === 'public' ? 'Global' : targetRoomId.slice(0, 6)),
         roomType: roomData?.visibilityType || (targetRoomId === 'public' ? 'PUBLIC' : 'DIRECT_MESSAGE'),
-        senderUserId: payload.userId || payload.senderUserId || 'System',
+        senderUserId: resolvedSenderId,
+        senderUserName: resolvedSenderId, // <-- Added string field
         message: payload.messageText || payload.message || '',
         type: payload.type || 'USER_MESSAGE',
         timestamp,
         rawCreatedAt,
       };
 
-      setMessages((prev) => {
+
+        setMessages((prev) => {
         if (prev.some((m) => m.id === newMsg.id)) return prev;
         return [...prev.slice(-250), newMsg];
       });
@@ -607,7 +628,33 @@ export function ChatEmbbed() {
                 >
                   Send
                 </button>
-                <span className="text-white/40 cursor-pointer select-none">😊</span>
+              {/* ปุ่มอีโมจิ + กล่อง Popover ตอน Hover */}
+                              <div className="relative group flex items-center">
+                                <button
+                                  type="button"
+                                  disabled={!isConnected}
+                                  // className="text-white/50 hover:text-white cursor-pointer select-none transition-transform group-hover:scale-110 disabled:opacity-40"
+                                  title="Emoji"
+                                >
+                                  😊
+                                </button>
+
+                                {/* กล่องลอยด้านบน (ใช้ pb-3 เป็นสะพานเชื่อม เพื่อไม่ให้เมาส์หลุด hover ตอนเลื่อนขึ้น) */}
+                                <div className="hidden group-hover:block absolute bottom-full right-0 pb-3 z-50">
+                                  <div className="bg-[#1D1D1D] border border-white/15 rounded-lg p-2 shadow-xl grid grid-cols-4 gap-1 w-[164px]">
+                                    {EMOJI_LIST.map((emoji) => (
+                                      <button
+                                        key={emoji}
+                                        type="button"
+                                        onClick={() => handleEmojiClick(emoji)}
+                                        className="w-9 h-9 flex items-center justify-center rounded-md hover:bg-white/10 text-lg transition-transform hover:scale-125 cursor-pointer"
+                                      >
+                                        {emoji}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
               </div>
             </form>
           </div>

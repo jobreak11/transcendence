@@ -7,8 +7,8 @@ import type {
   UserProfileResponse,
 } from "../../../lib/profile-api";
 
-import defaultProfilePic from "../../../public/defaultProfilePic.svg";
-import iconLogo from "../../../public/iconLogo.svg";
+// import defaultProfilePic from "";
+import iconLogo from "../../../assets/iconLogo.svg";
 
 // hard coded still have no stats
 const mockStatistics = {
@@ -101,7 +101,7 @@ export default function MainProfile({
       <div className="blogbox collections-card">
         <IconCollection
           title="Friends"
-          image={defaultProfilePic}
+          image={`/img/defaultProfilePic.svg`}
         />
 
         <IconCollection

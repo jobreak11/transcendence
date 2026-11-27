@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign In | Transcend 888</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        font-family: sans-serif;
+        background: #0a0a0a;
+        color: white;
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+		background: linear-gradient(to bottom, black 20%, #14532d 50%, black 80%);
+      }
+
+      .page-shell {
+        width: 100%;
+        max-width: 28rem;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        gap: 1rem;
+      }
+
+      h1 {
+		margin: 0;
+		background: linear-gradient(to bottom, #fce085, #d4af37, #997312);
+		background-clip: text;
+		color: transparent;
+		font-family: 'Times New Roman', Times, serif;
+		font-size: 1.875rem;
+		font-weight: 800;
+		line-height: 1.2;
+		text-align: center;
+		filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+      }
+
+      form,
+      .signin-form {
+        width: 100%;
+      }
+
+      .signin-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 20rem;
+      }
+
+      .field-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      label {
+        flex-shrink: 0;
+        min-width: 0;
+        color: white;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        white-space: nowrap;
+      }
+
+      input {
+        flex: 1 1 auto;
+        min-width: 0;
+        background-color: #2a2a2a;
+        color: white;
+        border: 1px solid #666;
+        border-radius: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        font: inherit;
+      }
+
+      input::placeholder {
+        color: rgba(255,255,255,0.45);
+      }
+
+      input:focus {
+        outline: none;
+        border-color: rgba(255,255,255,0.55);
+      }
+
+      .actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding-top: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+	button {
+		background-color: red;
+		color: white;
+		font-weight: bold;
+		border: transparent;
+		border-radius: 8px;
+		padding: 8px 10px;
+		text-align: center;
+	}
+
+	a.button {
+		background-color: red;
+		color: white;
+		font-weight: bold;
+		border: transparent;
+		border-radius: 8px;
+		padding: 8px 10px;
+		text-align: center;
+		text-decoration: none;
+	}
+
+	a.button:hover {
+	  background: #b91c1c;
+	  cursor: pointer;
+	}
+	button:hover {
+	  background: #b91c1c;
+	  cursor: pointer;
+	}
+
+	a.button:active {
+	  transform: scale(0.95);
+	}
+	button:active {
+	  transform: scale(0.95);
+	}
+
+      .divider {
+        color: #d4d4d4;
+        font-size: 0.875rem;
+      }
+
+      .inline-link {
+        color: white;
+        font-size: 0.875rem;
+        text-decoration: underline;
+      }
+
+      .oauth-section {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+        margin-top: 0.5rem;
+      }
+
+      .oauth-button {
+        width: 20rem;
+		display: flex;
+        font-weight: 700;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+      }
+
+      .oauth-button.black {
+        background-color: black;
+        color: white;
+        border: 1px solid transparent;
+      }
+
+      .oauth-button.black:hover {
+        background-color: #22d3ee;
+        border-color: #22d3ee;
+        color: black;
+      }
+
+      .oauth-button.white {
+        background-color: white;
+        color: black;
+        border: 1px solid transparent;
+      }
+
+      .oauth-button.white:hover {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+        color: white;
+      }
+
+      @media (max-width: 420px) {
+        .field-row {
+          flex-direction: column;
+          align-items: stretch;
+        }
+      }
+    </style>
+	<link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <main class="page-shell">
+      <h1>Transcend 888</h1>
+
+      <form class="signin-form" action="#" method="post">
+        <input type="hidden" name="callbackUrl" value="/" />
+
+        <div class="field-row">
+          <label for="email">Email:</label>
+          <input id="email" name="email" type="email" placeholder="name@example.com" />
+        </div>
+
+        <div class="field-row">
+          <label for="password">Password:</label>
+          <input id="password" name="password" type="password" placeholder="••••••••" />
+        </div>
+
+        <div class="actions">
+          <button type="submit">Login</button>
+          <span class="divider">or</span>
+          <a class="inline-link" href="../signup/signup.html">Sign Up?</a>
+        </div>
+      </form>
+
+      <div class="oauth-section">
+        <button class="oauth-button black" type="button"><img src="../../42logoBordered.svg" style="height: 1rem; width: 1rem; margin-right: 3%;">Continue with 42</button>
+        <button class="oauth-button white" type="button"><img src="../../googleIcon.svg" style="height: 1rem; width: 1rem; margin-right: 3%;">Continue with Google</button>
+      </div>
+    </main>
+  </body>
+</html>

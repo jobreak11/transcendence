@@ -1,5 +1,5 @@
-FROM nginx:alpine
+FROM nginx:1.31.9-alpine
 COPY ./1-self-certificate-script.sh /docker-entrypoint.d/1-self-certificate-script.sh
 COPY ./default.conf /etc/nginx/conf.d/default.conf
-RUN apk update && apk add --no-cache openssl curl sed grep && chmod +x /docker-entrypoint.d/1-self-certificate-script.sh
+RUN apk add --no-cache openssl curl sed grep && chmod +x /docker-entrypoint.d/1-self-certificate-script.sh
 

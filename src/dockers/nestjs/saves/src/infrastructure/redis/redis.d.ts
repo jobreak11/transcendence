@@ -1,6 +1,5 @@
 import 'ioredis'
 import { string } from 'zod';
-import { CHAT_REDIS_MESSAGE_LIMIT } from './chat-redis/chat-redis.constants.ts';
 
 declare module 'ioredis' {
   interface Redis {
@@ -32,6 +31,15 @@ declare module 'ioredis' {
       userLobbyListLimit: number,
       tournamentSeedJoin: "true" | "false",
     ): Promise<number>;
+
+    lobbyRoomSwapRole(
+      playerMemberListKey: string,
+      spectatorMemberListKey: string,
+      gameSettingsKey: string,
+      lobbyDetailsKey: string,
+      readyPlayerListKey: string,
+      userId: string,
+    ): Promise<number | string>;
 
     lobbyRoomLeave(
 
@@ -81,7 +89,7 @@ declare module 'ioredis' {
       chatRoomKey: string,
       chatMessagelistKey: string,
       newMessage: string , // bundled as JSON.stringtify
-      limit: number = CHAT_REDIS_MESSAGE_LIMIT
+      limit: number
     ): Promise<number>
 
   }

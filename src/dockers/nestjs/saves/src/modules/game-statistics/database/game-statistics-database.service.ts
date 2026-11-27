@@ -5,6 +5,10 @@ import { dbSchema } from "../../../infrastructure/drizzle/schema/schema.js";
 import { UserService } from "../../user/user.service.js";
 import { user_game_statistics } from "../../../infrastructure/drizzle/schema/user_game_statistics/user_game_statistics.schema.js";
 import { logError } from "../../../utility/logError.js";
+import { errorWithCode } from "../../../utility/errorWithCode.js";
+import { and, eq, gt, or, sql } from "drizzle-orm";
+import { from } from "rxjs";
+import { users } from "../../../infrastructure/drizzle/schema/users/users.schema.js";
 
 @Injectable()
 export class GameStatisticsDatabaseService {
@@ -16,6 +20,77 @@ export class GameStatisticsDatabaseService {
         private readonly userService: UserService,
     ) {}
 
+    async getUserRankIndex(userId: string) {
+
+        const userStatsData = await this.findOne(userId);
+
+        const [result] = await this.db
+            .select({
+                index: sql<number>`count(*)`,
+            })
+            .from(user_game_statistics)
+            .where(
+                or(
+                    gt(user_game_statistics.rankPoint, userStatsData.rankPoint),
+                    and(
+                        eq(user_game_statistics.rankPoint, userStatsData.rankPoint),
+                        sql`${user_game_statistics.userId} < ${userStatsData.userId}`
+                    )
+                )
+            )
+            
+        return Number(result.index);
+    }
+
+    async getAllUserStats(limit: number = 50, offset: number = 0, orderByRank: boolean = true) {
+
+        if (limit < 0 || offset < 0) {
+            throw logError(
+                this.logger,
+                "error from getAllUserStats()",
+                "invalid limit / offset usage",
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            )
+        }
+
+        const result = await this.db.query.user_game_statistics.findMany({
+            with: {
+                user: {
+                    with: {
+                        user_profile: true
+                    }
+                }
+            },
+            orderBy: orderByRank === false ? undefined : {
+                rankPoint: "desc"
+            },
+            limit: limit,
+            offset: offset
+        })
+
+        return result;
+    }
+
+    async findOneV2(userId: string) {
+
+        const result = await this.db.query.user_game_statistics.findFirst({
+            where: {
+                userId: userId
+            },
+            with: {
+                user: {
+                    with: {
+                        user_profile: true
+                    }
+                }
+            },
+        })
+
+        if (!result) {
+            throw errorWithCode(HttpStatus.NOT_FOUND, "target userId user game stats not found");
+        }
+        return result;
+    }
 
     async findOne( userId: string) {
 

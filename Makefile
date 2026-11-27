@@ -9,6 +9,14 @@
 SRC_DIR = ./src
 TEMP_DIR = ./temp
 
+BACKUP_DIR = ./backup
+POSTGRESQL_BACKUP_DIR = ${BACKUP_DIR}/postgresql
+POSTGRESQL_BACKUP_FILEPATH = ${POSTGRESQL_BACKUP_DIR}/backup.dump
+STORAGE_BACKUP_DIR = ${BACKUP_DIR}/storage
+STORAGE_VOLUME_NAME = src_shared_storage
+STORAGE_VOLUME_KEY = shared_storage
+REDIS_BACKUP_DIR = ${BACKUP_DIR}/redis
+
 # docker containers
 DOCKERS_DIR = ${SRC_DIR}/dockers
 
@@ -33,6 +41,7 @@ REDIS_DIR = ${DOCKERS_DIR}/redis
 REDIS_DATA_DIR = ${REDIS_DIR}/data
 
 # the name of this project
+PROJECT_NAME = transcendence_poker
 NAME = transcendence
 ENV_FILE = ${SRC_DIR}/.env
 SECRETS_DIR = ${SRC_DIR}/secrets
@@ -45,6 +54,8 @@ TOOLS_DIR = ${SRC_DIR}/tools
 CHECK_ENV_SECRETS_SCRIPT = ${TOOLS_DIR}/check_environment_and_secrets.sh
 CHECK_PREREQUISITE_SCRIPT = ${TOOLS_DIR}/check_prerequisite.sh
 CHECK_NGINX_SSL_SCRIPT = ${TOOLS_DIR}/check_nginx_ssl.sh
+BACKUP_STORAGE_SCRIPT = ${TOOLS_DIR}/backup_storage.sh
+RESTORE_STORAGE_SCRIPT = ${TOOLS_DIR}/restore_storage.sh
 
 # stamp files - convention to let makefile know
 #									by creating stamp file for each operation
@@ -74,9 +85,6 @@ ${DOCKER_COMPOSE_START_STAMPFILE}: ${DOCKER_COMPOSE_BUILD_STAMPFILE} | ${TEMP_DI
 ${DOCKER_COMPOSE_BUILD_STAMPFILE}: ${DOCKER_COMPOSE_YAML_FILE} ${DIR_EXIST_STAMP_FILE} ${CHECK_ENV_SECRETS_STAMPFILE} ${CHECK_NGINX_SSL_KEY_CRT_STAMPFILE} | ${TEMP_DIR}
 	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" build && touch $@
 
-${DIR_EXIST_STAMP_FILE}: | ${TEMP_DIR} ${NESTJS_DATA_DIR} ${NEXTJS_DATA_DIR} ${REDIS_DATA_DIR} ${TEMP_DIR}
-	touch $@
-
 ${TEMP_DIR}:
 	mkdir -p $@
 
@@ -105,7 +113,7 @@ ${CHECK_PREREQUISITE_STAMPFILE}: ${CHECK_PREREQUISITE_SCRIPT} | ${CHMOD_TOOLS_ST
 	${CHECK_PREREQUISITE_SCRIPT} && touch $@
 
 ${CHECK_NGINX_SSL_KEY_CRT_STAMPFILE}: ${CHECK_NGINX_SSL_SCRIPT} | ${CHMOD_TOOLS_STAMPFILE}
-	${CHECK_NGINX_SSL_SCRIPT} ${NGINX_SERVER_KEY} ${NGINX_SERVER_CRT}
+	${CHECK_NGINX_SSL_SCRIPT} ${NGINX_SERVER_KEY} ${NGINX_SERVER_CRT} && touch $@
 
 ${CHMOD_TOOLS_STAMPFILE}: | ${TEMP_DIR} ${TOOLS_DIR}
 	chmod +x ${TOOLS_DIR}/* && touch $@
@@ -137,7 +145,9 @@ purge: down
 	rm -rf ${CHECK_ENV_SECRETS_STAMPFILE}
 	rm -rf ${SECRETS_DIR}
 
-re: down all
+re:
+	$(MAKE) down
+	$(MAKE) all
 
 nuke: purge
 	docker rmi $$(docker image ls -qa) || true
@@ -169,5 +179,40 @@ go-nestjs: ${DOCKER_COMPOSE_START_STAMPFILE}
 go-nextjs: ${DOCKER_COMPOSE_START_STAMPFILE}
 	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" exec nextjs ./entrypoint.sh /bin/sh
 
+db-backup: ${DOCKER_COMPOSE_START_STAMPFILE} | ${POSTGRESQL_BACKUP_DIR}
+	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" exec -T postgresql sh -c 'PGPASSWORD=$$(cat $$POSTGRES_PASSWORD_FILE) pg_dump -Fc -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"' > "${POSTGRESQL_BACKUP_FILEPATH}"
 
-.PHONY: all start stop build down re purge nuke save-nextjs save-nestjs save ${NAME} go-postgres go-nestjs go-nextjs env
+db-restore: ${DOCKER_COMPOSE_START_STAMPFILE} ${POSTGRESQL_BACKUP_FILEPATH}
+	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" stop nestjs
+	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" exec -T postgresql sh -c 'PGPASSWORD=$$(cat $$POSTGRES_PASSWORD_FILE) pg_restore --clean --if-exists --no-owner -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"' < "${POSTGRESQL_BACKUP_FILEPATH}"
+	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" start nestjs
+
+storage-backup: ${DOCKER_COMPOSE_START_STAMPFILE} | ${STORAGE_BACKUP_DIR} ${CHMOD_TOOLS_STAMPFILE}
+	${BACKUP_STORAGE_SCRIPT} ${PROJECT_NAME} ${STORAGE_VOLUME_KEY} ${DOCKER_COMPOSE_YAML_FILE} ${STORAGE_BACKUP_DIR}
+
+storage-restore: ${DOCKER_COMPOSE_START_STAMPFILE} | ${CHMOD_TOOLS_STAMPFILE}
+	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" stop nestjs
+	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" stop redis
+	${RESTORE_STORAGE_SCRIPT} ${PROJECT_NAME} ${STORAGE_VOLUME_KEY} ${DOCKER_COMPOSE_YAML_FILE} ${STORAGE_BACKUP_DIR}
+	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" start redis
+	docker compose -f "${DOCKER_COMPOSE_YAML_FILE}" start nestjs
+
+all-backup: db-backup storage-backup
+
+all-restore: db-restore storage-restore
+
+${BACKUP_DIR}:
+	mkdir -p $@
+
+${POSTGRESQL_BACKUP_DIR}: | ${BACKUP_DIR}
+	mkdir -p $@
+
+${STORAGE_BACKUP_DIR}: | ${BACKUP_DIR}
+	mkdir -p $@
+
+${DIR_EXIST_STAMP_FILE}: | ${TEMP_DIR} ${NESTJS_DATA_DIR} ${NEXTJS_DATA_DIR} ${REDIS_DATA_DIR} ${POSTGRESQL_BACKUP_DIR} ${STORAGE_BACKUP_DIR}
+	touch $@
+
+
+.PHONY: all start stop build down re purge nuke save-nextjs save-nestjs save ${NAME} go-postgres go-nestjs go-nextjs env db-backup db-restore storage-backup storage-restore all-backup all-restore
+

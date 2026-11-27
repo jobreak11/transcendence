@@ -5,7 +5,7 @@ import { users } from "../schema/users/users.schema.js"
 import { user_profiles } from "../schema/user_profiles/user_profiles.schema.js"
 import { UserDto } from "../schema/users/user.dto.js"
 import { user_titles } from "../schema/user_titles.schema.js"
-import { eq, inArray } from "drizzle-orm"
+import { eq, inArray, sql } from "drizzle-orm"
 import { titles } from "../schema/titles.schema.js"
 
 async function insert_users(usersInfo: {
@@ -33,7 +33,12 @@ async function insert_users(usersInfo: {
 
     const result = await db.insert(users)
         .values(converted)
-        .onConflictDoNothing()
+        .onConflictDoUpdate({
+            target: users.email,
+            set: {
+                password: sql`excluded.password`
+            }
+        })
         .returning();
 
     if (result.length === 0) {
@@ -85,6 +90,33 @@ async function insert_users(usersInfo: {
 
         }
     }
+
+}
+
+async function insert_admin() {
+
+    const email = process.env.TRANSCENDENCE_ADMIN_USER_EMAIL ?? "";
+    const password = process.env.TRANSCENDENCE_ADMIN_PASSWORD ?? "";
+    const role = Role.ADMIN;
+    const displayedName = "ADMIN" ;
+
+    const hashed = await argon2.hash(password);
+
+    await db.insert(users)
+        .values({
+            email: email,
+            password: hashed,
+            role: role,
+        })
+        .onConflictDoUpdate({
+            target: users.email,
+            set: {
+                password: hashed
+            }
+        });
+
+
+    
 }
 
 export async function seeding_users(defaultTitleId: string | null) {

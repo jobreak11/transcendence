@@ -31,6 +31,7 @@ export class UserService {
   constructor(
     private readonly usersRedisService: UsersRedisService,
     private readonly usersCachingService: UsersCachingService,
+    private readonly userDatabaseService: UsersDatabaseService,
     @Inject(DRIZZLE) private db: NodePgDatabase<typeof dbSchema.dbRelations>,
   )
   {}
@@ -220,6 +221,12 @@ export class UserService {
     return await this.db.select().from(users);
   }
 
+  findAllV2( limit: number = 50, offset: number = 0) {
+
+    return this.userDatabaseService.findAllV2(limit, offset);
+
+  }
+
   async findOne(id: string): Promise<UserAndProfileDto> {
 
     const foundCache = await this.usersCachingService.getCacheById(id);
@@ -367,7 +374,9 @@ export class UserService {
 
     // FIXED. joined the BASEURL e.g. https://localhost:4333 now it is a valid url
     // and will pass the payload validation
-    const newAvatarURL = path.join(BASEURL, STORAGE_URL_PATH, `${id}/profile.jpg`);
+    // const newAvatarURL = path.join(BASEURL, STORAGE_URL_PATH, `${id}/profile.jpg`);
+    const newAvatarURL = new URL(path.posix.join(STORAGE_URL_PATH, `${id}/profile.jpg`), BASEURL).toString();
+    
 
     // # would store only /storage/${id}/profile.jpg which result in invalid URL in schema
     //const newAvatarURL = path.join( STORAGE_URL_PATH, `${id}/profile.jpg`);
@@ -390,5 +399,9 @@ export class UserService {
     await this.usersCachingService.cacheDeleteUser(deletedUser.id);
 
     return deletedUser
+  }
+
+  countTotalUser() {
+    return this.userDatabaseService.countAllUser();
   }
 }

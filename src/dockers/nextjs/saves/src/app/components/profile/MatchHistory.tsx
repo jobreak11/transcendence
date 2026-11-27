@@ -1,6 +1,6 @@
 import Image from "next/image";
 import ProfileImage from "./ProfileImage";
-import defaultProfilePic from "../../../public/defaultProfilePic.svg"
+// import defaultProfilePic from "../../../assets/defaultProfilePic.svg"
 import { useLanguage } from "../language/LanguageProvider";
 
 const matches = [
@@ -34,7 +34,7 @@ export default function MatchHistory() {
             </div>
             <div className="history-avatar">
               <Image
-                src={defaultProfilePic}
+                src={`/img/defaultProfilePic.svg`}
                 alt="Opponent"
                 fill
                 sizes="100px"

@@ -1,0 +1,11 @@
+allowBuilds:
+  argon2: true
+  "@scarf/scarf": true
+  esbuild: true
+
+packages:
+  - "."
+
+overrides:
+  fastify: "5.12.5"
+

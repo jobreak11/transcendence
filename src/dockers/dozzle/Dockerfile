@@ -1,1 +1,1 @@
-FROM amir20/dozzle:latest
+FROM amir20/dozzle:pr-5708-alpine

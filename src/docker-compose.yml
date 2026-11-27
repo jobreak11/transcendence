@@ -1,3 +1,4 @@
+name: transcendence_poker
 
 services:
   nginx:
@@ -59,12 +60,11 @@ services:
       OAUTH_42_CLIENT_ID: ${OAUTH_42_CLIENT_ID}
       OAUTH_42_CLIENT_SECRET: ${OAUTH_42_CLIENT_SECRET}
       OAUTH_42_CALLBACK_URL: ${OAUTH_42_CALLBACK_URL}
-
     restart: unless-stopped
     volumes:
       - ${NESTJS_DATA_DIR}:/app/nestjs
       - shared_storage:/transcend_storage
-    healthcheck:	
+    healthcheck:
       test: [ "CMD-SHELL", "/app/healthcheckscript.sh" ]
       interval: 15s
       retries: 10
@@ -81,8 +81,7 @@ services:
       - jwt-refresh-key
       - admin-password
 
-
-# nextjs frontend
+  # nextjs frontend
   nextjs:
     build:
       context: ./dockers/nextjs
@@ -98,7 +97,7 @@ services:
     restart: unless-stopped
     volumes:
       - ${NEXTJS_DATA_DIR}:/app/nextjs
-    healthcheck:	
+    healthcheck:
       test: [ "CMD-SHELL", "/app/healthcheckscript.sh" ]
       interval: 10s
       retries: 10
@@ -106,7 +105,7 @@ services:
       timeout: 10s
     depends_on:
       nestjs:
-       condition: service_healthy
+        condition: service_healthy
 
   postgresql:
     build:
@@ -141,7 +140,7 @@ services:
       - transcendence-network
     depends_on:
       postgresql:
-        condition: service_healthy  
+        condition: service_healthy
 
   redis:
     build:
@@ -189,14 +188,6 @@ services:
       - transcendence-network
     volumes:
       - ${DOCKER_SOCKET_PATH}:/var/run/docker.sock:ro
-    
-
-
-  
-  # postgresql
-  # adminer
-  # redis
-  # redis insight
 
 volumes:
   postgresql_data:

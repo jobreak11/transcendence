@@ -1,5 +1,6 @@
 import React from 'react'
 import './global.css'
+import './style.css'
 import LanguageProvider from './components/language/LanguageProvider';
 
 export default function RootLayout({
@@ -9,7 +10,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className='max-w-screen overflow-x-hidden'>
         <LanguageProvider>
           {children}
         </LanguageProvider>

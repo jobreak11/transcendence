@@ -1,0 +1,39 @@
+{
+  "name": "nextjs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "generate:types": "openapi-typescript http://nestjs:3001/admin/api-docs-json -o src/types/api.d.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.3.5",
+    "autoprefixer": "^10.7.0",
+    "clsx": "^2.1.1",
+    "leva": "^0.10.1",
+    "motion": "^14.14.0",
+    "next": "^16.4.6",
+    "openapi-typescript": "^7.13.0",
+    "postcss": "^8.5.33",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "socket.io-client": "^4.8.4",
+    "tailwindcss": "^4.3.5",
+    "use-sound": "^5.0.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
+  }
+}

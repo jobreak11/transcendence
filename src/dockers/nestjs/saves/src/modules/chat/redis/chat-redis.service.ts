@@ -12,6 +12,8 @@ import { ChatMessageDto } from "../dtos/chat-message.dto.js";
 import { ChatMessageType } from "../../../infrastructure/drizzle/schema/chat_messages/chat_messages.schema.js";
 import { InviteUserToChatRoomZodDto } from "../dtos/chat.dto.js";
 
+const CHAT_REDIS_MESSAGE_LIMIT = 200;
+
 @Injectable()
 export class ChatRedisService {
 
@@ -36,6 +38,10 @@ export class ChatRedisService {
 
         local newMessage = ARGV[1]
         local limit = tonumber(ARGV[2])
+
+        if not limit or limit < 1 then
+          return redis.error_reply('limit must be a positive number')
+        end
 
         if redis.call('EXISTS', chatRoomKey) == 0 then
           return 1
@@ -433,7 +439,8 @@ export class ChatRedisService {
       redis_chat_room_member_details(chatRoomId, toLeaveUserId),
     )
     pipeline2.srem(
-      redis_chat_user_room_list(toLeaveUserId)
+      redis_chat_user_room_list(toLeaveUserId),
+      chatRoomId
     )
 
     if (memberDetails.role === ChatRoomMemberRole.SPECTATOR) {
@@ -652,7 +659,7 @@ export class ChatRedisService {
 
   }
 
-  async getMessages(chatRoomId: string, limit: number = 200) {
+  async getMessages(chatRoomId: string, limit: number = CHAT_REDIS_MESSAGE_LIMIT) {
     if (limit <= 0) {
       throw logError(
         this.logger,
@@ -681,7 +688,8 @@ export class ChatRedisService {
     const res = await this.redis.writeChatRoomMessage(
       redis_chat_room_details(chatRoomId),
       redis_chat_room_messages(chatRoomId),
-      JSON.stringify(payload)
+      JSON.stringify(payload),
+      CHAT_REDIS_MESSAGE_LIMIT,
     );
 
     if (res === 1) {

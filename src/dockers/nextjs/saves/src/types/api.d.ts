@@ -775,6 +775,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/game/lobby/swap-role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * switch between a lobby player and spectator role
+         * @description Role changes are allowed while the lobby is waiting and the target role has capacity.
+         */
+        post: operations["InternalLobbyController_swapLobbyMemberRole"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/game/lobby/allRooms": {
         parameters: {
             query?: never;
@@ -927,7 +947,47 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["InternalGameStatisticsUserController_getGameStatistics"];
+        /**
+         * list all users stats
+         * @description Retrieve statistics for all users with optional pagination and rank ordering. Rate limits: IP (100/min), Role-based (ADMIN: 50, DEVELOPER: 30, EDITOR: 15, USER: 8 per min).
+         */
+        get: operations["InternalGameStatisticsUserController_allUserStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/game/statistics/find": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Find user statistics by ID, email, or tag ID
+         * @description Retrieve statistics for a specific user. Exactly ONE query parameter (userId, email, or tagId) must be provided. Rate limits: IP (200/min), Role-based (ADMIN: 200, DEVELOPER: 100, EDITOR: 50, USER: 20 per min).
+         */
+        get: operations["InternalGameStatisticsUserController_findUserStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/game/statistics/findRankIndex": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalGameStatisticsUserController_findUserRankIndex"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1919,12 +1979,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a20248-6fe0-726b-9de8-58ab1cc2f547
+             * @example 01a2183c-6af2-723a-b061-5acaf38b848b
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a20248-6fe2-7350-9a29-35be3309b910
+             * @example 01a2183c-6af5-73e6-92b4-a55e0ae61a86
              */
             chatRoomId: string;
             /**
@@ -2309,21 +2369,11 @@ export interface components {
             /** @description each user match result */
             userMatchResult: components["schemas"]["UserGameMatchNoGameMatchId"][];
         };
-        GetOneUserGameStatisticsDto: {
-            /** @description the exp point of that user left after deducting from level */
-            expPoint: number;
-            /** @description the level of the user */
-            level: number;
-            /** @description the total rank of the user */
-            rankPoint: number;
-            /** @description the total matches that this user has played */
-            matchPlayed: number;
-            /** @description the total matches that user has won. */
-            totalMatchesWon: number;
-            /** @description the total hands that user has played from all the game matches */
-            totalHandsPlayed: number;
-            /** @description the total hands that user has played and won from all the game matches */
-            totalHandsWon: number;
+        UserRankIndexDto: {
+            /** @description the rank index position of this user */
+            rankIndex: number;
+            /** @description the total user count in the system for percentile calculation */
+            totalUserCount: number;
         };
         TitleNoIdDto: {
             /**
@@ -2376,18 +2426,18 @@ export interface components {
             condition: string | null;
             /**
              * @description title uuid linked to this achievement.
-             * @example 01a20248-6ff4-734f-bec3-4cb1579bfa20
+             * @example 01a2183c-6b0c-7336-91a1-ff5a8e517908
              */
             titleId: string | null;
             /**
              * @description trophy uuid linked to this achievement
-             * @example 01a20248-6ff4-734f-bec3-5033039bef66
+             * @example 01a2183c-6b0c-7336-91a2-02db7083331d
              */
             trophyId: string | null;
             /**
              * Format: date-time
              * @description the time this achivement was created
-             * @example 2026-11-22T08:03:51.412Z
+             * @example 2026-11-26T14:22:22.476Z
              */
             createdAt: string;
             /** @description the title details */
@@ -2398,18 +2448,18 @@ export interface components {
         GetUserAchievementDto: {
             /**
              * @description the uuid of user that have this achievement
-             * @example 01a20248-6ff5-7489-a766-f85eb102e7c9
+             * @example 01a2183c-6b0d-7668-b8a1-92677dfdecc6
              */
             userId: string;
             /**
              * @description this uuid of the achievement this user got
-             * @example 01a20248-6ff6-70b3-a9b9-59f4e6801b47
+             * @example 01a2183c-6b0d-7668-b8a1-955b535c9964
              */
             achievementId: string;
             /**
              * Format: date-time
              * @description the date when this user got the achievement
-             * @example 2026-11-22T08:03:51.414Z
+             * @example 2026-11-26T14:22:22.477Z
              */
             unlockedAt: string;
             /** @description the achievement data */
@@ -2426,7 +2476,7 @@ export interface components {
         GetAchievementDto: {
             /**
              * @description the uuid
-             * @example 01a20248-6ff4-734f-bec3-4a8fb3355c7b
+             * @example 01a2183c-6b0b-7182-bd94-1a5815475ea8
              */
             id: string;
             /**
@@ -2446,18 +2496,18 @@ export interface components {
             condition: string | null;
             /**
              * @description title uuid linked to this achievement.
-             * @example 01a20248-6ff4-734f-bec3-4cb1579bfa20
+             * @example 01a2183c-6b0c-7336-91a1-ff5a8e517908
              */
             titleId: string | null;
             /**
              * @description trophy uuid linked to this achievement
-             * @example 01a20248-6ff4-734f-bec3-5033039bef66
+             * @example 01a2183c-6b0c-7336-91a2-02db7083331d
              */
             trophyId: string | null;
             /**
              * Format: date-time
              * @description the time this achivement was created
-             * @example 2026-11-22T08:03:51.412Z
+             * @example 2026-11-26T14:22:22.476Z
              */
             createdAt: string;
             /** @description the title details */
@@ -2483,25 +2533,25 @@ export interface components {
             condition?: string | null;
             /**
              * @description title uuid linked to this achievement.
-             * @example 01a20248-6ff4-734f-bec3-4cb1579bfa20
+             * @example 01a2183c-6b0c-7336-91a1-ff5a8e517908
              */
             titleId?: string | null;
             /**
              * @description trophy uuid linked to this achievement
-             * @example 01a20248-6ff4-734f-bec3-5033039bef66
+             * @example 01a2183c-6b0c-7336-91a2-02db7083331d
              */
             trophyId?: string | null;
             /**
              * Format: date-time
              * @description the time this achivement was created
-             * @example 2026-11-22T08:03:51.412Z
+             * @example 2026-11-26T14:22:22.476Z
              */
             createdAt?: string;
         };
         AchievementDto: {
             /**
              * @description the uuid
-             * @example 01a20248-6ff4-734f-bec3-4a8fb3355c7b
+             * @example 01a2183c-6b0b-7182-bd94-1a5815475ea8
              */
             id: string;
             /**
@@ -2521,18 +2571,18 @@ export interface components {
             condition: string | null;
             /**
              * @description title uuid linked to this achievement.
-             * @example 01a20248-6ff4-734f-bec3-4cb1579bfa20
+             * @example 01a2183c-6b0c-7336-91a1-ff5a8e517908
              */
             titleId: string | null;
             /**
              * @description trophy uuid linked to this achievement
-             * @example 01a20248-6ff4-734f-bec3-5033039bef66
+             * @example 01a2183c-6b0c-7336-91a2-02db7083331d
              */
             trophyId: string | null;
             /**
              * Format: date-time
              * @description the time this achivement was created
-             * @example 2026-11-22T08:03:51.412Z
+             * @example 2026-11-26T14:22:22.476Z
              */
             createdAt: string;
         };
@@ -2554,43 +2604,43 @@ export interface components {
             condition: string | null;
             /**
              * @description title uuid linked to this achievement.
-             * @example 01a20248-6ff4-734f-bec3-4cb1579bfa20
+             * @example 01a2183c-6b0c-7336-91a1-ff5a8e517908
              */
             titleId: string | null;
             /**
              * @description trophy uuid linked to this achievement
-             * @example 01a20248-6ff4-734f-bec3-5033039bef66
+             * @example 01a2183c-6b0c-7336-91a2-02db7083331d
              */
             trophyId: string | null;
             /**
              * Format: date-time
              * @description the time this achivement was created
-             * @example 2026-11-22T08:03:51.412Z
+             * @example 2026-11-26T14:22:22.476Z
              */
             createdAt: string;
         };
         UserAchievementDto: {
             /**
              * @description the uuid of user that have this achievement
-             * @example 01a20248-6ff5-7489-a766-f85eb102e7c9
+             * @example 01a2183c-6b0d-7668-b8a1-92677dfdecc6
              */
             userId: string;
             /**
              * @description this uuid of the achievement this user got
-             * @example 01a20248-6ff6-70b3-a9b9-59f4e6801b47
+             * @example 01a2183c-6b0d-7668-b8a1-955b535c9964
              */
             achievementId: string;
             /**
              * Format: date-time
              * @description the date when this user got the achievement
-             * @example 2026-11-22T08:03:51.414Z
+             * @example 2026-11-26T14:22:22.477Z
              */
             unlockedAt: string;
         };
         TrophyDto: {
             /**
              * @description the id of the trophy
-             * @example 01a20248-6ff4-734f-bec3-56890f6197d2
+             * @example 01a2183c-6b0c-7336-91a2-059ced76411b
              */
             id: string;
             /**
@@ -2612,7 +2662,7 @@ export interface components {
             /**
              * Format: date-time
              * @description the date this trophy unlocked to this user
-             * @example 2026-11-22T08:03:51.419Z
+             * @example 2026-11-26T14:22:22.481Z
              */
             unlockedAt: string;
             /** @description the trophy details */
@@ -2629,7 +2679,7 @@ export interface components {
         GetTrophyDto: {
             /**
              * @description the id of the trophy
-             * @example 01a20248-6ff4-734f-bec3-56890f6197d2
+             * @example 01a2183c-6b0c-7336-91a2-059ced76411b
              */
             id: string;
             /**
@@ -2682,36 +2732,36 @@ export interface components {
         NewUserTrophyDto: {
             /**
              * @description the uuid of the user that got this trophy
-             * @example 01a20248-6ffa-7684-b3f9-be721a5d2591
+             * @example 01a2183c-6b11-74f4-b5e6-0ea77ba5472f
              */
             userId: string;
             /**
              * @description the uuid of the trophy
-             * @example 01a20248-6ffb-749b-86ed-304589fe7b16
+             * @example 01a2183c-6b11-74f4-b5e6-1255bc6d97e5
              */
             trophyId: string;
             /**
              * Format: date-time
              * @description the date this trophy unlocked to this user
-             * @example 2026-11-22T08:03:51.419Z
+             * @example 2026-11-26T14:22:22.481Z
              */
             unlockedAt: string;
         };
         UserTrophyDto: {
             /**
              * @description the uuid of the user that got this trophy
-             * @example 01a20248-6ffa-7684-b3f9-be721a5d2591
+             * @example 01a2183c-6b11-74f4-b5e6-0ea77ba5472f
              */
             userId: string;
             /**
              * @description the uuid of the trophy
-             * @example 01a20248-6ffb-749b-86ed-304589fe7b16
+             * @example 01a2183c-6b11-74f4-b5e6-1255bc6d97e5
              */
             trophyId: string;
             /**
              * Format: date-time
              * @description the date this trophy unlocked to this user
-             * @example 2026-11-22T08:03:51.419Z
+             * @example 2026-11-26T14:22:22.481Z
              */
             unlockedAt: string;
         };
@@ -3793,6 +3843,25 @@ export interface operations {
             };
         };
     };
+    InternalLobbyController_swapLobbyMemberRole: {
+        parameters: {
+            query: {
+                lobbyPinId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     InternalLobbyController_getAllLobbyRoom: {
         parameters: {
             query?: never;
@@ -3961,7 +4030,78 @@ export interface operations {
             };
         };
     };
-    InternalGameStatisticsUserController_getGameStatistics: {
+    InternalGameStatisticsUserController_allUserStats: {
+        parameters: {
+            query?: {
+                /** @description Number of records to return (0 - 1000) */
+                limit?: number;
+                /** @description Number of records to skip (>= 0) */
+                offset?: number;
+                /** @description Order results by user rank */
+                orderByRank?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successfully retrieved list of user statistics */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid limit or offset query (limit must be 0-1000, offset >= 0), or invalid boolean for orderByRank */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalGameStatisticsUserController_findUserStats: {
+        parameters: {
+            query?: {
+                /** @description UUID of the user (provide only 1 of userId, email, or tagId) */
+                userId?: string;
+                /** @description Email address of the user (provide only 1 of userId, email, or tagId) */
+                email?: string;
+                /** @description Tag ID of the user (provide only 1 of userId, email, or tagId) */
+                tagId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successfully retrieved user statistics */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Must provide 1 query param only, or invalid UUID format for userId */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalGameStatisticsUserController_findUserRankIndex: {
         parameters: {
             query?: {
                 userId?: string;
@@ -3977,7 +4117,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["GetOneUserGameStatisticsDto"];
+                    "application/json": components["schemas"]["UserRankIndexDto"];
                 };
             };
         };

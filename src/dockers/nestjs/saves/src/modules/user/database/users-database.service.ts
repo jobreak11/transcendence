@@ -20,6 +20,12 @@ export class UsersDatabaseService {
     @Inject(DRIZZLE) private db: NodePgDatabase<typeof dbSchema.dbRelations>,
   ) {}
 
+  async countAllUser() {
+    const result = await this.db.$count(users);
+
+    return result;
+  }
+
   async create(createUserDto: CreateUserDto) {
     
     const hashedPassword = await argon2.hash(createUserDto.password);
@@ -66,6 +72,30 @@ export class UsersDatabaseService {
         error
       )
     }
+  }
+
+  async findAllV2(limit: number = 50, offset: number = 0) {
+
+    if (limit < 0 || offset < 0) {
+      throw logError(
+        this.logger,
+        "error from findAllV2",
+        "invalid limit / offset usage",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      )
+    }
+
+    const result = await this.db.query.users.findMany({
+      with: {
+        user_profile: {
+          with: {
+            active_title: true
+          }
+        }
+      }
+    })
+
+    return result
   }
 
   // async findByEmail(email: string): Promise<UserAndProfileDto> {

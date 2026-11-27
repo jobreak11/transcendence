@@ -28,6 +28,7 @@ import { LobbyRoomType } from '../../../modules/lobby/redis/schemas/lobby-genera
 import { GameDatabaseService } from '../../../modules/game/database/game-database.service.js';
 import { TOURNAMENT_RESULT_RECORDER } from '../../../modules/tournament/tournament-result-recorder.js';
 import type { TournamentResultRecorder } from '../../../modules/tournament/tournament-result-recorder.js';
+import { LobbyRoomStatus } from '../../../modules/lobby/redis/schemas/lobby-details.redis.schema.js';
 
 @Injectable()
 export class GameGatewayService implements OnModuleInit {
@@ -781,6 +782,9 @@ export class GameGatewayService implements OnModuleInit {
         result.matchEndedAt ? new Date(result.matchEndedAt) : new Date(),
         result.tableSessionId
       );
+
+      await this.lobbyRedisService.setLobbyRoomStatus(result.tableSessionId, LobbyRoomStatus.WAITING);
+
       const tournamentService = this.moduleRef.get<TournamentResultRecorder>(
         TOURNAMENT_RESULT_RECORDER,
         { strict: false },
@@ -791,6 +795,12 @@ export class GameGatewayService implements OnModuleInit {
         matchProgress,
       );
 
+      await Promise.all([
+        this.gameRedisService.delButton(result.tableSessionId),
+        this.gameRedisService.delCompletedMatchState(result.tableSessionId),
+        this.gameRedisService.delMatchProgress(result.tableSessionId),
+        this.gameRedisService.delStacks(result.tableSessionId),
+      ]);
       
     } else {
       this.scheduleNextHand(state.tableSessionId);

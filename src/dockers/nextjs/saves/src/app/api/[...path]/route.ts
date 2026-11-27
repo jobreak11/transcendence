@@ -103,6 +103,7 @@ const allowedPaths = new Set([
   '/game/lobby/formats',
   '/game/lobby/create',
   '/game/lobby/join',
+  '/game/lobby/swap-role',
   '/game/lobby/leave',
   '/game/lobby/allRooms',
   '/game/lobby/my-lobby',
@@ -110,6 +111,10 @@ const allowedPaths = new Set([
   '/game/lobby/startgame',
   '/game/lobby/members',
   '/game/lobby',
+  '/game/matches',
+  '/game/statistics',
+  '/game/statistics/find',
+  '/game/statistics/findRankIndex',
   '/tournament',
 ])
 

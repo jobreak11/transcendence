@@ -189,6 +189,10 @@ export class LobbyService implements OnModuleInit {
     )
   }
 
+  swapLobbyMemberRole(userId: string, lobbyPinId: string) {
+    return this.lobbyRedisService.lobbyUserSwapRole(userId, lobbyPinId);
+  }
+
   // get the userId list of both player and spectator
   // of the target lobby
   getLobbyMemberList(lobbyPinId: string): Promise<GetLobbyMemberListDto> {

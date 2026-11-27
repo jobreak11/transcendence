@@ -1,4 +1,4 @@
-FROM postgres:alpine
+FROM postgres:19.0-alpine3.24
 
 # USER root
 

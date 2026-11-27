@@ -11,6 +11,7 @@
     "call": "跟注",
     "check": "过牌",
     "raise": "加注",
+    "allIn": "全押",
     "cancelRaise": "取消",
     "additionalChips": "加注筹码数",
     "confirmRaise": "确认加注",
