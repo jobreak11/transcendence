@@ -37,9 +37,9 @@ export class TrophiesService {
         return this.trophiesDatabaseService.update(trophyId, body);
     }
 
-    uploadTrophyPic(trophyId: string, buffer: Buffer) {
+    uploadTrophyPic(trophyId: string, buffer: Buffer, extension: string) {
 
-        return this.trophiesDatabaseService.uploadThrophyPic(trophyId, buffer);
+        return this.trophiesDatabaseService.uploadTrophyPic(trophyId, buffer, extension);
     }
 
     findOne(trophyId: string) {

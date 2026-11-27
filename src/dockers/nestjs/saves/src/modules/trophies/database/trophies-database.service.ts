@@ -11,7 +11,7 @@ import { CreateNewTrophyDto } from "../../../api/internal/trophies/dtos/create-n
 import { errorWithCode } from "../../../utility/errorWithCode.js";
 import { TrophiesUpdateDto } from "./dtos/trophies-update.dto.js";
 import path from "path";
-import { BASEURL, SHARED_STORAGE_PATH, STORAGE_URL_PATH } from "../../../constant.js";
+import { SHARED_STORAGE_PATH, STORAGE_URL_PATH } from "../../../constant.js";
 import * as fs from 'fs/promises'
 
 @Injectable()
@@ -101,11 +101,9 @@ export class TrophiesDatabaseService {
 
         if (oldData.imageUrl) {
 
-            const baseStorageUrl = path.join(BASEURL, STORAGE_URL_PATH);
+            if (oldData.imageUrl.startsWith('/')) {
 
-            if (oldData.imageUrl.startsWith(baseStorageUrl)) {
-
-                const cutUrl = oldData.imageUrl.slice(baseStorageUrl.length);
+                const cutUrl = oldData.imageUrl.slice(1);
 
                 const fullStoragePath = path.join(SHARED_STORAGE_PATH, 'trophies', trophyId, cutUrl);
 
@@ -134,21 +132,45 @@ export class TrophiesDatabaseService {
         return updateResult;
     }
 
-    async uploadThrophyPic(trophyId: string, fileBuffer: Buffer) {
+    // async uploadThrophyPic(trophyId: string, fileBuffer: Buffer, extension: string) {
 
+    //     const targetTrophy = await this.findOne(trophyId);
+
+    //     const dateString = (new Date()).toISOString();
+    //     const uploadDir = path.join(SHARED_STORAGE_PATH, 'trophies', String(trophyId));
+    //     const destinationPath = path.join(uploadDir, `${dateString}_image.jpg`);
+
+    //     await fs.mkdir(uploadDir, { recursive: true });
+    //     await fs.writeFile(destinationPath, fileBuffer);
+
+    //     const newUrl = path.join(BASEURL, STORAGE_URL_PATH, `trophies/${String(trophyId)}/${dateString}_image.jpg`)
+
+    //     return this.update(trophyId, {
+    //         imageUrl: newUrl
+    //     });
+    // }
+
+    async uploadTrophyPic(
+        trophyId: string,
+        fileBuffer: Buffer,
+        extenstion: string,
+    ) {
         const targetTrophy = await this.findOne(trophyId);
 
-        const dateString = (new Date()).toISOString();
+        // Safe ISO string for filenames and URLs (replaces ':' and '.' with '-')
+        const safeDateString = new Date().toISOString().replace(/[:.]/g, '-');
+        const fileName = `${safeDateString}_image.${extenstion}`;
+
         const uploadDir = path.join(SHARED_STORAGE_PATH, 'trophies', String(trophyId));
-        const destinationPath = path.join(uploadDir, `${dateString}_image.jpg`);
+        const destinationPath = path.join(uploadDir, fileName);
 
         await fs.mkdir(uploadDir, { recursive: true });
         await fs.writeFile(destinationPath, fileBuffer);
 
-        const newUrl = path.join(BASEURL, STORAGE_URL_PATH, `trophies/${String(trophyId)}/${dateString}_image.jpg`)
+        const newUrl = path.posix.join('/', STORAGE_URL_PATH, String(trophyId), fileName);
 
         return this.update(trophyId, {
-            imageUrl: newUrl
+          imageUrl: newUrl,
         });
     }
 
@@ -268,11 +290,9 @@ export class TrophiesDatabaseService {
         }
 
         if (result.imageUrl) {
-            const baseStorageUrl = path.join(BASEURL, STORAGE_URL_PATH);
+            if (result.imageUrl.startsWith('/')) {
 
-            if (result.imageUrl.startsWith(baseStorageUrl)) {
-
-                const cutUrl = result.imageUrl.slice(baseStorageUrl.length);
+                const cutUrl = result.imageUrl.slice(1);
 
                 const fullStoragePath = path.join(SHARED_STORAGE_PATH, 'trophies', trophyId, cutUrl);
 

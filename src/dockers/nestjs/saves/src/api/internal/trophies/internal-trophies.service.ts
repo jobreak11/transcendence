@@ -52,8 +52,8 @@ export class InternalTrophiesService {
         return this.trophiesService.createNewTrophy(body);
     }
 
-    uploadTropyPic(trophyId: string, buffer: Buffer) {
-        return this.trophiesService.uploadTrophyPic(trophyId, buffer);
+    uploadTropyPic(trophyId: string, buffer: Buffer, extension: string) {
+        return this.trophiesService.uploadTrophyPic(trophyId, buffer, extension);
     }
 
     findOneTrophy(trophyId: string): Promise<GetTrophyDto> {
