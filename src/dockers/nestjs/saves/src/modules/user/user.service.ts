@@ -362,12 +362,12 @@ export class UserService {
     }
   }
 
-  async uploadProfilePic(id: string, fileBuffer: Buffer, extension: string): Promise<UserAndProfileDto> {
+  async uploadProfilePic(id: string, fileBuffer: Buffer): Promise<UserAndProfileDto> {
 
     const userData = await this.findOne(id);
 
     const uploadDir = path.join(SHARED_STORAGE_PATH, String(id));
-    const fileName = `profile.${extension}`;
+    // const fileName = `profile.${extension}`;
     const destinationPath = path.join(uploadDir, 'profile.jpg');
 
     await fs.mkdir(uploadDir, {recursive: true});
