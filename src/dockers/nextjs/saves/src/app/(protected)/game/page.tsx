@@ -776,104 +776,8 @@ export default function Page() {
 
   return (
     <main className="min-h-screen w-full bg-radial from-green-900 via-green-950 via-55% to-black flex justify-center items-center relative overflow-hidden text-white">
-      {/* <div className="absolute top-4 left-4 z-70 rounded bg-black/70 px-4 py-2 text-sm">
-        <form
-          className="mb-2 flex gap-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            const nextTableId = tableInput.trim();
-            if (!nextTableId) return;
-            window.sessionStorage.setItem("gameTableSessionId", nextTableId);
-            setTableSessionId(nextTableId);
-            setGameState(null);
-            setMyCards([]);
-            setLastAction("");
-            setIsSendingAction(false);
-            setError("");
-            window.history.replaceState(
-              null,
-              "",
-              `/game?tableSessionId=${encodeURIComponent(nextTableId)}`,
-            );
-          }}
-        >
-          <label className="sr-only" htmlFor="table-session-id">Table ID</label>
-          <input
-            id="table-session-id"
-            value={tableInput}
-            onChange={(event) => setTableInput(event.target.value)}
-            placeholder="Enter lobby roomPinId"
-            className="w-52 rounded border border-white/30 bg-black px-2 py-1 text-white"
-          />
-          <button
-            type="submit"
-            disabled={!tableInput.trim()}
-            className="rounded bg-sky-700 px-3 py-1 disabled:opacity-50"
-          >
-            Set table
-          </button>
-        </form>
+      <div className="absolute top-4 left-4 z-70 rounded bg-black/70 px-4 py-2 text-sm">
         <p>Table: {tableSessionId || "Enter your lobby roomPinId above"}</p>
-        {tableSessionId && !gameState && lobbyStatus?.details.roomStatus !== "PLAYING" && (
-          <div className="mt-2 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={joinLobby}
-              disabled={!isConnected || isJoiningLobby || !/^\d{6}$/.test(tableSessionId)}
-              className="rounded bg-sky-700 px-3 py-1 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isJoiningLobby ? "Joining..." : "Join as player"}
-            </button>
-          </div>
-        )}
-        {tableSessionId && (
-          <p aria-live="polite">
-            Lobby members:{" "}
-            {lobbyStatus
-              ? `${lobbyStatus.details.currentPlayerCount 
-                  ?? 0}/${lobbyStatus.gameSettings?.maxPlayer 
-                  ?? "?"} players · ${lobbyStatus.details.currentSpectatorCount 
-                  ?? 0}/${lobbyStatus.gameSettings?.maxSpectator ?? "?"} spectators${lobbyStatus.details.roomStatus ? ` · ${lobbyStatus.details.roomStatus}` : ""}`
-              : lobbyStatusError
-                ? "Status unavailable"
-                : isConnected
-                  ? "Checking lobby members..."
-                  : "Connect to check lobby members"}
-          </p>
-        )}
-        {tableSessionId && (
-          <p aria-live="polite">
-            {secondsUntilTournamentStart !== null && !gameState
-              ? secondsUntilTournamentStart > 0
-                ? `Tournament round starts in ${Math.floor(secondsUntilTournamentStart / 60)}:${String(secondsUntilTournamentStart % 60).padStart(2, "0")}.`
-                : "Tournament round starting now..."
-              : !allPlayersLoaded
-              ? "Waiting for all players to load the game..."
-              : isWaitingToStartFirstHand
-                ? "All players loaded. Starting the first hand in 5 seconds..."
-                : "All players loaded."}
-          </p>
-        )}
-        {lobbyStatusError && (
-          <p role="status" className="text-amber-200">{lobbyStatusError}</p>
-        )}
-        <button
-          type="button"
-          onClick={createLobby}
-          disabled={!isConnected || isCreatingLobby}
-          className="mt-2 rounded bg-emerald-700 px-3 py-1 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {isCreatingLobby ? "Creating lobby..." : "Create lobby"}
-        </button>
-        <p>
-          {!socket
-            ? "Preparing connection..."
-            : isConnected
-              ? "Connected"
-              : connectionError
-                ? `Connection failed: ${connectionError}`
-                : "Connecting..."}
-        </p>
         {gameState && (
           <p>
             {gameState.round}
@@ -897,7 +801,7 @@ export default function Page() {
         {successMessage && (
           <p role="status" className="text-emerald-300">{successMessage}</p>
         )}
-      </div> */}
+      </div>
 
       <GameTable
         gameState={gameState}

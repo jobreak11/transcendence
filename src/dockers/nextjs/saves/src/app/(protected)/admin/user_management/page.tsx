@@ -8,7 +8,7 @@ import React, { useState, useEffect, useCallback } from "react";
 
 export type Role = "ADMIN" | "EDITOR" | "USER";
 export type Pronoun = "he/him" | "she/her" | "they/them" | "prefer not to say";
-export type CardTheme = "STANDARD" | "FANTASY";
+export type CardTheme = "standard" | "Nasturzia";
 
 export interface UserProfileBase {
   displayName: string | null;
@@ -561,7 +561,7 @@ export default function SysAdminUserManagementPage() {
                               <div className="flex items-center gap-1.5">
                                 <span
                                   className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
-                                    profile.cardTheme === "FANTASY"
+                                    profile.cardTheme === "Nasturzia"
                                       ? "bg-purple-500/10 text-purple-300 border-purple-500/30"
                                       : "bg-slate-800 text-slate-300 border-slate-700"
                                   }`}
@@ -859,7 +859,7 @@ export default function SysAdminUserManagementPage() {
               {/* Profile Card */}
               <div
                 className={`rounded-2xl p-5 border ${
-                  inspectedProfile.user_profile.cardTheme === "FANTASY"
+                  inspectedProfile.user_profile.cardTheme === "Nasturzia"
                     ? "bg-gradient-to-br from-indigo-950/80 via-slate-900 to-purple-950/80 border-purple-500/40"
                     : "bg-slate-950 border-slate-800"
                 }`}

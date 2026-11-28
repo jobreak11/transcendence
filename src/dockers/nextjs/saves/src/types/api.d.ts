@@ -1670,7 +1670,7 @@ export interface components {
              * @example STANDARD
              * @enum {string}
              */
-            cardTheme: "STANDARD" | "FANTASY";
+            cardTheme: "standard" | "Nasturzia";
         };
         GetUserProfileDto: {
             /**
@@ -1731,7 +1731,7 @@ export interface components {
              * @example STANDARD
              * @enum {string}
              */
-            cardTheme?: "STANDARD" | "FANTASY";
+            cardTheme?: "standard" | "Nasturzia";
         };
         UpdateUserDto: {
             /**
@@ -1785,7 +1785,7 @@ export interface components {
              * @example STANDARD
              * @enum {string}
              */
-            cardTheme: "STANDARD" | "FANTASY";
+            cardTheme: "standard" | "Nasturzia";
         };
         UserAndProfileDto: {
             /**

@@ -14,8 +14,8 @@ export enum PronounType {
 export const pronounTypeEnum = pgEnum("user_pronoun", PronounType);
 
 export enum PokerCardTheme {
-  STANDARD = "STANDARD",
-  FANTASY = "FANTASY"
+  STANDARD = "standard",
+  NASTURZIA = "Nasturzia"
 }
 export const pokerCardThemeEnum = pgEnum('user_poker_card_theme', PokerCardTheme);
 

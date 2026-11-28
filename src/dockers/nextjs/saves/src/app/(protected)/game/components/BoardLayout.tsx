@@ -1,7 +1,7 @@
 
 export function CardSlot({ children }) {
   return (
-    <div className="group relative h-[30%] aspect-[60/85]
+    <div className="group relative h-[10vh] min-h-[48px] aspect-[60/85]
         border-2 border-dashed border-[#64748b] rounded-[10%] 
         cursor-pointer  transition-all duration-200 hover:border-[#f87171]">
     {children}
