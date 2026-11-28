@@ -1,3 +1,4 @@
+
 export const PRONOUN_OPTIONS = [
   "he/him",
   "she/her",
@@ -12,9 +13,6 @@ export type PokerCardTheme =
   | "STANDARD"
   | "FANTASY";
 
-/*
- * The nested user_profile object returned by GET.
- */
 export type UserProfileDetails = {
   displayName: string | null;
   avatarUrl: string | null;
@@ -24,9 +22,6 @@ export type UserProfileDetails = {
   cardTheme: PokerCardTheme;
 };
 
-/*
- * Complete GET /user/profile response.
- */
 export type UserProfileResponse = {
   tagId: string;
   email: string;
@@ -34,19 +29,11 @@ export type UserProfileResponse = {
   createdAt: string;
   titleName: string | null;
 
-  /*
-   * A new user might not have profile information yet.
-   */
   user_profile:
     UserProfileDetails | null;
 };
 
-/*
- * Editable fields inside user_profile.
- *
- * Every field is optional because PATCH should send
- * only properties that have changed.
- */
+
 export type UserProfileUpdateFields = {
   displayName?: string | null;
   avatarUrl?: string | null;
@@ -56,9 +43,7 @@ export type UserProfileUpdateFields = {
   cardTheme?: PokerCardTheme;
 };
 
-/*
- * Actual request body expected by PATCH /user/update.
- */
+
 export type UpdateUserRequest = {
   password?: string;
   user_profile?:
@@ -343,6 +328,8 @@ export async function getPublicProfileByTagId(
   tagId: string,
   signal?: AbortSignal,
 ): Promise<PublicUserProfileResponse> {
+  
+  
   const trimmedTagId =
     tagId.trim();
 
@@ -371,6 +358,25 @@ export async function getPublicProfileByTagId(
     throw await createApiError(
       response,
     );
+  }
+
+  return response.json();
+}
+
+export async function getPublicProfileByUserId(
+  userId: string,
+  signal?: AbortSignal,
+): Promise<PublicUserProfileResponse> {
+  const query = new URLSearchParams({ id: userId });
+
+  const response = await fetch(`/api/user/profile?${query}`, {
+    credentials: "include",
+    cache: "no-store",
+    signal,
+  });
+
+  if (!response.ok) {
+    throw await createApiError(response);
   }
 
   return response.json();
