@@ -19,7 +19,7 @@ import { dbSchema } from '../../infrastructure/drizzle/schema/schema.js';
 import { users, userSchema } from '../../infrastructure/drizzle/schema/users/users.schema.js';
 import { errorWithCode } from '../../utility/errorWithCode.js';
 import { user_profiles, userProfileSchema } from '../../infrastructure/drizzle/schema/user_profiles/user_profiles.schema.js';
-import { BASEURL, SHARED_STORAGE_PATH, STORAGE_URL_PATH } from '../../constant.js';
+import { SHARED_STORAGE_PATH, STORAGE_URL_PATH } from '../../constant.js';
 import { UserDto } from '../../infrastructure/drizzle/schema/users/user.dto.js';
 import { logError } from '../../utility/logError.js';
 
@@ -367,15 +367,14 @@ export class UserService {
     const userData = await this.findOne(id);
 
     const uploadDir = path.join(SHARED_STORAGE_PATH, String(id));
+    // const fileName = `profile.${extension}`;
     const destinationPath = path.join(uploadDir, 'profile.jpg');
 
     await fs.mkdir(uploadDir, {recursive: true});
     await fs.writeFile(destinationPath, fileBuffer);
 
-    // FIXED. joined the BASEURL e.g. https://localhost:4333 now it is a valid url
-    // and will pass the payload validation
-    // const newAvatarURL = path.join(BASEURL, STORAGE_URL_PATH, `${id}/profile.jpg`);
-    const newAvatarURL = new URL(path.posix.join(STORAGE_URL_PATH, `${id}/profile.jpg`), BASEURL).toString();
+    // const newAvatarURL = new URL(path.posix.join('/', `${id}/profile.jpg`), BASEURL).toString();
+    const newAvatarURL = path.posix.join('/', STORAGE_URL_PATH, `${id}`);
     
 
     // # would store only /storage/${id}/profile.jpg which result in invalid URL in schema

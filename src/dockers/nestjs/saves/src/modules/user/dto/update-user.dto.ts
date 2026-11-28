@@ -8,8 +8,9 @@ import { UserDto } from '../../../infrastructure/drizzle/schema/users/user.dto.j
 
 export const updateUserSchema = z.object({
   ...userSchema.update.pick({password: true}).shape,
-  user_profile: z.object({...userProfileSchema.update.omit({userId: true}).shape}).optional()
+  user_profile: z.object({...userProfileSchema.update.omit({userId: true, avatarUrl: true}).shape, avatarUrl: z.url().nullish()}).optional()
 }).strict()
+
 
 type test = z.infer<typeof updateUserSchema>
 //export const updateUserSchema = userSchema.update.omit({

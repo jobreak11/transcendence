@@ -11,16 +11,16 @@ export const trophies = pgTable("trophies", {
 
     description: text("description"),
 
-    imageUrl: varchar("image_url"),
+    imageUrl: varchar("image_url", {length: 500}),
 
     createdAt: timestamp("created_at", {withTimezone: true}).notNull().defaultNow()
 })
 
 const selectSchema = createSelectSchema(trophies, {
-    imageUrl: z.url().nullable()
+    imageUrl: z.string().max(500).nullable()
 });
 const insertSchema = createInsertSchema(trophies, {
-    imageUrl: z.url().nullish(),
+    imageUrl: z.string().max(500).nullish(),
     createdAt: z.coerce.date().optional()
 });
 

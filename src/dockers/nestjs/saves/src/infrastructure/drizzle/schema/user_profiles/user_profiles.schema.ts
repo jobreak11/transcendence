@@ -41,7 +41,7 @@ export const user_profiles = pgTable("user_profiles", {
 
 const insertUserProfileSchema = createInsertSchema(user_profiles, {
   displayName: (schema) => schema.min(1).nullish(),
-  avatarUrl: z.url().max(500).nullish(),
+  avatarUrl: z.string().max(500).nullish(),
   pronoun: z.enum(PronounType).nullish(),
   cardTheme: z.enum(PokerCardTheme).default(PokerCardTheme.STANDARD).optional()
 }).strict()

@@ -62,7 +62,7 @@ if [ ! -f "package.json" ]; then
   printf "Create new project\n"
   cd ${WORK_DIRECTORY}
   #run_suexec ${USER_ID} ${GROUP_ID} npx -y @nestjs/cli new nestjs -p npm --strict --skip-git
-  run_suexec ${USER_ID} ${GROUP_ID} pnpm dlx @nestjs/cli@12.0.15 new nestjs -p pnpm --strict --skip-git
+  run_suexec ${USER_ID} ${GROUP_ID} pnpm dlx @nestjs/cli@12.0.15 new nestjs -p pnpm --strict --skip-git --skip-install --skip-skills --no-observe
   cd ${NESTJS_DIR}
 
   if [ -d "/app/saves" ] && [ -n "$(ls -A /app/saves 2>/dev/null)" ]; then
@@ -85,7 +85,7 @@ fi
 if [ ! -d "${NESTJS_DIR}/node_modules" ] || [ -z "$(ls -A ${NESTJS_DIR}/node_modules)" ]; then
   cd ${NESTJS_DIR}
   printf "Install Dependencies\n"
-    run_suexec ${USER_ID} ${GROUP_ID} pnpm install --frozen-lockfile
+    CI=true run_suexec ${USER_ID} ${GROUP_ID} pnpm install --frozen-lockfile
 fi
 
 chown -R ${USER_ID}:${GROUP_ID} /transcend_storage
