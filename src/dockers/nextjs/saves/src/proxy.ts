@@ -139,7 +139,10 @@ export default async function proxy(request: NextRequest) {
   try {
     const refreshRes = await fetch(`${BACKEND_URL}/auth/refresh`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${refreshToken}` },
+      headers: {
+        Authorization: `Bearer ${refreshToken}`,
+        Cookie: `refreshToken=${refreshToken}`
+      },
       cache: "no-store",
     });
 

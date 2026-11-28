@@ -88,8 +88,9 @@ export default function ProfileImage({
         src={imageSource}
         alt="Profile picture"
         className="h-full w-full object-cover"
+        referrerPolicy="no-referrer"
         onError={() => {
-          console.error(
+          console.warn(
             "Unable to load profile image:",
             imageSource,
           );
