@@ -15,7 +15,6 @@ import googleOauthConfig from './config/google-oauth.config.js';
 import { GoogleStrategy } from './strategies/google.strategy.js';
 import fortyTwoOauthConfig from './config/fortyTwo-oauth.config.js';
 import { FortyTwoStrategy } from './strategies/fortyTwo.strategy.js';
-import { LobbyModule } from '../lobby/lobby.module.js';
 
 @Module({
   imports: [
