@@ -7,6 +7,12 @@ import refreshJwtConfig from '../config/refresh-jwt.config.js';
 import { AuthService } from '../auth.service.js';
 import { FastifyRequest } from 'fastify';
 
+// Shared extractor: 1. Cookie ('refreshToken') -> 2. Authorization Bearer Header
+const extractRefreshToken = ExtractJwt.fromExtractors([
+  (req: FastifyRequest) => req?.cookies?.refreshToken ?? null,
+  ExtractJwt.fromAuthHeaderAsBearerToken(),
+]);
+
 @Injectable()
 export class RefreshJwtStrategy extends PassportStrategy(Strategy, 'refresh-jwt') {
   constructor(
@@ -15,31 +21,25 @@ export class RefreshJwtStrategy extends PassportStrategy(Strategy, 'refresh-jwt'
     private authService: AuthService,
   ) {
     const secret = refreshJwtConfiguration.secret?.toString();
-    console.log('Verify Secret:', secret);
 
     if (!secret) {
       throw new Error('JWT SECRET environment variable is not defined');
     }
 
     super({
-      // 1. Extract the JWT from the 'refreshToken' cookie
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        (req: FastifyRequest) => {
-          return req?.cookies?.refreshToken ?? null;
-        },
-      ]),
+      jwtFromRequest: extractRefreshToken,
       secretOrKey: secret,
       ignoreExpiration: false,
       passReqToCallback: true,
     });
   }
 
-  // 2. Pass the cookie value to validateRefreshToken
   validate(req: FastifyRequest, payload: AuthJwtPayload) {
-    const refreshToken = req.cookies?.refreshToken;
+    // Re-use the same extractor to get the raw token from either cookie or Bearer header
+    const refreshToken = extractRefreshToken(req);
 
     if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token not found in cookies');
+      throw new UnauthorizedException('Refresh token not found in cookies or Authorization header');
     }
 
     const userId = payload.sub;

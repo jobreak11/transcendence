@@ -8,15 +8,43 @@ import { RefreshTokenSuccessDto } from "./types/dto";
 
 const publicPageRoute: string[] = ["/about", "/auth"];
 
-export default async function proxy(request: NextRequest) {
-  const { pathname, search } = request.nextUrl;
+// Helper: Build a 302 redirect dynamically from Nginx forwarded headers (no hardcoded host/port)
+const createDynamicRedirect = (
+  request: NextRequest,
+  relativePath: string
+): NextResponse => {
+  const proto =
+    request.headers.get("x-forwarded-proto")?.split(",")[0].trim() ||
+    request.nextUrl.protocol.replace(":", "") ||
+    "https";
+  const host =
+    request.headers.get("x-forwarded-host")?.split(",")[0].trim() ||
+    request.headers.get("host") ||
+    request.nextUrl.host;
 
-  // 1. Allow public routes immediately
+  const targetUrl = new URL(relativePath, `${proto}://${host}`);
+  return NextResponse.redirect(targetUrl, 302);
+};
+
+export default async function proxy(request: NextRequest) {
+  const { pathname, search, searchParams } = request.nextUrl;
+
+  // Detect if Nginx @error401 sent the user here to refresh their token
+  const isAuthBridge = pathname === "/auth/bridge";
+  const rawCallbackUrl = searchParams.get("callbackUrl") || "/";
+  // Prevent open-redirect attacks: only allow single-slash relative paths
+  const safeCallbackUrl =
+    rawCallbackUrl.startsWith("/") && !rawCallbackUrl.startsWith("//")
+      ? rawCallbackUrl
+      : "/";
+
+  // 1. Allow public routes immediately (EXCEPT /auth/bridge which must run token refresh)
   if (
-    pathname === "/" ||
-    publicPageRoute.some(
-      (route) => pathname === route || pathname.startsWith(`${route}/`)
-    )
+    !isAuthBridge &&
+    (pathname === "/" ||
+      publicPageRoute.some(
+        (route) => pathname === route || pathname.startsWith(`${route}/`)
+      ))
   ) {
     return NextResponse.next();
   }
@@ -34,7 +62,13 @@ export default async function proxy(request: NextRequest) {
 
   const accessToken = request.cookies.get("accessToken")?.value;
   const refreshToken = request.cookies.get("refreshToken")?.value;
-  const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
+
+  // Check admin status if on /admin/* OR if /auth/bridge is redirecting back to /admin/*
+  const isAdminRoute =
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/") ||
+    (isAuthBridge &&
+      (safeCallbackUrl === "/admin" || safeCallbackUrl.startsWith("/admin/")));
 
   const checkEndpoint = isAdminRoute
     ? `${BACKEND_URL}/auth/admin/check`
@@ -78,7 +112,7 @@ export default async function proxy(request: NextRequest) {
     }
   };
 
-  // Helper: 401 Unauthorized (Not logged in or dead session -> redirect to login)
+  // Helper: 401 Unauthorized (Not logged in or dead session -> 302 to login)
   const handleUnauthorized = () => {
     if (pathname.startsWith("/api/protected/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -87,27 +121,24 @@ export default async function proxy(request: NextRequest) {
       return NextResponse.next();
     }
 
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/auth/signin";
-    redirectUrl.search = "";
-    redirectUrl.searchParams.set("callbackUrl", `${pathname}${search}`);
+    // Preserve original target URL (whether from Nginx bridge or normal Next.js page)
+    const targetCallback = isAuthBridge ? safeCallbackUrl : `${pathname}${search}`;
+    const signinRelativeUrl = `/auth/signin?callbackUrl=${encodeURIComponent(
+      targetCallback
+    )}`;
 
-    const response = NextResponse.redirect(redirectUrl);
+    const response = createDynamicRedirect(request, signinRelativeUrl);
     response.cookies.delete("accessToken");
     response.cookies.delete("refreshToken");
+
     return response;
   };
 
-  // Helper: 403 Forbidden (Logged in, but not authorized -> redirect to home)
+  // Helper: 403 Forbidden (Logged in, but not authorized -> 302 to home)
   const handleForbidden = (refreshedTokens?: RefreshTokenSuccessDto) => {
     const response = pathname.startsWith("/api/")
       ? NextResponse.json({ error: "Forbidden" }, { status: 403 })
-      : (() => {
-          const redirectUrl = request.nextUrl.clone();
-          redirectUrl.pathname = "/"; // Change to '/unauthorized' if you have a custom 403 page
-          redirectUrl.search = "";
-          return NextResponse.redirect(redirectUrl);
-        })();
+      : createDynamicRedirect(request, "/"); // Change to '/unauthorized' if you have a custom 403 page
 
     // Keep newly rotated tokens even on 403 (including /api/ JSON responses)
     if (refreshedTokens) {
@@ -127,6 +158,9 @@ export default async function proxy(request: NextRequest) {
   if (accessToken) {
     const initialCheck = await verifyAccessToken(accessToken);
     if (initialCheck?.ok) {
+      if (isAuthBridge) {
+        return createDynamicRedirect(request, safeCallbackUrl);
+      }
       return NextResponse.next();
     }
   }
@@ -141,7 +175,7 @@ export default async function proxy(request: NextRequest) {
       method: "POST",
       headers: {
         Authorization: `Bearer ${refreshToken}`,
-        Cookie: `refreshToken=${refreshToken}`
+        Cookie: `refreshToken=${refreshToken}`,
       },
       cache: "no-store",
     });
@@ -162,14 +196,18 @@ export default async function proxy(request: NextRequest) {
       if (!postRefreshAdminCheck) {
         return handleUnauthorized();
       }
-
       if (postRefreshAdminCheck.status === 403) {
         return handleForbidden(refreshedTokens);
       }
-
       if (!postRefreshAdminCheck.ok) {
         return handleUnauthorized();
       }
+    }
+
+    // Bounced from Nginx @error401 -> attach new cookies and redirect back to /admin/dozzle/
+    if (isAuthBridge) {
+      const bridgeRedirect = createDynamicRedirect(request, safeCallbackUrl);
+      return applyRefreshedCookies(bridgeRedirect, refreshedTokens);
     }
 
     // 6. Update request cookies so Server Components receive the fresh token on this render
