@@ -27,6 +27,31 @@ export class GameDatabaseService {
 
     }
 
+    async getAllGameMatches(limit: number = 50, offset: number = 0) {
+
+      if (limit < 0 || offset < 0) {
+        throw logError(
+          this.logger,
+          "error from getAllGameMatches()",
+          "invalid limit or offset",
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        )
+      }
+
+      const result = await this.db.query.game_matches.findMany({
+        with: {
+          user_game_matches: true
+        },
+        orderBy: {
+          endedAt: "desc"
+        },
+        limit: limit,
+        offset: offset
+      })
+
+      return result;
+    }
+
     async getGameMatches(userId: string, limit: number = 50, offset: number = 0) {
 
         const result = await this.db
