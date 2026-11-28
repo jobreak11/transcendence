@@ -112,6 +112,7 @@ const allowedPaths = new Set([
   '/game/lobby/members',
   '/game/lobby',
   '/game/matches',
+  '/game/matches/find',
   '/game/statistics',
   '/game/statistics/find',
   '/game/statistics/findRankIndex',
@@ -230,7 +231,7 @@ async function handleOAuthCallback(
     }
 }
 const tournamentPathPattern =
-  /^tournament(?:\/[0-9a-f-]{36}(?:\/(?:register|close-registration))?)?$/i;
+  /^tournament(?:\/[0-9a-f-]{36}(?:\/(?:register|close-registration))?|\/match-result\/[a-zA-Z0-9_-]{1,32})?$/i;
 
 async function handleRequest(request: NextRequest, { params }: { params: Promise<{ path: string[] }>}) {
   const resolvedParams = await params;

@@ -17,8 +17,9 @@ export default function PlayRoom() {
 
   useEffect(() => {
 
-    if (new URLSearchParams(window.location.search).get("tab") === "ranked") {
-      setActiveTab("ranked");
+    const requestedTab = new URLSearchParams(window.location.search).get("tab");
+    if (requestedTab === "ranked" || requestedTab === "tournament") {
+      setActiveTab(requestedTab);
     }
     const fetchUserProfile = async () => {
     let userProfile: GetUserProfileDto | null = null

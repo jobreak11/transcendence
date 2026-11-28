@@ -93,7 +93,13 @@
     "win": "ชนะ",
     "loss": "แพ้",
     "rounds": "รอบ",
-    "points": "คะแนน"
+    "round": "รอบ",
+    "finalRound": "รอบสุดท้าย",
+    "qualified": "ผ่านเข้ารอบ",
+    "disqualified": "ตกรอบ",
+    "pending": "กำลังประมวลผล",
+    "points": "คะแนน",
+    "goToMatch": "ไปหน้าสรุปผล"
   },
   
  "lobby": {

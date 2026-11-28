@@ -9,9 +9,15 @@ import { LobbyRoomType } from "../../lobby/redis/schemas/lobby-generalSettings.r
 import { logError } from "../../../utility/logError.js";
 import { user_game_matches } from "../../../infrastructure/drizzle/schema/user_game_matches/user_game_matches.schema.js";
 import { user_game_statistics } from "../../../infrastructure/drizzle/schema/user_game_statistics/user_game_statistics.schema.js";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { type WrapperType } from "../../../types/wrapperType.js";
 import { errorWithCode } from "../../../utility/errorWithCode.js";
+import {
+    TournamentGroupStatus,
+    tournamentGroupPlayers,
+    tournamentGroups,
+    tournamentRounds,
+} from "../../../infrastructure/drizzle/schema/tournaments/tournaments.schema.js";
 
 @Injectable()
 export class GameDatabaseService {
@@ -38,6 +44,65 @@ export class GameDatabaseService {
             .offset(offset);
 
         return result;
+    }
+
+    async getTournamentMatchDetails(userId: string, gameMatchIds: string[]) {
+        if (gameMatchIds.length === 0) return [];
+
+        const matches = await this.db
+            .select({
+                gameMatchId: tournamentGroups.gameMatchId,
+                roundId: tournamentRounds.id,
+                roundNumber: tournamentRounds.roundNumber,
+                groupStatus: tournamentGroups.status,
+                qualified: tournamentGroupPlayers.qualified,
+                playerPlace: tournamentGroupPlayers.place,
+            })
+            .from(tournamentGroups)
+            .innerJoin(tournamentRounds, eq(tournamentRounds.id, tournamentGroups.roundId))
+            .innerJoin(
+                tournamentGroupPlayers,
+                and(
+                    eq(tournamentGroupPlayers.groupId, tournamentGroups.id),
+                    eq(tournamentGroupPlayers.userId, userId),
+                ),
+            )
+            .where(inArray(tournamentGroups.gameMatchId, gameMatchIds));
+        if (matches.length === 0) return [];
+
+        const groupCounts = await this.db
+            .select({
+                roundId: tournamentGroups.roundId,
+                groupCount: count(),
+            })
+            .from(tournamentGroups)
+            .where(inArray(
+                tournamentGroups.roundId,
+                [...new Set(matches.map(({ roundId }) => roundId))],
+            ))
+            .groupBy(tournamentGroups.roundId);
+        const groupCountByRound = new Map(
+            groupCounts.map(({ roundId, groupCount }) => [roundId, groupCount]),
+        );
+
+        return matches.flatMap((match) => {
+            if (match.gameMatchId === null) return [];
+            const isFinalRound = groupCountByRound.get(match.roundId) === 1;
+            const status = match.groupStatus !== TournamentGroupStatus.COMPLETED
+                ? "PENDING" as const
+                : isFinalRound
+                    ? "FINAL" as const
+                    : match.qualified
+                        ? "QUALIFIED" as const
+                        : "DISQUALIFIED" as const;
+            return [{
+                gameMatchId: match.gameMatchId,
+                roundNumber: match.roundNumber,
+                isFinalRound,
+                status,
+                playerPlace: match.playerPlace,
+            }];
+        });
     }
 
     async createNewGameMatches(matchProgress: MatchProgress, matchEndedTimestamp: Date, lobbyPinId: string) {
@@ -105,6 +170,7 @@ export class GameDatabaseService {
 
         // insert multiple user statistics using insert but onConflictUpdate
 
+        const winningPlaceThreshold = Math.floor(Object.keys(matchProgress.playerPlaces).length / 2);
         const insertUserGameStatistics = insertUserGameMatchResult.map((value) => {
 
             return {
@@ -113,7 +179,7 @@ export class GameDatabaseService {
                 rankPoint: value.rankEarned,
                 totalHandsWon: value.winCount,
                 totalHandsPlayed: value.playCount,
-                totalMatchesWon: value.playerPlace < Object.keys(matchProgress.playerPlaces).length / 2 ? 1 : 0,
+                totalMatchesWon: value.playerPlace <= winningPlaceThreshold ? 1 : 0,
                 matchPlayed: 1
             }
         })

@@ -25,6 +25,8 @@ const createTournamentSchema = z.strictObject({
   name: z.string().trim().min(2).max(100),
   registrationEndsAt: z.coerce.date(),
   maxParticipants: z.number().int().min(2).max(100_000).nullable().optional(),
+  requirements: z.array(z.string().trim().min(1).max(500)).max(25).optional().default([]),
+  prizePools: z.array(z.string().trim().min(1).max(500)).max(25).optional().default([]),
 });
 
 type AuthenticatedRequest = { user: { id: string } };
@@ -42,6 +44,15 @@ export class InternalTournamentController {
     return this.tournamentService.list(request.user.id);
   }
 
+  @Get("match-result/:lobbyPinId")
+  @ApiOperation({ summary: "Get the current user's tournament match outcome" })
+  matchResult(
+    @Req() request: AuthenticatedRequest,
+    @Param("lobbyPinId") lobbyPinId: string,
+  ) {
+    return this.tournamentService.getMatchOutcome(lobbyPinId, request.user.id);
+  }
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Create a tournament" })
@@ -54,6 +65,8 @@ export class InternalTournamentController {
       name: body.name,
       registrationEndsAt: body.registrationEndsAt,
       maxParticipants: body.maxParticipants ?? null,
+      requirements: body.requirements,
+      prizePools: body.prizePools,
     }, request.user.id);
   }
 

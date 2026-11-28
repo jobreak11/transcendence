@@ -1,4 +1,4 @@
-import { boolean, integer, pgEnum, pgTable, primaryKey, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, integer, pgEnum, pgTable, primaryKey, text, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
 import { v7 as uuidv7 } from "uuid";
 import { users } from "../users/users.schema.js";
 import { game_matches } from "../game_matches/game_matches.schema.js";
@@ -31,6 +31,8 @@ export const tournaments = pgTable("tournaments", {
   hostUserId: uuid("host_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   registrationEndsAt: timestamp("registration_ends_at", { withTimezone: true }).notNull(),
   maxParticipants: integer("max_participants"),
+  requirements: text("requirements").array().notNull().default([]),
+  prizePools: text("prize_pools").array().notNull().default([]),
   status: tournamentStatusEnum("status").notNull().default(TournamentStatus.OPEN),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   startedAt: timestamp("started_at", { withTimezone: true }),

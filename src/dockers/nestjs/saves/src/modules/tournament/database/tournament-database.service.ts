@@ -37,6 +37,8 @@ export class TournamentDatabaseService {
       hostUserId: string;
       registrationEndsAt: Date;
       maxParticipants: number | null;
+      requirements: string[];
+      prizePools: string[];
     },
   ) {
     return this.db.insert(tournaments).values(input).returning().then(([created]) => {
@@ -47,8 +49,14 @@ export class TournamentDatabaseService {
 
   async list(viewerUserId: string) {
     const records = await this.db
-      .select()
+      .select({
+        tournament: tournaments,
+        hostTagId: users.tagId,
+        hostDisplayName: user_profiles.displayName,
+      })
       .from(tournaments)
+      .innerJoin(users, eq(users.id, tournaments.hostUserId))
+      .leftJoin(user_profiles, eq(user_profiles.userId, users.id))
       .orderBy(tournaments.registrationEndsAt);
     const [counts, viewerRegistrations] = await Promise.all([
       this.db
@@ -72,11 +80,12 @@ export class TournamentDatabaseService {
       registeredTournamentIds.add(tournamentId);
     }
 
-    return records.map((record) => ({
-      ...record,
-      participantCount: countByTournament.get(record.id) ?? 0,
-      isHost: record.hostUserId === viewerUserId,
-      isRegistered: registeredTournamentIds.has(record.id),
+    return records.map(({ tournament, hostTagId, hostDisplayName }) => ({
+      ...tournament,
+      hostUsername: hostDisplayName?.trim() || hostTagId,
+      participantCount: countByTournament.get(tournament.id) ?? 0,
+      isHost: tournament.hostUserId === viewerUserId,
+      isRegistered: registeredTournamentIds.has(tournament.id),
     }));
   }
 
@@ -198,6 +207,65 @@ export class TournamentDatabaseService {
         groups: groupsByRound.get(round.roundNumber) ?? [],
       })),
       currentLobbyPinId: currentGroup?.lobbyPinId ?? null,
+    };
+  }
+
+  async getMatchOutcome(lobbyPinId: string, userId: string) {
+    const [match] = await this.db
+      .select({
+        groupStatus: tournamentGroups.status,
+        roundId: tournamentRounds.id,
+        roundNumber: tournamentRounds.roundNumber,
+        tournamentStatus: tournaments.status,
+        qualified: tournamentGroupPlayers.qualified,
+        playerPlace: tournamentGroupPlayers.place,
+      })
+      .from(tournamentGroups)
+      .innerJoin(tournamentRounds, eq(tournamentRounds.id, tournamentGroups.roundId))
+      .innerJoin(tournaments, eq(tournaments.id, tournamentRounds.tournamentId))
+      .innerJoin(tournamentGroupPlayers, eq(tournamentGroupPlayers.groupId, tournamentGroups.id))
+      .where(and(
+        eq(tournamentGroups.lobbyPinId, lobbyPinId),
+        eq(tournamentGroupPlayers.userId, userId),
+      ))
+      .limit(1);
+
+    if (!match) throw new NotFoundException("Tournament match not found.");
+    const [roundGroupCount] = await this.db
+      .select({ groupCount: count() })
+      .from(tournamentGroups)
+      .where(eq(tournamentGroups.roundId, match.roundId));
+    const isFinalRound = roundGroupCount?.groupCount === 1;
+    if (
+      match.tournamentStatus === TournamentStatus.COMPLETED
+      || match.tournamentStatus === TournamentStatus.CANCELLED
+    ) {
+      return {
+        status: "FINAL" as const,
+        roundNumber: match.roundNumber,
+        isFinalRound,
+        playerPlace: match.playerPlace,
+      };
+    }
+    if (match.groupStatus !== TournamentGroupStatus.COMPLETED) {
+      return {
+        status: "PENDING" as const,
+        roundNumber: match.roundNumber,
+        isFinalRound,
+      };
+    }
+    if (isFinalRound) {
+      return {
+        status: "FINAL" as const,
+        roundNumber: match.roundNumber,
+        isFinalRound,
+        playerPlace: match.playerPlace,
+      };
+    }
+    return {
+      status: match.qualified ? "QUALIFIED" as const : "DISQUALIFIED" as const,
+      roundNumber: match.roundNumber,
+      isFinalRound,
     };
   }
 

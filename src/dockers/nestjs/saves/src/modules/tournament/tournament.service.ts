@@ -55,6 +55,8 @@ export class TournamentService implements OnModuleInit, OnModuleDestroy {
     name: string;
     registrationEndsAt: Date;
     maxParticipants: number | null;
+    requirements: string[];
+    prizePools: string[];
   }, hostUserId: string) {
     if (input.registrationEndsAt.getTime() <= Date.now()) {
       throw new ConflictException("Registration end time must be in the future.");
@@ -68,6 +70,10 @@ export class TournamentService implements OnModuleInit, OnModuleDestroy {
 
   detail(tournamentId: string, viewerUserId: string) {
     return this.database.detail(tournamentId, viewerUserId);
+  }
+
+  getMatchOutcome(lobbyPinId: string, userId: string) {
+    return this.database.getMatchOutcome(lobbyPinId, userId);
   }
 
   register(tournamentId: string, userId: string) {

@@ -93,7 +93,13 @@
     "win": "Win",
     "loss": "Loss",
     "rounds": "Rounds",
-    "points": "Points"
+    "round": "Round",
+    "finalRound": "Final Round",
+    "qualified": "Qualified",
+    "disqualified": "Disqualified",
+    "pending": "Pending",
+    "points": "Points",
+    "goToMatch": "Summary"
   },
 
   "lobby": {

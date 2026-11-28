@@ -21,11 +21,18 @@ export class InternalGameMatchesService {
         // must check if target user exist
         const targetUser = await this.userService.findOne(userId);
         const result = await this.gameDatabaseService.getGameMatches(userId, limit, offset);
-
+        const tournamentDetails = await this.gameDatabaseService.getTournamentMatchDetails(
+            userId,
+            result.map(({game_matches}) => game_matches.id),
+        );
+        const tournamentDetailsByMatchId = new Map(
+            tournamentDetails.map((details) => [details.gameMatchId, details] as const),
+        );
 
         const formatted: GetGameMatchDto[] = result.map((value) => {
 
             const {id, ...extracted} = value.game_matches;
+            const tournament = tournamentDetailsByMatchId.get(value.game_matches.id);
 
             return {
                 gameMatchId: value.game_matches.id,
@@ -34,6 +41,7 @@ export class InternalGameMatchesService {
                 winCount: value.user_game_matches.winCount,
                 playCount: value.user_game_matches.playCount,
                 playerPlace: value.user_game_matches.playerPlace,
+                ...(tournament ? {tournament} : {}),
                 gameMatch: extracted
             }
         })
@@ -41,9 +49,13 @@ export class InternalGameMatchesService {
         return formatted;
     }
 
-    async findMatch(gameMatchId: string): Promise<FullGameMatchDto> {
+    async findMatch(gameMatchId: string, userId: string): Promise<FullGameMatchDto> {
 
         const match = await this.gameDatabaseService.findOne(gameMatchId);
+        const [tournament] = await this.gameDatabaseService.getTournamentMatchDetails(
+            userId,
+            [gameMatchId],
+        );
 
         const formattedUserResult = match.user_game_matches.map((value) => {
 
@@ -56,7 +68,8 @@ export class InternalGameMatchesService {
 
         return {
             ...extractedMatch,
-           userMatchResult: formattedUserResult 
+            ...(tournament ? {tournament} : {}),
+            userMatchResult: formattedUserResult,
         }
     }
     

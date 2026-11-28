@@ -49,7 +49,7 @@ export class InternalGameMatchesUserController {
         @Query('gameMatchId', ParseUUIDPipe) gameMatchId: string
     ) {
 
-        return this.internalGameMatchesService.findMatch(gameMatchId);
+        return this.internalGameMatchesService.findMatch(gameMatchId, req.user.id);
     }
 
 }

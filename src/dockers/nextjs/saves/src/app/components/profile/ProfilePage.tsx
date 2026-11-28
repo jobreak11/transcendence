@@ -37,6 +37,18 @@ export default function ProfilePage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    const requestedTab = new URLSearchParams(window.location.search).get("tab");
+    if (
+      requestedTab === "main"
+      || requestedTab === "statistics"
+      || requestedTab === "history"
+      || requestedTab === "settings"
+    ) {
+      setActiveTab(requestedTab);
+    }
+  }, []);
+
+  useEffect(() => {
     let isMounted = true;
 
     async function loadProfile() {

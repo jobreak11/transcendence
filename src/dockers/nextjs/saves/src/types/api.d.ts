@@ -2296,6 +2296,12 @@ export interface components {
              */
             endedAt: string;
         };
+        TournamentMatchHistoryDto: {
+            roundNumber: number;
+            isFinalRound: boolean;
+            status: "PENDING" | "QUALIFIED" | "DISQUALIFIED" | "FINAL";
+            playerPlace: number | null;
+        };
         GetGameMatchDto: {
             /** @description the game match id */
             gameMatchId: string;
@@ -2309,6 +2315,7 @@ export interface components {
             rankEarned: number;
             /** @description the exp that earn from this match */
             expEarned: number;
+            tournament?: components["schemas"]["TournamentMatchHistoryDto"];
             /** @description the game match details */
             gameMatch: components["schemas"]["GameMatchNoIdDto"];
         };
@@ -2366,6 +2373,7 @@ export interface components {
              * @description the timestamp when the match was ended
              */
             endedAt: string;
+            tournament?: components["schemas"]["TournamentMatchHistoryDto"];
             /** @description each user match result */
             userMatchResult: components["schemas"]["UserGameMatchNoGameMatchId"][];
         };

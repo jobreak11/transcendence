@@ -93,7 +93,13 @@
     "win": "胜利",
     "loss": "失败",
     "rounds": "局数",
-    "points": "积分"
+    "round": "轮",
+    "finalRound": "决赛轮",
+    "qualified": "已晋级",
+    "disqualified": "未晋级",
+    "pending": "处理中",
+    "points": "积分",
+    "goToMatch": ""
   },
   
   "lobby": {

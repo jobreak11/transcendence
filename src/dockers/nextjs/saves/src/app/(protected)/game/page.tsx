@@ -801,6 +801,14 @@ export default function Page() {
         {successMessage && (
           <p role="status" className="text-emerald-300">{successMessage}</p>
         )}
+        {scheduledStartAt
+          && secondsUntilTournamentStart !== null
+          && secondsUntilTournamentStart > 0
+          && !gameState && (
+            <p aria-live="polite">
+              Tournament starts in {secondsUntilTournamentStart}s
+            </p>
+          )}
       </div>
 
       <GameTable
