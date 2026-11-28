@@ -182,10 +182,7 @@ export default function AccountSettings({
       setMessage("");
 
       try {
-        /*
-         * In development, check the browser console
-         * to confirm exactly what is being sent.
-         */
+        
         if (
           process.env.NODE_ENV ===
           "development"
@@ -286,10 +283,6 @@ export default function AccountSettings({
     } finally {
       setIsUploading(false);
 
-      /*
-       * Allow the user to select the same file
-       * again after a failed upload.
-       */
       input.value = "";
     }
   }
@@ -482,101 +475,4 @@ export default function AccountSettings({
     </section>
   );
 }
-
-// "use client";
-
-// import { useState } from "react";
-// import type { FormEvent } from "react";
-// import ProfileImage from "./ProfileImage";
-// import type { Profile } from "../../../lib/types";
-
-// type AccountSettingsProps = {
-//   profile: Profile;
-//   onSave: (profile: Profile) => void;
-// };
-
-// export default function AccountSettings({
-//   profile,
-//   onSave,
-// }: AccountSettingsProps) {
-//   const [draft, setDraft] = useState(profile);
-//   const [message, setMessage] = useState("");
-
-//   function handleSubmit(event: FormEvent<HTMLFormElement>) {
-//     event.preventDefault();
-//     onSave(draft);
-//     setMessage("Changes saved.");
-//   }
-
-//   return (
-//     <section className="content active">
-//       <form className="blogbox profile-card" onSubmit={handleSubmit}>
-//         <ProfileImage className="large-profile-image" />
-//         <div className="profile-details settings-details">
-//           <div className="settings-grid">
-//             <div>ID: {draft.id}</div>
-//             <label>
-//               Display Name:{" "}
-//               <input
-//                 value={draft.username}
-//                 onChange={(event) =>
-//                   setDraft({ ...draft, username: event.target.value })
-//                 }
-//               />
-//             </label>
-//             <label>
-//               Pronoun:{" "}
-//               <select
-//                 value={draft.pronoun}
-//                 onChange={(event) =>
-//                   setDraft({
-//                     ...draft,
-//                     pronoun: event.target.value as Profile["pronoun"],
-//                   })
-//                 }
-//               >
-//                 <option value="he">He/Him</option>
-//                 <option value="she">She/Her</option>
-//                 <option value="they">They/Them</option>
-//               </select>
-//             </label>
-//             <label>
-//               Title:{" "}
-//               <select
-//                 value={draft.title}
-//                 onChange={(event) =>
-//                   setDraft({ ...draft, title: event.target.value })
-//                 }
-//               >
-//                 <option>Poker Rookie</option>
-//                 <option>DaveChips 888</option>
-//                 <option>Dont@Me</option>
-//               </select>
-//             </label>
-//           </div>
-//           <br></br>
-//           <hr />
-//           <br></br>
-//           <label className="signature-field">
-//             Signature:{" "}
-//             <input
-//               value={draft.signature}
-//               onChange={(event) =>
-//                 setDraft({ ...draft, signature: event.target.value })
-//               }
-//             />
-//           </label>
-//           <div className="save-row">
-//             <span aria-live="polite">{message}</span>
-//             <button type="submit" className="red-button">
-//               Save
-//             </button>
-//           </div>
-//         </div>
-//       </form>
-//     </section>
-//   );
-// }
-
-
 

@@ -42,10 +42,7 @@ export default function ProfilePage() {
     async function loadProfile() {
       try {
         setError("");
-        /*
-         * No accessToken argument is needed.
-         * The browser sends its HttpOnly cookie.
-         */
+       
         const loadedProfile = await getMyProfile();
 
         if (!isMounted) return;
@@ -54,12 +51,7 @@ export default function ProfilePage() {
           setProfile(loadedProfile);
           setIsNewProfile(false);
         } else {
-          /*
-           * HTTP 404:
-           * authenticated account exists,
-           * but profile information is not saved yet.
-           */
-          // setProfile(createEmptyProfile());
+          
           setIsNewProfile(true);
           setActiveTab("settings");
         }

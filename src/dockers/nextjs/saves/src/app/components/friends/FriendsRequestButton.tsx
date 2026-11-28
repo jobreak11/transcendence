@@ -1,223 +1,59 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useState } from "react";
+import { sendFriendRequest } from "../../../lib/friends-api";
 
-import {
-  acceptFriendRequest,
-  rejectFriendRequest,
-  sendFriendRequest,
-  type FriendshipStatus,
-} from "../../../lib/friends-api";
-
-type FriendActionButtonProps = {
-  targetUserId: string;
-  initialStatus:
-    | FriendshipStatus
-    | null;
-
-  onStatusChange?: (
-    status: FriendshipStatus,
-  ) => void;
+type FriendRequestButtonProps = {
+  targetTagId: string;
 };
 
-export default function FriendActionButton({
-  targetUserId,
-  initialStatus,
-  onStatusChange,
-}: FriendActionButtonProps) {
-  const [status, setStatus] =
-    useState(initialStatus);
+export default function FriendRequestButton({
+  targetTagId,
+}: FriendRequestButtonProps) {
+  const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const [error, setError] = useState("");
 
-  const [isLoading, setIsLoading] =
-    useState(false);
+  async function handleClick() {
+    if (!targetTagId || status !== "idle") return;
 
-  const [message, setMessage] =
-    useState("");
-
-  useEffect(() => {
-    setStatus(initialStatus);
-  }, [initialStatus]);
-
-  function updateStatus(
-    nextStatus: FriendshipStatus,
-  ) {
-    setStatus(nextStatus);
-    onStatusChange?.(nextStatus);
-  }
-
-  async function handleAdd() {
-    setIsLoading(true);
-    setMessage("");
+    setStatus("sending");
+    setError("");
 
     try {
-      await sendFriendRequest(
-        targetUserId,
-      );
-
-      updateStatus(
-        "OUTGOING_PENDING",
-      );
-
-      setMessage(
-        "Friend request sent.",
-      );
+      await sendFriendRequest(targetTagId);
+      setStatus("sent");
     } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "Unable to send request.",
+      setStatus("idle");
+      setError(
+        error instanceof Error ? error.message : "Unable to send request.",
       );
-    } finally {
-      setIsLoading(false);
     }
-  }
-
-  async function handleAccept() {
-    setIsLoading(true);
-    setMessage("");
-
-    try {
-      await acceptFriendRequest(
-        targetUserId,
-      );
-
-      updateStatus("FRIENDS");
-
-      setMessage(
-        "Friend request accepted.",
-      );
-    } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "Unable to accept request.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function handleReject() {
-    setIsLoading(true);
-    setMessage("");
-
-    try {
-      await rejectFriendRequest(
-        targetUserId,
-      );
-
-      updateStatus("NONE");
-
-      setMessage(
-        "Friend request rejected.",
-      );
-    } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "Unable to reject request.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  if (status === null) {
-    return (
-      <span className="text-sm text-zinc-400">
-        Loading…
-      </span>
-    );
-  }
-
-  if (status === "SELF") {
-    return null;
-  }
-
-  if (status === "FRIENDS") {
-    return (
-      <span className="text-sm text-green-400">
-        Friends
-      </span>
-    );
-  }
-
-  if (
-    status ===
-    "OUTGOING_PENDING"
-  ) {
-    return (
-      <span className="text-sm text-yellow-300">
-        Request sent
-      </span>
-    );
-  }
-
-  if (
-    status ===
-    "INCOMING_PENDING"
-  ) {
-    return (
-      <div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            className="red-button"
-            disabled={isLoading}
-            onClick={handleAccept}
-          >
-            {isLoading
-              ? "Please wait…"
-              : "Accept"}
-          </button>
-
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={handleReject}
-            className="
-              rounded-md border
-              border-zinc-500 px-3 py-1
-              text-white hover:bg-zinc-700
-              disabled:opacity-50
-            "
-          >
-            Reject
-          </button>
-        </div>
-
-        <p
-          className="text-sm text-zinc-300"
-          aria-live="polite"
-        >
-          {message}
-        </p>
-      </div>
-    );
   }
 
   return (
-    <div>
+    <div className="mt-6 flex flex-col items-center">
       <button
         type="button"
-        className="red-button"
-        disabled={isLoading}
-        onClick={handleAdd}
+        onClick={handleClick}
+        disabled={!targetTagId || status !== "idle"}
+        className="rounded-md bg-red-700 px-5 py-2 font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-neutral-700 disabled:text-neutral-400"
       >
-        {isLoading
+        {status === "sending"
           ? "Sending…"
-          : "Add Friend"}
+          : status === "sent"
+            ? "Request sent"
+            : "Add Friend"}
       </button>
 
-      <p
-        className="text-sm text-zinc-300"
-        aria-live="polite"
-      >
-        {message}
-      </p>
+      <span className="sr-only" role="status">
+        {status === "sent" ? "Friend request sent." : ""}
+      </span>
+
+      {error && (
+        <p className="mt-2 max-w-64 text-center text-sm text-red-400" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
