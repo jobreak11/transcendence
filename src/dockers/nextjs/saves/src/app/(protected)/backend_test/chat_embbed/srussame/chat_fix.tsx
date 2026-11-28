@@ -573,7 +573,7 @@ export function ChatEmbbed() {
                       }}
                       className="text-neutral-400 hover:underline mr-1"
                     >
-                      [{msg.roomName}]
+                      [{userNames[msg.senderUserId]}]
                     </button>
                     <span className="text-neutral-300 mr-1">&lt;{senderLabel}&gt;:</span>
                     <span className={color}>{msg.message}</span>
