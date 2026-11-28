@@ -17,8 +17,6 @@ export default function PlayerStatistics({
   const { dictionary } = useLanguage();
   const [statistics, setStatistics] =
     useState<UserGameStatisticDto | null>(null);
-  const [setHasNoGameStatistics] =
-    useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -28,11 +26,7 @@ export default function PlayerStatistics({
     getMyGameStatistics()
       .then((result) => {
         if (isMounted) {
-          if (result === null) {
-            setHasNoGameStatistics(true);
-          } else {
-            setStatistics(result);
-          }
+          setStatistics(result);
         }
       })
       .catch((loadError: unknown) => {
