@@ -147,7 +147,7 @@ export default function ProfilePage() {
         )}
 
         {activeTab === "statistics" && (
-          <PlayerStatistics />
+          <PlayerStatistics profile={profile} />
         )}
 
         {activeTab === "history" && (

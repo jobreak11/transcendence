@@ -17,6 +17,7 @@ import {
   updateMyProfile,
   uploadProfilePicture,
   type PronounType,
+  type PokerCardTheme,
   // type UpdateUserProfileRequest,
   type UserProfileUpdateFields,
   type UserProfileResponse,
@@ -35,6 +36,7 @@ type AccountSettingsProps = {
 type ProfileDraft = {
   displayName: string;
   pronoun: PronounType | "";
+  cardTheme: PokerCardTheme;
   signature: string;
 };
 
@@ -55,6 +57,9 @@ function createDraft(
 
     pronoun:
       profile.user_profile?.pronoun ?? "",
+
+    cardTheme:
+      profile.user_profile?.cardTheme ?? "standard",
 
     signature:
       profile.user_profile?.signature ?? "",
@@ -148,6 +153,14 @@ export default function AccountSettings({
       ) {
         requestBody.pronoun =
           draft.pronoun || null;
+      }
+
+      if (
+        draft.cardTheme !==
+        originalDraft.cardTheme
+      ) {
+        requestBody.cardTheme =
+          draft.cardTheme;
       }
 
       if (
@@ -387,8 +400,32 @@ export default function AccountSettings({
                 "No active title"}
             </div>
 
+            <label>
+              Poker Card Theme:{" "}
+              <select
+                value={draft.cardTheme}
+                disabled={isBusy}
+                onChange={(event) => {
+                  setDraft((current) => ({
+                    ...current,
+                    cardTheme:
+                      event.target.value as PokerCardTheme,
+                  }));
+
+                  setMessage("");
+                }}
+              >
+                <option value="standard">
+                  Standard
+                </option>
+                <option value="Nasturzia">
+                  Nasturzia
+                </option>
+              </select>
+            </label>
+
             <div>
-              {dictionary.profile.title}: {profile.email}
+              {dictionary.profile.email}: {profile.email}
             </div>
           </div>
 

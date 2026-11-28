@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ActionButtons, { type GameDictionary } from "./ActionButtons";
 import { CardSlot, PlayerHand, PopUpTop, PopUpUnder, SeatIcon } from "./BoardLayout";
 import ProfileImage from "../../../components/profile/ProfileImage";
 import type { PokerActionType, PublicGameState } from "../types";
+import { getMyProfile, type PokerCardTheme } from "../../../../lib/profile-api";
 
 const SEAT_POSITIONS = [
   { seat: "top-[85%] left-[50%]", hand: "top-[70%] left-[50%]" },
@@ -65,14 +66,16 @@ function CardImage({
   card,
   alt,
   delay = 0,
+  theme = "standard",
 }: {
   card: string;
   alt: string;
   delay?: number;
+  theme?: PokerCardTheme;
 }) {
   return (
     <img
-      src={`/theme/standard/${card}.svg`}
+      src={`/theme/${theme}/${card}.svg`}
       alt={alt}
       className="deal-card h-full w-full object-contain"
       style={{ animationDelay: `${delay}ms` }}
@@ -181,6 +184,17 @@ export default function GameTable({
     playerId: string;
     name: string;
   } | null>(null);
+  const [cardTheme, setCardTheme] = useState<PokerCardTheme>("standard");
+
+  useEffect(() => {
+    getMyProfile()
+      .then((profile) => {
+        setCardTheme(profile.user_profile?.cardTheme ?? "standard");
+      })
+      .catch(() => {
+        setCardTheme("standard");
+      });
+  }, []);
 
   const myPlayer = gameState?.players.find(
     (player) => player.playerId === userId,
@@ -241,6 +255,7 @@ export default function GameTable({
                           card={card}
                           alt={`Community card ${cardIndex + 1}`}
                           delay={cardIndex * 100}
+                          theme={cardTheme}
                         />
                         <PopUpUnder>
                           <p className="text-sm font-semibold">{getCardName(card)}</p>
@@ -351,6 +366,7 @@ export default function GameTable({
                           ? `${displayName}'s card ${cardIndex + 1}`
                           : "Face-down card"}
                         delay={(playerIndex * 2 + cardIndex) * 100}
+                        theme={cardTheme}
                       />
                     </div>
                   </CardSlot>

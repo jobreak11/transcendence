@@ -118,7 +118,8 @@ export class AuthService implements OnModuleInit {
     }
 
     return ({
-      id: userId
+      id: userId,
+      role: user.role
     })
   }
 
@@ -139,6 +140,8 @@ export class AuthService implements OnModuleInit {
 
   async validateJwtUser(userId: string) {
     const user = await this.userService.findOne(userId);
+
+    user.role
 
     if (!user) {
       throw new UnauthorizedException('User Not Found!');
