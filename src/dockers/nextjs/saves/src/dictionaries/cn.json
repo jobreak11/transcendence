@@ -34,7 +34,10 @@
     "join": "加入",
     "yes": "是",
     "no": "否",
-    "lobby": "大厅"
+    "lobby": "大厅",
+    "trophies": "奖杯",
+    "nofriends": "还没好友，可以加一下哦",
+    "notrophies": "还没有奖杯"
   },
 
   "auth": {

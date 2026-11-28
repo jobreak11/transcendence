@@ -34,7 +34,10 @@
     "join": "Join",
     "yes": "Yes",
     "no": "No",
-    "lobby": "Lobby"
+    "lobby": "Lobby",
+    "trophies": "Trophies",
+    "nofriends": "No friends yet",
+    "notrophies": "No trophies unlocked yet"
   },
 
   "auth": {

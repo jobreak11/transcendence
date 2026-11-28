@@ -18,6 +18,12 @@ import {
 
 import type { ProfileTab } from "../../../lib/types";
 
+//game stats
+import {
+  getMyGameStatistics,
+  type UserGameStatisticDto,
+} from "../../../lib/profile-api";
+
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -135,7 +141,9 @@ export default function ProfilePage() {
         )}
 
         {activeTab === "main" && (
-          <MainProfile profile={profile} />
+          <MainProfile 
+            profile={profile}
+          />
         )}
 
         {activeTab === "statistics" && (
