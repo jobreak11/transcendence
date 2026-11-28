@@ -770,6 +770,33 @@ function GamePageContent() {
 
   return (
     <main className="min-h-screen w-full bg-radial from-green-900 via-green-950 via-55% to-black flex justify-center items-center relative overflow-hidden text-white">
+      <div className="absolute top-4 left-4 z-70 rounded bg-black/70 px-4 py-2 text-sm">
+        <p>Table: {tableSessionId || "Enter your lobby roomPinId above"}</p>
+        {gameState && (
+          <p>
+            {gameState.round}
+            {gameState.roundNumber && !gameState.settled
+              ? ` · Round ${gameState.roundNumber}/4`
+              : ""}
+            {gameState.cycleNumber
+              ? ` · Cycle ${gameState.cycleNumber}, hand ${gameState.handNumber ?? 1}`
+              : ""}
+          </p>
+        )}
+        {gameState?.currentPlayerId && actionSecondsLeft !== null && (
+          <p aria-live="polite">
+            {gameState.currentPlayerId === userId ? "Your action" : "Player action"}
+            {" · "}
+            {actionSecondsLeft}s remaining
+          </p>
+        )}
+        {lastAction && <p aria-live="polite">Last action: {lastAction}</p>}
+        {error && <p role="alert" className="text-red-300">{error}</p>}
+        {successMessage && (
+          <p role="status" className="text-emerald-300">{successMessage}</p>
+        )}
+      </div>
+
       <GameTable
         gameState={gameState}
         userId={userId}

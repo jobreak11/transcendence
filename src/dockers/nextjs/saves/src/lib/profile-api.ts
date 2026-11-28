@@ -10,8 +10,8 @@ export type PronounType =
   (typeof PRONOUN_OPTIONS)[number];
 
 export type PokerCardTheme =
-  | "STANDARD"
-  | "FANTASY";
+  | "standard"
+  | "Nasturzia";
 
 export type UserProfileDetails = {
   displayName: string | null;
@@ -33,7 +33,23 @@ export type UserProfileResponse = {
     UserProfileDetails | null;
 };
 
+export type UserGameStatisticDto = {
+  userId: string;
+  expPoint: number;
+  level: number;
+  rankPoint: number;
+  matchPlayed: number;
+  totalMatchesWon: number;
+  totalHandsPlayed: number;
+  totalHandsWon: number;
+};
 
+/*
+ * Editable fields inside user_profile.
+ *
+ * Every field is optional because PATCH should send
+ * only properties that have changed.
+ */
 export type UserProfileUpdateFields = {
   displayName?: string | null;
   avatarUrl?: string | null;
@@ -97,7 +113,7 @@ async function readResponseBody(
   }
 }
 
-async function createApiError(
+export async function createApiError(
   response: Response,
 ) {
   const responseBody =
@@ -192,6 +208,45 @@ Promise<UserProfileResponse> {
 
   return response.json() as
     Promise<UserProfileResponse>;
+}
+
+export async function getMyGameStatistics():
+Promise<UserGameStatisticDto | null> {
+  const response = await fetch(
+    "/api/game/statistics/find",
+    {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+      },
+    },
+  );
+
+  if (!response.ok) {
+    const responseBody =
+      response.status === 404
+        ? null
+        : await readResponseBody(response.clone());
+    const errorData =
+      typeof responseBody === "object" &&
+      responseBody !== null
+        ? responseBody as ApiErrorResponse
+        : null;
+
+    if (
+      response.status === 404 ||
+      errorData?.statusCode === 404
+    ) {
+      return null;
+    }
+
+    throw await createApiError(response);
+  }
+
+  return response.json() as
+    Promise<UserGameStatisticDto>;
 }
 
 export async function updateMyProfile(

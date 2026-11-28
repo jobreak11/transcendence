@@ -99,9 +99,24 @@ export class InternalTrophiesDeveloperController {
             throw new BadRequestException("field name must be 'file'")
         }
 
-        const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-        if (!allowedMimeTypes.includes(part.mimetype)) {
-            throw new BadRequestException("invalid file type to upload")
+        // const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+        // if (!allowedMimeTypes.includes(part.mimetype)) {
+        //     throw new BadRequestException("invalid file type to upload")
+        // }
+
+        const mimeToExt: Record<string, string> = {
+          'image/jpeg': 'jpg',
+          'image/jpg': 'jpg',
+          'image/png': 'png',
+          'image/svg+xml': 'svg',
+        };
+    
+        const ext = mimeToExt[part.mimetype];
+        if (!ext) {
+          part.file.resume(); // Important: drain stream before throwing
+          throw new BadRequestException(
+            'Invalid file type. Only JPG, JPEG, PNG, and SVG are allowed',
+          );
         }
 
         const buffer = await part.toBuffer();
@@ -110,7 +125,7 @@ export class InternalTrophiesDeveloperController {
             throw new PayloadTooLargeException("file size exceeds the limit");
         }
 
-        const res = await this.internalTrophiesService.uploadTropyPic(trophyId , buffer);
+        const res = await this.internalTrophiesService.uploadTropyPic(trophyId , buffer, ext);
 
         return {
             ...res

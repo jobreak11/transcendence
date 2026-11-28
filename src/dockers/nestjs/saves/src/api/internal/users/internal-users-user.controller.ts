@@ -189,9 +189,24 @@ export class InternalUsersUserController {
       throw new BadRequestException('Field name must be "file"');
     }
 
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-    if (!allowedMimeTypes.includes(part.mimetype)) {
-      throw new BadRequestException('Only JPG, JPEG, and PNG files are allowed');
+    // const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    // if (!allowedMimeTypes.includes(part.mimetype)) {
+    //   throw new BadRequestException('Only JPG, JPEG, and PNG files are allowed');
+    // }
+
+    const mimeToExt: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/jpg': 'jpg',
+      'image/png': 'png',
+      'image/svg+xml': 'svg',
+    };
+    
+    const ext = mimeToExt[part.mimetype];
+    if (!ext) {
+      part.file.resume(); // Important: drain stream before throwing
+      throw new BadRequestException(
+        'Invalid file type. Only JPG, JPEG, PNG, and SVG are allowed',
+      );
     }
 
     const buffer = await part.toBuffer();
@@ -200,7 +215,7 @@ export class InternalUsersUserController {
       throw new PayloadTooLargeException('File size exceeds the 10MB limit');
     }
 
-    const res = await this.userService.uploadProfilePic(req.user.id, buffer);
+    const res = await this.userService.uploadProfilePic(req.user.id, buffer, ext);
 
     return {
       avatarUrl: res.user_profile?.avatarUrl ?? null

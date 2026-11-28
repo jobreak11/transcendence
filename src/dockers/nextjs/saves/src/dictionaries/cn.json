@@ -77,6 +77,7 @@
     "playstyle": "打法风格",
     "displayName": "昵称",
     "pronoun": "代词",
+    "email": "",
     "title": "称号",
     "id": "用户 ID",
     "highestGain": "单局最高加分",

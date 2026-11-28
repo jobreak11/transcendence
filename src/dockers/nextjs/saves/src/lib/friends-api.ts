@@ -6,6 +6,13 @@ export type FriendRecord = {
   displayName?: string | null;
 };
 
+export type FriendshipStatus =
+  | "NONE"
+  | "OUTGOING_PENDING"
+  | "INCOMING_PENDING"
+  | "FRIENDS"
+  | "SELF";
+
 export type FriendData = {
   receivedRequests: FriendRecord[];
   sentRequests: FriendRecord[];

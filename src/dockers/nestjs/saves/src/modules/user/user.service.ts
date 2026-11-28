@@ -113,6 +113,8 @@ export class UserService {
 
       })
 
+      await this.usersCachingService.cacheDeleteUser(res.id);
+      await this.usersCachingService.cachingUser(res);
       return res
     } catch (error: any) {
       this.logger.error({
@@ -362,21 +364,25 @@ export class UserService {
     }
   }
 
-  async uploadProfilePic(id: string, fileBuffer: Buffer): Promise<UserAndProfileDto> {
+  async uploadProfilePic(id: string, fileBuffer: Buffer, extension: string): Promise<UserAndProfileDto> {
 
     const userData = await this.findOne(id);
 
     const uploadDir = path.join(SHARED_STORAGE_PATH, String(id));
-    // const fileName = `profile.${extension}`;
-    const destinationPath = path.join(uploadDir, 'profile.jpg');
+    const fileName = `profile.${extension}`;
+    const destinationPath = path.join(uploadDir, fileName);
 
     await fs.mkdir(uploadDir, {recursive: true});
+
+    for (const oldExt of ['jpg', 'png']) {
+      if (oldExt !== extension) {
+        await fs.rm(path.join(uploadDir, `profile.${oldExt}`), { force: true });
+      }
+    }
     await fs.writeFile(destinationPath, fileBuffer);
 
     // const newAvatarURL = new URL(path.posix.join('/', `${id}/profile.jpg`), BASEURL).toString();
-    const newAvatarURL = path.posix.join('/', STORAGE_URL_PATH, `${id}`);
-    
-
+    const newAvatarURL = path.posix.join('/', STORAGE_URL_PATH, `${id}/${fileName}`);
     // # would store only /storage/${id}/profile.jpg which result in invalid URL in schema
     //const newAvatarURL = path.join( STORAGE_URL_PATH, `${id}/profile.jpg`);
 
