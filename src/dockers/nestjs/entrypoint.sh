@@ -54,75 +54,16 @@ if [ "${USER_ID}" -ne 0 ]; then
   chown -R "${USER_ID}:${GROUP_ID}" /app
 fi
 
+run_suexec ${USER_ID} ${GROUP_ID} cp /app/pnpm-lock.yaml "${NESTJS_DIR}/pnpm-lock.yaml"
+run_suexec ${USER_ID} ${GROUP_ID} cp /app/pnpm-workspace.yaml "${NESTJS_DIR}/pnpm-workspace.yaml"
+
 cd ${NESTJS_DIR}
 if [ ! -f "package.json" ]; then
   printf "Create new project\n"
   cd ${WORK_DIRECTORY}
   #run_suexec ${USER_ID} ${GROUP_ID} npx -y @nestjs/cli new nestjs -p npm --strict --skip-git
-  run_suexec ${USER_ID} ${GROUP_ID} pnpm dlx @nestjs/cli new nestjs -p pnpm --strict --skip-git
+  run_suexec ${USER_ID} ${GROUP_ID} pnpm dlx @nestjs/cli@12.0.15 new nestjs -p pnpm --strict --skip-git --skip-install --skip-skills --no-observe
   cd ${NESTJS_DIR}
-
-  # run_suexec ${USER_ID} ${GROUP_ID} printf "allowBuilds:\n  argon2: true\n  '@scarf/scarf': true\n  esbuild: true\n\npackages:\n  - '.'\n\noverrides:\n  '@nestjs/common': '@nestjs/common'\n  '@nestjs/core': '@nestjs/core'\n" > pnpm-workspace.yaml
-  run_suexec ${USER_ID} ${GROUP_ID} sh -c 'cat << "EOF" > pnpm-workspace.yaml
-allowBuilds:
-  argon2: true
-  "@scarf/scarf": true
-  esbuild: true
-
-packages:
-  - "."
-
-overrides:
-  fastify: "5.12.5"
-
-EOF
-'
-
-  # run_suexec ${USER_ID} ${GROUP_ID} node -e 'const fs=require("fs"),f="tsconfig.json",c=JSON.parse(fs.readFileSync(f,"utf8"));c.compilerOptions=c.compilerOptions||{};c.compilerOptions.paths=Object.assign(c.compilerOptions.paths||{},{"@nestjs/common":["./node_modules/@nestjs/common"],"@nestjs/common/*":["./node_modules/@nestjs/common/*"],"@nestjs/core":["./node_modules/@nestjs/core"],"@nestjs/core*":["./node_modules/@nestjs/core*"]});fs.writeFileSync(f,JSON.stringify(c,null,2)+"\n");'
-
-  # run_suexec ${USER_ID} ${GROUP_ID} echo "dedupe-peer-dependents=true" >> .npmrc
-
-
-  #run_suexec ${USER_ID} ${GROUP_ID} pnpm add -D @types/bcrypt @types/passport-local @types/passport-jwt \
-  #  @types/ms
-
-  #@nestjs/common @nestjs/core @nestjs/platform-express reflect-metadata rxjs \
-  run_suexec ${USER_ID} ${GROUP_ID} pnpm add \
-  class-validator class-transformer \
-  @nestjs/swagger \
-  @nestjs/websockets @nestjs/platform-socket.io \
-  pg \
-  @nestjs/config \
-  multer \
-  @nestjs/jwt @nestjs/passport passport passport-jwt passport-local \
-  argon2 ioredis redis-mock socket.io \
-  passport-google-oauth20 \
-  passport-oauth2  \
-  uuid \
-  dotenv \
-  @nestjs/platform-fastify \
-  @fastify/static @fastify/multipart @fastify/cookie \
-  fastify \
-  zod \
-  @nestjs/throttler \
-  drizzle-orm@rc
-  # @nestjs/typeorm typeorm \
-
-
-    #@types/node \
-    #@types/express \
-  run_suexec ${USER_ID} ${GROUP_ID} pnpm add -D \
-    tsx \
-    typescript@npm:@typescript/typescript6 \
-    @types/passport \
-    @types/passport-jwt \
-    @types/multer \
-    @types/passport-local \
-    @types/ms @types/redis-mock \
-    @types/passport-google-oauth20 \
-    @types/passport-oauth2 \
-    @types/pg \
-    drizzle-kit@rc
 
   if [ -d "/app/saves" ] && [ -n "$(ls -A /app/saves 2>/dev/null)" ]; then
     printf "Restoring project from /app/saves\n"
@@ -130,8 +71,13 @@ EOF
     run_suexec ${USER_ID} ${GROUP_ID} cp -r /app/saves/* ./ || true
   fi
 
+  run_suexec ${USER_ID} ${GROUP_ID} cp /app/pnpm-lock.yaml "${NESTJS_DIR}/pnpm-lock.yaml"
+  run_suexec ${USER_ID} ${GROUP_ID} cp /app/pnpm-workspace.yaml "${NESTJS_DIR}/pnpm-workspace.yaml"
+  run_suexec ${USER_ID} ${GROUP_ID} cp /app/package.json "${NESTJS_DIR}/package.json"
+  run_suexec ${USER_ID} ${GROUP_ID} pnpm install --frozen-lockfile
+
   cd ${NESTJS_DIR}
-  run_suexec ${USER_ID} ${GROUP_ID} pnpm drizzle-kit push
+  # run_suexec ${USER_ID} ${GROUP_ID} pnpm drizzle-kit push
   # Need to insert atleast 1 admin user automatically
 
 fi
@@ -139,7 +85,7 @@ fi
 if [ ! -d "${NESTJS_DIR}/node_modules" ] || [ -z "$(ls -A ${NESTJS_DIR}/node_modules)" ]; then
   cd ${NESTJS_DIR}
   printf "Install Dependencies\n"
-    run_suexec ${USER_ID} ${GROUP_ID} pnpm install
+    CI=true run_suexec ${USER_ID} ${GROUP_ID} pnpm install --frozen-lockfile
 fi
 
 chown -R ${USER_ID}:${GROUP_ID} /transcend_storage
@@ -147,9 +93,30 @@ chown -R ${USER_ID}:${GROUP_ID} /transcend_storage
 
 cd ${NESTJS_DIR}
 run_suexec ${USER_ID} ${GROUP_ID} pnpm drizzle-kit push
-run_suexec ${USER_ID} ${GROUP_ID} pnpm tsx "src/drizzle/seed.ts"
-if [ "${USER_ID}" -ne 0 ]; then
-  exec su-exec "${USER_ID}:${GROUP_ID}" "$@"
+run_suexec ${USER_ID} ${GROUP_ID} pnpm tsx "src/infrastructure/drizzle/seed.ts"
+
+if [ $# -ne 0 ]; then
+  if [ "${USER_ID}" -ne 0 ]; then
+    exec su-exec "${USER_ID}:${GROUP_ID}" "$@"
+  else
+    exec "$@"
+  fi
 else
-  exec "$@"
+
+  if [ "${TRANSCENDENCE_PRODUCTION_MODE}" = "FALSE" ]; then
+    if [ "${USER_ID}" -ne 0 ]; then
+      exec su-exec "${USER_ID}:${GROUP_ID}" npm run start:dev
+    else
+      exec npm run start:dev
+    fi
+  else
+
+    if [ "${USER_ID}" -ne 0 ]; then
+      exec su-exec "${USER_ID}:${GROUP_ID}" npm run start
+    else
+      exec npm run start
+    fi
+  fi
+
 fi
+

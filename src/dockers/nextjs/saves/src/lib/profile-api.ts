@@ -222,10 +222,6 @@ export async function updateMyProfile(
     );
   }
 
-  /*
-   * Swagger requires the editable fields to be
-   * nested inside user_profile.
-   */
   const requestBody:
     UpdateUserRequest = {
       user_profile: profileChanges,
@@ -264,10 +260,6 @@ export async function updateMyProfile(
     );
   }
 
-  /*
-   * The PATCH response may contain only a success
-   * message, so fetch the complete updated profile.
-   */
   return getMyProfile();
 }
 
@@ -318,104 +310,68 @@ export async function uploadProfilePicture(
       response,
     );
   }
-
-  /*
-   * Reload the profile to receive the new avatarUrl.
-   */
   return getMyProfile();
 }
 
-// export const PRONOUN_OPTIONS = [
-//   "he/him",
-//   "she/her",
-//   "they/them",
-//   "prefer not to say",
-// ] as const;
 
-// export type PronounType =
-//   (typeof PRONOUN_OPTIONS)[number];
+// Friend Profile
+export type PublicUserProfileResponse = {
+  /*
+   * Internal UUID used by the friend API.
+   */
+  userId: string;
+  /*
+   * Public identifier used in the URL.
+   */
+  tagId: string;
 
-// export type PokerCardTheme =
-//   | "STANDARD"
-//   | "FANTASY";
+  createdAt: string;
+  titleName: string | null;
+  isSelf?: boolean;
 
-// export type UserProfileResponse = {
-//   userId: string;
-//   displayName: string | null;
-//   avatarUrl: string | null;
-//   pronoun: PronounType | null;
-//   signature: string | null;
-//   activeTitleId: string | null;
-//   cardTheme: PokerCardTheme;
-// };
+  user_profile: {
+    displayName: string | null;
+    avatarUrl: string | null;
+    pronoun: PronounType | null;
+    signature: string | null;
+    activeTitleId: string | null;
+    cardTheme: PokerCardTheme;
+  } | null;
+};
 
-// export type UpdateUserProfileRequest = {
-//   displayName?: string | null;
-//   pronoun?: PronounType | null;
-//   signature?: string | null;
-//   activeTitleId?: string | null;
-//   cardTheme?: PokerCardTheme;
-// };
+export async function getPublicProfileByTagId(
+  tagId: string,
+  signal?: AbortSignal,
+): Promise<PublicUserProfileResponse> {
+  const trimmedTagId =
+    tagId.trim();
 
-// // const API_URL = process.env.NEXT_PUBLIC_API_URL;
-// const API_URL ="https://localhost:4333/nestjs";
+  if (!trimmedTagId) {
+    throw new Error(
+      "A profile tag ID is required.",
+    );
+  }
 
-// function requireApiUrl() {
-//   if (!API_URL) {
-//     throw new Error(
-//       "NEXT_PUBLIC_API_URL is missing from .env.local",
-//     );
-//   }
+  const searchParams =
+    new URLSearchParams({
+      tagId: trimmedTagId,
+    });
 
-//   return API_URL;
-// }
+  const response = await fetch(
+    `/api/user/profile?${searchParams.toString()}`,
+    {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+      signal,
+    },
+  );
 
-// export async function getMyProfile(): Promise<UserProfileResponse> {
-//   const apiUrl = requireApiUrl();
- 
+  if (!response.ok) {
+    throw await createApiError(
+      response,
+    );
+  }
 
-//   const response = await fetch(`${apiUrl}/user/profile`, {
-//     method: "GET",
-//     credentials: "include",
-//     cache: "no-store",
-//   });
-
-//   if (!response.ok) {
-//     throw new Error(
-//       `Unable to load profile: ${response.status}`,
-//     );
-//   }
-
-//   return (await response.json()) as UserProfileResponse;
-// }
-
-// export async function updateMyProfile(
-//   profile: UpdateUserProfileRequest,
-// ): Promise<UserProfileResponse> {
-//   const apiUrl = requireApiUrl();
-
-//   const response = await fetch(`${apiUrl}/user/update`, {
-//     method: "PATCH",
-//     credentials: "include",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify(profile),
-//   });
-
-//   if (!response.ok) {
-//     const errorBody = await response.text();
-
-//     throw new Error(
-//       errorBody ||
-//         `Unable to update profile: ${response.status}`,
-//     );
-//   }
-
-//   /*
-//    * We do not yet know whether PATCH /user/update returns
-//    * the updated profile. Fetching it again works whether the
-//    * PATCH response is empty or contains another response shape.
-//    */
-//   return getMyProfile();
-// }
+  return response.json();
+}

@@ -1,13 +1,16 @@
-FROM node:alpine
+FROM node:alpine3.24
 WORKDIR /app
-RUN apk update && apk add --no-cache grep shadow sed su-exec python3 make g++ linux-headers
+RUN apk add --no-cache grep shadow sed su-exec python3 make g++ linux-headers
 RUN npm install -g pnpm
 COPY ./saves ./saves
 COPY entrypoint.sh ./entrypoint.sh
 COPY healthcheckscript.sh ./healthcheckscript.sh
+COPY ./pnpm-lock.yaml ./pnpm-lock.yaml
+COPY ./pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY ./package.json ./package.json
 RUN chmod +x ./entrypoint.sh ./healthcheckscript.sh
 # RUN chmod -R 777 /home/node/app
 # USER node
 ENTRYPOINT [ "./entrypoint.sh" ]
-CMD [ "npm", "run", "start:dev" ]
+# CMD [ "npm", "run", "start:dev" ]
 EXPOSE 3000

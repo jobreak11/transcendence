@@ -4,9 +4,11 @@ import { useState } from "react";
 import CasualRoomForm from "./CasualRoomForm";
 import TournamentRequestForm from "./TournamentRequestForm";
 import type { CustomTab } from "../../../lib/types";
+import { useLanguage } from "../language/LanguageProvider";
 
 export default function CustomMode() {
   const [activeTab, setActiveTab] = useState<CustomTab>("casual-settings");
+  const { dictionary } = useLanguage();
 
   return (
     <section className="flex flex-col">
@@ -19,7 +21,7 @@ export default function CustomMode() {
             }`}
             onClick={() => setActiveTab("casual-settings")}
           >
-            Casual
+            {dictionary.lobby.casual}
           </button>
           <button
             type="button"
@@ -28,12 +30,12 @@ export default function CustomMode() {
             }`}
             onClick={() => setActiveTab("tournament-settings")}
           >
-            Tournament
+            {dictionary.lobby.tournament}
           </button>
         </div>
 
         {activeTab === "casual-settings" ? (
-          <CasualRoomForm />
+          <CasualRoomForm onCreated={() => {}}/>
         ) : (
           <TournamentRequestForm />
         )}

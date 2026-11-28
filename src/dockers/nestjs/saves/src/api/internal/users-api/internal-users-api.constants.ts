@@ -1,0 +1,4 @@
+
+export const USER_API_DEVELOPER_API_LIMIT = 40;
+export const USER_API_EDITOR_API_LIMIT = 20;
+export const USER_API_USER_API_LIMIT = 10;

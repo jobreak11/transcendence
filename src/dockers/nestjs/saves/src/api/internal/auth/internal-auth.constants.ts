@@ -1,0 +1,11 @@
+export const THROTTLER_AUTH_ADMIN_CHECK_TTL = 10_000
+export const THROTTLER_AUTH_ADMIN_CHECK_LIMIT = 20;
+
+export const THROTTLER_AUTH_SIGNUP_LIMIT = 3;
+export const THROTTLER_AUTH_SIGNUP_TTL = 1000 * 10;
+
+export const THROTTLER_AUTH_LOGIN_LIMIT = 10;
+export const THROTTLER_AUTH_LOGIN_TTL = 1000 * 60; // only 10 login request 
+
+export const THROTTLER_AUTH_SIGNOUT_LIMIT = 10;
+export const THROTTLER_AUTH_SIGNOUT_TTL = 1000 * 60; // per user

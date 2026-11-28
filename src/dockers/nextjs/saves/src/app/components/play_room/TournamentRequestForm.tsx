@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useLanguage } from "../language/LanguageProvider";
 
 const inputStyles =
   "max-w-full rounded-md border border-[#666] bg-[#2a2a2a] px-2.5 py-1 text-white outline-none focus:ring-2 focus:ring-red-600";
 
 export default function TournamentRequestForm() {
   const [message, setMessage] = useState("");
+  const {dictionary} = useLanguage();
 
   return (
     <form
@@ -17,7 +19,7 @@ export default function TournamentRequestForm() {
       }}
     >
       <label className="flex w-full items-center gap-3 max-[800px]:flex-wrap">
-        <span>Host/Organization:</span>
+        <span>{dictionary.tournament.host}:</span>
         <input
           name="host"
           className={`${inputStyles} min-w-[40%] flex-1 max-[800px]:w-full max-[800px]:min-w-0`}
@@ -25,7 +27,7 @@ export default function TournamentRequestForm() {
       </label>
 
       <fieldset className="flex w-full items-center gap-3 border-0 p-0 max-[800px]:flex-wrap">
-        <legend>Required Players:</legend>
+        <legend>{dictionary.tournament.requiredPlayer}:</legend>
         {[16, 32, 64].map((players) => (
           <label key={players}>
             <input
@@ -44,7 +46,7 @@ export default function TournamentRequestForm() {
       <DateRange label="Compete Date" prefix="compete" />
 
       <label className="flex w-full items-center gap-3 max-[800px]:flex-wrap">
-        <span>Requirements:</span>
+        <span>{dictionary.tournament.requirements}:</span>
         <input
           name="requirements"
           className={`${inputStyles} min-w-[70%] flex-1 max-[800px]:w-full max-[800px]:min-w-0`}
@@ -59,7 +61,7 @@ export default function TournamentRequestForm() {
           type="submit"
           className="inline-flex cursor-pointer items-center justify-center rounded-lg border-0 bg-red-600 px-2.5 py-2 text-[clamp(18px,calc(16px+2vw),24px)] font-bold text-white hover:bg-red-700 focus-visible:bg-red-700"
         >
-          Create
+          {dictionary.tournament.create}
         </button>
       </div>
     </form>

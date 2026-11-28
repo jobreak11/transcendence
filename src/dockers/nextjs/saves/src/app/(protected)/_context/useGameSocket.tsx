@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from "next/router";
 import React, { Children, createContext, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
@@ -39,7 +38,7 @@ export function GameSocketProvider({
       return;
     }
 
-    const socketInstance: Socket = io(`${window.location.origin}/game`, {
+    const socketInstance: Socket = io(`/game`, {
       path: '/socket.io',
       transports: ['websocket'],
       auth: {

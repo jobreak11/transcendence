@@ -234,7 +234,7 @@ check_secret() {
 
     if [ ${AUTOMATIC_INSTALL} = 1 ]; then
       printf "auto-generated password by openssl => ${secret_file_path}\n"
-      password="$(openssl rand -base64 ${minimum_password_length})"
+      password="$(openssl rand -base64 ${minimum_password_length} | tr -d '\n')"
       break
     else
       printf "Please Enter Password for ${secret_file_path} (leave blank will auto generated using openssl)\n"
@@ -244,7 +244,7 @@ check_secret() {
       stty echo
       printf "\n"
       if [ -z "${user_password_input}" ]; then
-        password="$(openssl rand -base64 ${minimum_password_length})"
+        password="$(openssl rand -base64 ${minimum_password_length} | tr -d '\n')"
         break
       else
         password="${user_password_input}"
@@ -295,10 +295,10 @@ while IFS= read -r line <&3 || [ -n "$line" ]; do
     fi
 
     # various checks based on each key
-    if printf "${key}" | ${GREP_CMD} -qP "PORT"; then
-      check_env "${key}" "${value}" "check_port_function"
+    # if printf "${key}" | ${GREP_CMD} -qP "PORT"; then
+    #   check_env "${key}" "${value}" "check_port_function"
 
-    elif printf "${key}" | ${GREP_CMD} -qP "^DOCKER_SOCKET_PATH"; then
+    if printf "${key}" | ${GREP_CMD} -qP "^DOCKER_SOCKET_PATH"; then
     # for DOCKER_SOCKET_PATH require specific treatment
 
       # need to check first if .env already has this key or not
@@ -323,6 +323,18 @@ while IFS= read -r line <&3 || [ -n "$line" ]; do
       check_env "${key}" "${value}" "check_normal_value_function"
       combined_secret_path="${SECRETS_DIR_PATH}/${USER_INPUT_OUT}"
       check_secret "${combined_secret_path}" "80"
+
+    elif printf "${key}" | ${GREP_CMD} -qP "^TRANSCENDENCE_LOCAL_IP"; then
+      will_replace=0
+      if find_key "${ENV_FILE}" "${key}"; then
+        will_replace=1
+      fi
+      current_local_ip="$(hostname -i | awk '{print $1}')"
+      if [ "${will_replace}" = 0 ]; then
+        echo "${key}=${current_local_ip}" >> "${ENV_FILE}"
+      else
+        ${SED_CMD} -i -E "s|(^${key}=).*$|\1${current_local_ip}|" "${ENV_FILE}"
+      fi
   
     elif printf "${key}" | ${GREP_CMD} -qP "^.*SECRET_FILENAME"; then
     # this will promt user to type the password or auto generate the password

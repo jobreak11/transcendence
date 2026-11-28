@@ -1,0 +1,186 @@
+{
+  "language" :{
+    "select": "选择语言",
+    "english": "English",
+    "Thai": "ไทย",
+    "chinese": "中文"
+  },
+
+ "game": {
+    "fold": "弃牌",
+    "call": "跟注",
+    "check": "过牌",
+    "raise": "加注",
+    "allIn": "全押",
+    "cancelRaise": "取消",
+    "additionalChips": "加注筹码数",
+    "confirmRaise": "确认加注",
+    "yourTurn": "轮到你了",
+    "switchToThai": "ไทย",
+    "switchToThaiLabel": "切换至泰语",
+    "switchToEnglish": "English",
+    "switchToEnglishLabel": "切换至英语",
+    "switchToChinese": "中文",
+    "switchToChineseLabel": "切换至中文"
+  },
+
+  "common": {
+    "play": "开始游戏",
+    "login": "登录",
+    "logout": "退出登录",
+    "save": "保存",
+    "backToMain": "返回主页",
+    "goToTop": "返回顶部",
+    "join": "加入",
+    "yes": "是",
+    "no": "否",
+    "lobby": "大厅"
+  },
+
+  "auth": {
+    "signInWithGoogle": "使用 Google 登录",
+    "signInWithTikTok": "使用 TikTok 登录",
+    "signInWithLine": "使用 LINE 登录",
+    "signInWithFacebook": "使用 Facebook 登录",
+    "signInWith42Intra": "使用 42 Intra 登录"
+  },
+
+  "navigation": {
+    "about": "关于",
+    "statistics": "数据统计",
+    "history": "对局记录",
+    "settings": "设置",
+    "rank": "排位赛",
+    "tournament": "锦标赛",
+    "custom": "自定义房间"
+  },
+
+  "home": {
+    "aboutUs": "关于我们",
+    "learnMore": "了解更多",
+    "description": "Transcend 888 是一款在线扑克游戏，也是 42 项目 Transcendence 的一部分。本项目为非商业项目，永久免费。",
+    "paragraph": "随时随地，和朋友轻松玩几局扑克，或登录账号记录战绩、看看自己的进步。无需金币或筹码，也无需付费。"
+  },
+
+  "profile": {
+    "joined": "加入时间",
+    "level": "等级",
+    "status": "状态",
+    "matchesPlayed": "对局数",
+    "roundsWon": "获胜局数",
+    "winRate": "胜率",
+    "signature": "个性签名",
+    "friends": "好友",
+    "trophies": "奖杯",
+    "likes": "获赞数",
+    "blackjackRate": "Blackjack 胜率",
+    "playstyle": "打法风格",
+    "displayName": "昵称",
+    "pronoun": "代词",
+    "title": "称号",
+    "id": "用户 ID",
+    "highestGain": "单局最高加分",
+    "highestLoss": "单局最高扣分",
+    "highestRank": "最高排名"
+  },
+
+  "history": {
+    "time": "时间",
+    "mode": "模式",
+    "enemy": "对手",
+    "results": "对局结果",
+    "win": "胜利",
+    "loss": "失败",
+    "rounds": "局数",
+    "points": "积分"
+  },
+  
+  "lobby": {
+    "casual": "休闲模式",
+    "host": "房主",
+    "catchphrase": "房间标语",
+    "private": "私人房间",
+    "players": "玩家",
+    "spectators": "观众",
+    "joinSpectators": "加入观战",
+    "rank": "排位赛",
+    "rankMode": "排位模式",
+    "point": "积分",
+    "position": "排名",
+    "winstreak": "连胜",
+    "highestStreak": "最高连胜",
+    "topRanking": "排行榜",
+    "tournament": "锦标赛",
+    "findMatch": "寻找对局",
+    "custom": "自定义",
+    "room": "房间",
+    "searchById": "按 ID 搜索",
+    "search": "搜索",
+    "createRoom": "创建房间",
+    "jumpIn": "立即加入",
+    "password": "密码",
+    "maxPlayer": "玩家人数上限",
+    "maxSpectator": "观众人数上限",
+    "format": "牌局形式",
+    "startingStack": "初始筹码",
+    "searchingRankedMatch": "正在寻找排位对局…",
+    "joined": "已加入",
+    "beginner": "新手",
+    "pro": "高手",
+    "turbo": "极速",
+    "bigBlind": "大盲注",
+    "loadingFormats": "正在加载游戏模式…",
+    "loadFormatsFailed": "无法加载游戏模式",
+    "invalidFormatSettings": "服务器返回的游戏模式设置无效",
+    "createLobbyFailed": "无法创建房间",
+    "missingLobbyId": "服务器响应中未包含房间ID",
+    "creating": "正在创建房间…"
+  },
+  
+  "tournament": {
+    "status": "状态",
+    "registrationDate": "报名时间",
+    "competitionDate": "比赛时间",
+    "host": "主办方",
+    "registered": "已报名",
+    "register": "报名参赛",
+    "details": "查看详情",
+    "requirements": "参赛条件",
+    "prizePools": "比赛奖励",
+    "registeredFor": "已报名参加",
+    "open": "报名中",
+    "announced": "已公布",
+    "requiredPlayer": "参赛要求",
+    "create": "创建",
+
+    "tournament42": {
+      "requirements": [
+        "参赛者须达到30级或以上",
+        "参赛者的排位积分须在1,000至3,000分之间",
+        "参赛者的游戏账号须已绑定42 Intra账号"
+      ],
+      "prizes": [
+        "第1名、第2名和第3名将分别获得金牌、银牌和铜牌奖杯，并获得赛事专属称号",
+        "排名前8的玩家将获得42 Tournament奖杯，并获得决赛选手专属称号",
+        "所有参加比赛的玩家都将获得参赛纪念称号",
+        "如玩家因任何原因被取消参赛资格，赛事主办方保留不向其发放奖励的权利"
+      ]
+    },
+
+    "transcendOpen": {
+      "requirements": [
+        "参赛者须达到10级或以上",
+        "本赛事不设排位积分要求"
+      ],
+      "prizes": [
+        "第1名将获得金牌奖杯、金色卡背和赛事专属头像",
+        "第2名将获得银牌奖杯和银色卡背",
+        "第3名将获得铜牌奖杯和铜色卡背",
+        "排名前16的玩家将获得Transcend Open限定卡背",
+        "所有参加比赛的玩家都将获得参赛纪念奖杯",
+        "如玩家因任何原因被取消参赛资格，赛事主办方保留不向其发放奖励的权利"
+      ]
+    }
+  }
+ 
+}

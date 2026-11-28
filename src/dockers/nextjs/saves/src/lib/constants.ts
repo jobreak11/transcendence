@@ -8,3 +8,7 @@ export const ACCESS_TOKEN_COOKIE_EXPIRE_TIME = 60 * 60 * 12;
 
 // cookie for refresh token is longer and would take 7 days
 export const REFRESH_TOKEN_COOKIE_EXPIRE_TIME = 60 * 60 * 24 * 7;
+
+export const TRANSCENDENCE_BASE_URL = `https://${process.env.TRANSCENDENCE_DOMAIN_NAME ?? "localhost"}:${process.env.TRANSCENDENCE_NGINX_BIND_PORT ?? "4333"}`
+export const TRANSCENDENCE_LOCAL_IP_BASE_URL = `https://${process.env.TRANSCENDENCE_LOCAL_IP_ADDRESS ?? "192.168.1.1"}:${process.env.TRANSCENDENCE_NGINX_BIND_PORT ?? "4333"}`
+

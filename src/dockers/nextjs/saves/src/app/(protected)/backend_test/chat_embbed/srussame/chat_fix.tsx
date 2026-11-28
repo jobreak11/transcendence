@@ -23,7 +23,7 @@ export interface UnifiedMessage {
   roomName: string;
   roomType: string;
   senderUserId: string;
-  senderUserName: string;
+  senderUserName?: string; // <-- Make optional with '?' (or remove if unused)
   message: string;
   type: 'USER_MESSAGE' | 'SYSTEM_MESSAGE' | string;
   timestamp: string;
@@ -188,20 +188,23 @@ export function ChatEmbbed() {
 
         return data.map((item: any) => {
           const { timestamp, rawCreatedAt } = formatTimestamp(item.createdAt);
-          const senderName = fetchUserProfileName(item.senderUserId);
+          const resolvedSenderId = item.userId || item.senderUserId || 'System';
+          void fetchUserProfileName(resolvedSenderId);
+
           return {
             id: buildMessageId(roomId, item),
             chatRoomId: roomId,
             roomName: targetRoom?.roomName || roomId.slice(0, 6),
             roomType: targetRoom?.visibilityType || 'PUBLIC',
-            senderUserId: item.userId || item.senderUserId || 'System',
-            senderUserName: senderName,
+            senderUserId: resolvedSenderId,
+            senderUserName: userNames[resolvedSenderId] || resolvedSenderId, // <-- Now a string!
             message: item.messageText || item.message || '',
             type: item.type || 'USER_MESSAGE',
             timestamp,
             rawCreatedAt,
           };
         });
+
       } catch (err) {
         console.error(`Failed to fetch history for room ${roomId}:`, err);
         return null;
@@ -368,20 +371,24 @@ export function ChatEmbbed() {
       const targetRoomId = payload.chatRoomId || 'public';
       const roomData = roomsRef.current.find((r) => r.id === targetRoomId);
 
+      const resolvedSenderId = payload.userId || payload.senderUserId || 'System';
+
       const newMsg: UnifiedMessage = {
         id: buildMessageId(targetRoomId, payload),
         chatRoomId: targetRoomId,
         roomName:
           roomData?.roomName || (targetRoomId === 'public' ? 'Global' : targetRoomId.slice(0, 6)),
         roomType: roomData?.visibilityType || (targetRoomId === 'public' ? 'PUBLIC' : 'DIRECT_MESSAGE'),
-        senderUserId: payload.userId || payload.senderUserId || 'System',
+        senderUserId: resolvedSenderId,
+        senderUserName: resolvedSenderId, // <-- Added string field
         message: payload.messageText || payload.message || '',
         type: payload.type || 'USER_MESSAGE',
         timestamp,
         rawCreatedAt,
       };
 
-      setMessages((prev) => {
+
+        setMessages((prev) => {
         if (prev.some((m) => m.id === newMsg.id)) return prev;
         return [...prev.slice(-250), newMsg];
       });

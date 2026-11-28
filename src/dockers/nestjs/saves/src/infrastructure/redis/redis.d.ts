@@ -1,0 +1,97 @@
+import 'ioredis'
+import { string } from 'zod';
+
+declare module 'ioredis' {
+  interface Redis {
+    lobbyRoomCreate(
+      allLobbyListsKey: string,
+      createUserLobbyListKey: string,
+
+      LobbyRoomMax: number,
+      newLobbyPinId: string,
+      hasCreator: string,
+      userLobbyLimit: number,
+    ): Promise<number>;
+
+    lobbyRoomJoin(
+      userLobbyListKey: string,
+      allLobbyListsKey: string,
+      spectatorMemberListKey: string,
+      playerMemberListKey: string,
+      lobbyGameSettingsKey: string,
+      lobbyGeneralSettingsKey: string,
+      lobbyDetailsKey: string,
+
+      isSpectator: "true" | "false",
+      joinUserId: string,
+      password: string,
+      lobbyPinId: string,
+      // current date as number
+      joinedAt: number,
+      userLobbyListLimit: number,
+      tournamentSeedJoin: "true" | "false",
+    ): Promise<number>;
+
+    lobbyRoomSwapRole(
+      playerMemberListKey: string,
+      spectatorMemberListKey: string,
+      gameSettingsKey: string,
+      lobbyDetailsKey: string,
+      readyPlayerListKey: string,
+      userId: string,
+    ): Promise<number | string>;
+
+    lobbyRoomLeave(
+
+      playerMemberListKey: string,
+      spectatorMemberListKey: string,
+      allLobbyListKey: string,
+      userLobbyListKey: string,
+      LobbygeneralSettingsKey: string,
+      lobbyGameSettingsKey: string,
+      lobbyDetailsKey: string,
+      readyPlayerListKey: string,
+
+      leaveUserId: string,
+      lobbyPinId: string,
+      matchComplete: string,
+    ): Promise<number | string>;
+
+    lobbyRoomSetStatus(
+      allLobbyListKey: string,
+      generalSettingsKey: string,
+      lobbyPinId: string,
+      setStatus: string
+    ): Promise<number>;
+
+    // ##############################################
+
+    setWithLimitAdd(
+      setKey: string,
+      newElement: string,
+      limit: number,
+    ): Promise<number>;
+
+    sortedSetFIFOWithLimitAdd(
+      sortedSetKey: string,
+      newElement: string,
+      limit: number,
+      score: number
+    ): Promise<[string, string] | null>
+
+    hsetOneIfKeyAndFieldExist(
+      hkey: string,
+      field: string,
+      value: string
+    ): Promise<number>;
+
+    writeChatRoomMessage(
+      chatRoomKey: string,
+      chatMessagelistKey: string,
+      newMessage: string , // bundled as JSON.stringtify
+      limit: number
+    ): Promise<number>
+
+  }
+
+}

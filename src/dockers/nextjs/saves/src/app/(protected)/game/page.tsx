@@ -1,0 +1,854 @@
+"use client";
+
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import enDictionary from "../../../dictionaries/en.json";
+import thDictionary from "../../../dictionaries/th.json";
+import type { GameLanguage } from "./components/ActionButtons";
+import HandInfo from "./components/handInfo";
+import GameTable from "./components/GameTable";
+import GameChat from "./components/GameChat";
+import type { PokerActionType, PublicGameState } from "./types";
+import { useGameSocket } from "../_context/useGameSocket";
+import { PokerEvent } from "../../../websocket-events/game/poker/poker-events";
+import { GameEvent } from "../../../websocket-events/game/game-events";
+import { GetLobbyPublicDto, JoinLobbyDto, LobbyDto, LobbyUserCreateDto } from "../../../types/dto";
+import { useMainSocket } from "../_context/useMainSocket";
+
+interface PokerActionEvent {
+  playerId: string;
+  actionType: "FOLD" | "CHECK" | "CALL" | "RAISE";
+  amount: number;
+}
+
+function isPublicGameState(value: unknown): value is PublicGameState {
+  if (
+    typeof value !== "object"
+    || value === null
+    || !("tableSessionId" in value)
+    || typeof value.tableSessionId !== "string"
+    || !("handId" in value)
+    || typeof value.handId !== "string"
+    || !("round" in value)
+    || typeof value.round !== "string"
+    || !("pot" in value)
+    || typeof value.pot !== "number"
+    || !("poolCards" in value)
+    || !Array.isArray(value.poolCards)
+    || !value.poolCards.every((card: unknown) => typeof card === "string")
+    || !("players" in value)
+    || !Array.isArray(value.players)
+  ) {
+    return false;
+  }
+
+  const playersAreValid = value.players.every((player: unknown) =>
+    typeof player === "object"
+    && player !== null
+    && "playerId" in player
+    && typeof player.playerId === "string"
+    && "stack" in player
+    && typeof player.stack === "number"
+    && "folded" in player
+    && typeof player.folded === "boolean"
+    && "allIn" in player
+    && typeof player.allIn === "boolean"
+    && (!("seatNumber" in player) || typeof player.seatNumber === "number")
+    && (!("roundContribution" in player) || typeof player.roundContribution === "number")
+  );
+  const optionalFieldsAreValid =
+    (!("ante" in value) || typeof value.ante === "number")
+    && (!("currentBet" in value) || typeof value.currentBet === "number")
+    && (
+      !("currentPlayerId" in value)
+      || typeof value.currentPlayerId === "string"
+      || value.currentPlayerId === null
+    )
+    && (!("settled" in value) || typeof value.settled === "boolean")
+    && (!("cycleComplete" in value) || typeof value.cycleComplete === "boolean")
+    && (!("matchComplete" in value) || typeof value.matchComplete === "boolean")
+    && (!("isRankedMatch" in value) || typeof value.isRankedMatch === "boolean")
+    && (!("totalHandsPlayed" in value) || typeof value.totalHandsPlayed === "number")
+    && (!("matchStartedAt" in value) || typeof value.matchStartedAt === "string")
+    && (!("matchEndedAt" in value) || typeof value.matchEndedAt === "string")
+    && (
+      !("playerNames" in value)
+      || (
+        typeof value.playerNames === "object"
+        && value.playerNames !== null
+        && !Array.isArray(value.playerNames)
+        && Object.values(value.playerNames).every((name: unknown) =>
+          typeof name === "string"
+        )
+      )
+    )
+    && (
+      !("playerAvatars" in value)
+      || (
+        typeof value.playerAvatars === "object"
+        && value.playerAvatars !== null
+        && !Array.isArray(value.playerAvatars)
+        && Object.values(value.playerAvatars).every((avatarUrl: unknown) =>
+          typeof avatarUrl === "string" || avatarUrl === null
+        )
+      )
+    )
+    && (
+      !("playerPlaces" in value)
+      || (
+        typeof value.playerPlaces === "object"
+        && value.playerPlaces !== null
+        && !Array.isArray(value.playerPlaces)
+        && Object.values(value.playerPlaces).every((place: unknown) =>
+          typeof place === "number"
+          && Number.isSafeInteger(place)
+          && place > 0
+        )
+      )
+    )
+    && (
+      !("playerStats" in value)
+      || (
+        typeof value.playerStats === "object"
+        && value.playerStats !== null
+        && !Array.isArray(value.playerStats)
+        && Object.values(value.playerStats).every((stats: unknown) =>
+          typeof stats === "object"
+          && stats !== null
+          && "playCount" in stats
+          && typeof stats.playCount === "number"
+          && Number.isSafeInteger(stats.playCount)
+          && stats.playCount >= 0
+          && "winCount" in stats
+          && typeof stats.winCount === "number"
+          && Number.isSafeInteger(stats.winCount)
+          && stats.winCount >= 0
+          && "expEarned" in stats
+          && typeof stats.expEarned === "number"
+          && Number.isSafeInteger(stats.expEarned)
+          && stats.expEarned >= 0
+          && "rankEarned" in stats
+          && typeof stats.rankEarned === "number"
+          && Number.isSafeInteger(stats.rankEarned)
+        )
+      )
+    )
+    && (
+      !("winners" in value)
+      || (
+        Array.isArray(value.winners)
+        && value.winners.every((winner: unknown) =>
+          typeof winner === "object"
+          && winner !== null
+          && "playerId" in winner
+          && typeof winner.playerId === "string"
+          && "amount" in winner
+          && typeof winner.amount === "number"
+          && (
+            !("hand" in winner)
+            || winner.hand === undefined
+            || typeof winner.hand === "string"
+          )
+        )
+      )
+    )
+    && (
+      !("revealedCards" in value)
+      || value.revealedCards === undefined
+      || (
+        typeof value.revealedCards === "object"
+        && value.revealedCards !== null
+        && Object.values(value.revealedCards).every((cards: unknown) =>
+          Array.isArray(cards)
+          && cards.every((card: unknown) => typeof card === "string")
+        )
+      )
+    );
+
+  return playersAreValid && optionalFieldsAreValid;
+}
+
+function isPokerActionEvent(value: unknown): value is PokerActionEvent {
+  return typeof value === "object"
+    && value !== null
+    && "playerId" in value
+    && typeof value.playerId === "string"
+    && "actionType" in value
+    && (value.actionType === "FOLD"
+      || value.actionType === "CHECK"
+      || value.actionType === "CALL"
+      || value.actionType === "RAISE")
+    && "amount" in value
+    && typeof value.amount === "number";
+}
+
+function isSuccessfulPokerSyncResponse(
+  value: unknown,
+): value is {
+  ok: true;
+  state: PublicGameState | null;
+  cards: string[];
+} {
+  return typeof value === "object"
+    && value !== null
+    && "ok" in value
+    && value.ok === true
+    && "state" in value
+    && (value.state === null || isPublicGameState(value.state))
+    && "cards" in value
+    && Array.isArray(value.cards)
+    && value.cards.every((card: unknown) => typeof card === "string");
+}
+
+function preservePlayerProfiles(
+  state: PublicGameState | null,
+  current: PublicGameState | null,
+): PublicGameState | null {
+  if (!state) return null;
+  const previous = current?.tableSessionId === state.tableSessionId
+    ? current
+    : null;
+
+  return {
+    ...state,
+    playerNames: { ...previous?.playerNames, ...state.playerNames },
+    playerAvatars: { ...previous?.playerAvatars, ...state.playerAvatars },
+  };
+}
+
+function isPlayersLoadedEvent(
+  value: unknown,
+): value is GameEvent.players_loaded.to_client.payload {
+  return typeof value === "object"
+    && value !== null
+    && "tableSessionId" in value
+    && typeof value.tableSessionId === "string"
+    && "readyCount" in value
+    && typeof value.readyCount === "number"
+    && "playerCount" in value
+    && typeof value.playerCount === "number"
+    && "allPlayersLoaded" in value
+    && typeof value.allPlayersLoaded === "boolean"
+    && "shouldAutoStartFirstHand" in value
+    && typeof value.shouldAutoStartFirstHand === "boolean"
+    && "scheduledStartAt" in value
+    && (
+      typeof value.scheduledStartAt === "string"
+      || value.scheduledStartAt === null
+    );
+}
+
+interface PrivateCardsEvent {
+  tableSessionId: string;
+  handId: string;
+  cards: string[];
+}
+
+function getUserIdFromToken(token?: string): string | null {
+  if (!token) return null;
+
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const decoded: unknown = JSON.parse(
+      atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, "=")),
+    );
+    if (
+      typeof decoded === "object"
+      && decoded !== null
+      && "sub" in decoded
+      && typeof decoded.sub === "string"
+    ) {
+      return decoded.sub;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+function GamePageContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const {
+    socket,
+    isConnected,
+    accessToken,
+    connectionError,
+  } = useGameSocket();
+  const { isConnected: isMainConnected } = useMainSocket();
+  const [tableSessionId, setTableSessionId] = useState("");
+  const [lobbyStatus, setLobbyStatus] = useState<GetLobbyPublicDto | null>(null);
+  const [lobbyStatusError, setLobbyStatusError] = useState("");
+  const [lobbyStatusRefresh, setLobbyStatusRefresh] = useState(0);
+  const [gameState, setGameState] = useState<PublicGameState | null>(null);
+  const [myCards, setMyCards] = useState<string[]>([]);
+  const [lastAction, setLastAction] = useState("");
+  const [isSendingAction, setIsSendingAction] = useState(false);
+  const [showHandInfo, setShowHandInfo] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [error, setError] = useState("");
+  const [tableInput, setTableInput] = useState("");
+  const [isCreatingLobby, setIsCreatingLobby] = useState(false);
+  const [allPlayersLoaded, setAllPlayersLoaded] = useState(false);
+  const [isWaitingToStartFirstHand, setIsWaitingToStartFirstHand] = useState(false);
+  const [isJoiningLobby, setIsJoiningLobby] = useState(false);
+  const [joinPassword, setJoinPassword] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [currentTime, setCurrentTime] = useState(Date.now());
+  const [scheduledStartAt, setScheduledStartAt] = useState<string | null>(null);
+  const [language, setLanguage] = useState<GameLanguage>("en");
+
+  const hasRoutedToHistoryRef = useRef(false);
+  const playerNamesRef = useRef<Record<string, string> | undefined>(undefined);
+
+  const userId = getUserIdFromToken(accessToken);
+  const isHost = lobbyStatus?.details.hostUserId === userId;
+  const dictionary = language === "en" ? enDictionary.game : thDictionary.game;
+  const queryTableId =
+    searchParams.get("tableSessionId")?.trim()
+    || searchParams.get("roomPinId")?.trim()
+    || "";
+  const playerProfileIds = (gameState?.players.map(({ playerId }) => playerId) ?? [])
+    .sort()
+    .join("|");
+
+  useEffect(() => {
+    playerNamesRef.current = gameState?.playerNames;
+  }, [gameState?.playerNames]);
+
+  useEffect(() => {
+    const playerIds = playerProfileIds ? playerProfileIds.split("|") : [];
+    if (playerIds.length === 0) return;
+
+    const controller = new AbortController();
+    Promise.all(playerIds.map(async (playerId) => {
+      try {
+        const response = await fetch(
+          `/api/user/profile?id=${encodeURIComponent(playerId)}`,
+          { credentials: "include", signal: controller.signal },
+        );
+        if (!response.ok) return null;
+        const profile = await response.json() as {
+          tagId?: string;
+          user_profile?: {
+            displayName?: string | null;
+            avatarUrl?: string | null;
+          } | null;
+        };
+        return {
+          playerId,
+          name: profile.user_profile?.displayName?.trim()
+            || profile.tagId
+            || "Unknown player",
+          avatarUrl: profile.user_profile?.avatarUrl ?? null,
+        };
+      } catch {
+        return null;
+      }
+    })).then((profiles) => {
+      if (controller.signal.aborted) return;
+      const playerNames: Record<string, string> = {};
+      const playerAvatars: Record<string, string | null> = {};
+      profiles.forEach((profile) => {
+        if (!profile) return;
+        playerNames[profile.playerId] = profile.name;
+        playerAvatars[profile.playerId] = profile.avatarUrl;
+      });
+      setGameState((current) => current
+        ? {
+          ...current,
+          playerNames: { ...current.playerNames, ...playerNames },
+          playerAvatars: { ...current.playerAvatars, ...playerAvatars },
+        }
+        : current);
+    });
+
+    return () => controller.abort();
+  }, [playerProfileIds]);
+
+  const scheduledStartTime = scheduledStartAt ? Date.parse(scheduledStartAt) : NaN;
+  const secondsUntilTournamentStart = Number.isFinite(scheduledStartTime)
+    ? Math.max(0, Math.ceil((scheduledStartTime - currentTime) / 1000))
+    : null;
+
+  const routeToMatchHistory = useCallback((state: PublicGameState) => {
+    if (
+      hasRoutedToHistoryRef.current
+      || !state.matchComplete
+      || !state.playerPlaces
+      || state.totalHandsPlayed === undefined
+      || !state.matchStartedAt
+      || !state.matchEndedAt
+      || pathname.startsWith("/game/history")
+    ) {
+      return;
+    }
+
+    hasRoutedToHistoryRef.current = true;
+    const historyPath = state.isRankedMatch
+      ? "/game/history/rank"
+      : "/game/history";
+
+    window.sessionStorage.setItem(
+      "gameMatchHistory",
+      JSON.stringify({
+        tableSessionId: state.tableSessionId,
+        totalHandsPlayed: state.totalHandsPlayed,
+        matchStartedAt: state.matchStartedAt,
+        matchEndedAt: state.matchEndedAt,
+        isRankedMatch: state.isRankedMatch ?? false,
+        playerId: userId,
+        playerPlaces: state.playerPlaces,
+        playerStats: state.playerStats ?? {},
+        playerNames: state.playerNames ?? {},
+      }),
+    );
+    router.replace(historyPath);
+  }, [pathname, router, userId]);
+
+  useEffect(() => {
+    const savedTableId = window.sessionStorage.getItem("gameTableSessionId") ?? "";
+    const nextTableId = queryTableId || savedTableId;
+    if (queryTableId) {
+      window.sessionStorage.setItem("gameTableSessionId", queryTableId);
+    }
+    hasRoutedToHistoryRef.current = false;
+    setTableSessionId(nextTableId);
+    setTableInput(nextTableId);
+  }, [queryTableId]);
+
+  useEffect(() => {
+    if (!socket || !tableSessionId) return;
+
+    const onState = (state: PublicGameState) => {
+      if (!isPublicGameState(state)) {
+        setError("The server sent an invalid game state.");
+        setIsSendingAction(false);
+        return;
+      }
+      if (state.tableSessionId === tableSessionId) {
+        setGameState((current) => preservePlayerProfiles(state, current));
+        setError("");
+        setIsSendingAction(false);
+        setIsWaitingToStartFirstHand(false);
+        routeToMatchHistory(state);
+      }
+    };
+    const onAction = (action: PokerActionEvent) => {
+      if (!isPokerActionEvent(action)) {
+        setError("The server sent an invalid player action.");
+        setIsSendingAction(false);
+        return;
+      }
+      const playerName = playerNamesRef.current?.[action.playerId] ?? "Unknown player";
+      const actionLabel = action.actionType.toLowerCase();
+      setLastAction(
+        `${playerName} ${actionLabel}${action.amount > 0 ? ` ${action.amount}` : ""}`,
+      );
+    };
+    const onPrivateCards = (event: PrivateCardsEvent) => {
+      if (event.tableSessionId === tableSessionId) {
+        setMyCards(event.cards);
+      }
+    };
+    const onSocketException = (exception: unknown) => {
+      const message = typeof exception === "string"
+        ? exception
+        : typeof exception === "object"
+          && exception !== null
+          && "message" in exception
+          && typeof exception.message === "string"
+            ? exception.message
+            : "The server rejected the game request.";
+      setError(message);
+      setIsSendingAction(false);
+      setIsWaitingToStartFirstHand(false);
+    };
+
+    socket.on(PokerEvent.state.to_client.event_name, onState);
+    socket.on(PokerEvent.action.to_client.event_name, onAction);
+    socket.on(PokerEvent.private_cards.to_client.event_name, onPrivateCards);
+    socket.on("exception", onSocketException);
+
+    return () => {
+      socket.off(PokerEvent.state.to_client.event_name, onState);
+      socket.off(PokerEvent.action.to_client.event_name, onAction);
+      socket.off(PokerEvent.private_cards.to_client.event_name, onPrivateCards);
+      socket.off("exception", onSocketException);
+    };
+  }, [routeToMatchHistory, socket, tableSessionId]);
+
+  useEffect(() => {
+    setAllPlayersLoaded(false);
+    setIsWaitingToStartFirstHand(false);
+    setScheduledStartAt(null);
+  }, [tableSessionId]);
+
+  useEffect(() => {
+    if (!socket || !isConnected || !tableSessionId) return;
+
+    socket.timeout(10_000).emit(
+      PokerEvent.sync.to_server.event_name,
+      { tableSessionId },
+      (timeoutError: Error | null, response: unknown) => {
+        if (timeoutError) {
+          setError("The server did not respond while loading the current hand.");
+          return;
+        }
+
+        if (!isSuccessfulPokerSyncResponse(response)) {
+          const message = typeof response === "object"
+            && response !== null
+            && "message" in response
+            && typeof response.message === "string"
+            ? response.message
+            : "The server returned an invalid current-hand response.";
+          setError(message);
+          return;
+        }
+
+        if (response.state && response.state.tableSessionId !== tableSessionId) {
+          setError("The server returned a hand for a different table.");
+          return;
+        }
+
+        setGameState((current) => preservePlayerProfiles(response.state, current));
+        setMyCards(response.cards);
+        setError("");
+        if (response.state) {
+          routeToMatchHistory(response.state);
+        }
+      },
+    );
+  }, [isConnected, lobbyStatusRefresh, routeToMatchHistory, socket, tableSessionId]);
+
+  useEffect(() => {
+    if (!socket || !isConnected || !tableSessionId) return;
+
+    const applyPlayersLoaded = (response: unknown) => {
+      if (!isPlayersLoadedEvent(response)) {
+        setError("The server sent an invalid player readiness status.");
+        return;
+      }
+      if (response.tableSessionId !== tableSessionId) return;
+
+      setAllPlayersLoaded(response.allPlayersLoaded);
+      setIsWaitingToStartFirstHand(response.shouldAutoStartFirstHand);
+      setScheduledStartAt(response.scheduledStartAt);
+    };
+    const onPlayersLoaded = (response: unknown) => {
+      applyPlayersLoaded(response);
+    };
+
+    socket.on(GameEvent.players_loaded.to_client.event_name, onPlayersLoaded);
+    const reportLoaded = () => {
+      socket.emit(
+        GameEvent.players_loaded.to_server.event_name,
+        { tableSessionId },
+        applyPlayersLoaded,
+      );
+    };
+    reportLoaded();
+    const intervalId = isHost && !allPlayersLoaded
+      ? window.setInterval(reportLoaded, 1_000)
+      : null;
+
+    return () => {
+      socket.off(GameEvent.players_loaded.to_client.event_name, onPlayersLoaded);
+      if (intervalId !== null) window.clearInterval(intervalId);
+    };
+  }, [allPlayersLoaded, isConnected, isHost, socket, tableSessionId]);
+
+  useEffect(() => {
+    if (
+      (!gameState?.currentPlayerId || !gameState.actionDeadlineAt)
+      && !scheduledStartAt
+    ) return;
+
+    setCurrentTime(Date.now());
+    const intervalId = window.setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [gameState?.actionDeadlineAt, gameState?.currentPlayerId, scheduledStartAt]);
+
+  useEffect(() => {
+    if (!tableSessionId) {
+      setLobbyStatus(null);
+      setLobbyStatusError("");
+      return;
+    }
+
+    setLobbyStatus(null);
+    setLobbyStatusError("");
+    if (!isConnected || !isMainConnected) return;
+
+    let active = true;
+    const checkLobbyStatus = async () => {
+      try {
+        const response = await fetch(
+          `/api/game/lobby?lobbyPinId=${encodeURIComponent(tableSessionId)}`,
+          { cache: "no-store" },
+        );
+        const body: GetLobbyPublicDto = (await response.json()) as GetLobbyPublicDto;
+        if (!response.ok) {
+          const message = typeof body === "object"
+            && body !== null
+            && "message" in body
+            && typeof body.message === "string"
+            ? body.message
+            : `Lobby status check failed (${response.status}).`;
+          throw new Error(message);
+        }
+
+        if (active) {
+          setLobbyStatus(body);
+          setLobbyStatusError("");
+        }
+      } catch (statusError) {
+        if (active) {
+          setLobbyStatusError(
+            statusError instanceof Error
+              ? statusError.message
+              : "Could not check lobby status.",
+          );
+        }
+      }
+    };
+
+    void checkLobbyStatus();
+    const intervalId = window.setInterval(() => {
+      void checkLobbyStatus();
+    }, 5_000);
+
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, [isConnected, isMainConnected, lobbyStatusRefresh, tableSessionId]);
+
+  const myPlayer = gameState?.players.find(
+    (player) => player.playerId === userId,
+  );
+  const isMyTurn = Boolean(
+    isConnected
+    && myPlayer
+    && gameState?.currentPlayerId === userId
+    && !isSendingAction,
+  );
+  const callAmount = Math.max(
+    0,
+    (gameState?.currentBet ?? 0) - (myPlayer?.roundContribution ?? 0),
+  );
+  const isHandInProgress = Boolean(gameState && !gameState.settled);
+  const actionSecondsLeft = gameState?.actionDeadlineAt
+    ? Math.max(
+      0,
+      Math.ceil((Date.parse(gameState.actionDeadlineAt) - currentTime) / 1000),
+    )
+    : null;
+
+  const createLobby = async () => {
+    setIsCreatingLobby(true);
+    setError("");
+    setSuccessMessage("");
+    try {
+      const sendBody: LobbyUserCreateDto = {
+        generalSettings: {},
+        gameSettings: {},
+      };
+      const response = await fetch("/api/game/lobby/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(sendBody),
+      });
+      const body: LobbyDto = (await response.json()) as LobbyDto;
+      if (!response.ok) {
+        const message = typeof body === "object"
+          && body !== null
+          && "message" in body
+          && typeof body.message === "string"
+          ? body.message
+          : `Lobby creation failed (${response.status}).`;
+        throw new Error(message);
+      }
+
+      const newTableId = body.details.roomPinId;
+      setTableInput(newTableId);
+      setTableSessionId(newTableId);
+      setGameState(null);
+      setMyCards([]);
+      setLastAction("");
+      setIsSendingAction(false);
+      window.sessionStorage.setItem("gameTableSessionId", newTableId);
+      router.replace(`/game?tableSessionId=${encodeURIComponent(newTableId)}`, {
+        scroll: false,
+      });
+    } catch (createError) {
+      setError(
+        createError instanceof Error
+          ? createError.message
+          : "Lobby creation failed.",
+      );
+    } finally {
+      setIsCreatingLobby(false);
+    }
+  };
+
+  const joinLobby = async () => {
+    if (!isConnected) {
+      setError("Connect to the game server before joining a lobby.");
+      return;
+    }
+    if (!/^\d{6}$/.test(tableSessionId)) {
+      setError("Enter a valid six-digit lobby ID first.");
+      return;
+    }
+
+    setIsJoiningLobby(true);
+    setError("");
+    setSuccessMessage("");
+    try {
+      const sendBody: JoinLobbyDto = {
+        lobbyPinId: tableSessionId,
+        password: joinPassword ? joinPassword : undefined,
+        isSpectator: false,
+      };
+      const response = await fetch("/api/game/lobby/join", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(sendBody),
+      });
+      if (!response.ok) {
+        const body: unknown = await response.json();
+        const message = typeof body === "object"
+          && body !== null
+          && "message" in body
+          && typeof body.message === "string"
+          ? body.message
+          : `Joining lobby failed (${response.status}).`;
+        throw new Error(message);
+      }
+
+      setJoinPassword("");
+      setSuccessMessage("Joined lobby as a player.");
+      setLobbyStatusRefresh((refresh) => refresh + 1);
+    } catch (joinError) {
+      setError(
+        joinError instanceof Error
+          ? joinError.message
+          : "Joining lobby failed.",
+      );
+    } finally {
+      setIsJoiningLobby(false);
+    }
+  };
+
+  const sendAction = (
+    actionType: PokerActionType,
+    amount?: number,
+  ) => {
+    if (!socket || !tableSessionId || !isMyTurn) return;
+    setIsSendingAction(true);
+    setError("");
+    const payload: PokerEvent.action.to_server.payload = {
+      tableSessionId,
+      actionType,
+      amount,
+    };
+    socket.emit(PokerEvent.action.to_server.event_name, payload);
+  };
+
+  return (
+    <main className="min-h-screen w-full bg-radial from-green-900 via-green-950 via-55% to-black flex justify-center items-center relative overflow-hidden text-white">
+      <GameTable
+        gameState={gameState}
+        userId={userId}
+        myCards={myCards}
+        isHandInProgress={isHandInProgress}
+        isMyTurn={isMyTurn}
+        callAmount={callAmount}
+        dictionary={dictionary}
+        onAction={sendAction}
+      />
+
+      <aside
+        className={`fixed bottom-[3vh] left-[3vw] z-[70] w-[25vw] overflow-hidden rounded-t-xl border border-[#7E090B] bg-[#1D1D1D] shadow-2xl transition-[height] duration-300 ease-in-out ${
+          isChatOpen ? "h-[50vh]" : "h-12"
+        }`}
+      >
+        <button
+          type="button"
+          aria-expanded={isChatOpen}
+          aria-controls="game-chat-panel"
+          onClick={() => setIsChatOpen((open) => !open)}
+          className="flex h-12 w-full items-center justify-between bg-[#7E090B] px-4 text-left font-semibold text-white hover:bg-[#B23441] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FFD700]"
+        >
+          <span>Chat</span>
+          <span aria-hidden="true">{isChatOpen ? "−" : "+"}</span>
+        </button>
+        <div
+          id="game-chat-panel"
+          aria-hidden={!isChatOpen}
+          className="h-[calc(100%-3rem)] border-t border-[#7E090B] bg-[#1D1D1D]"
+        >
+          {isChatOpen && (
+            <GameChat
+              socket={socket}
+              isConnected={isConnected}
+              tableSessionId={tableSessionId}
+              playerNames={gameState?.playerNames ?? {}}
+            />
+          )}
+        </div>
+      </aside>
+
+      <div className="fixed top-[3vh] right-[3vw] flex gap-2">
+        {lobbyStatus?.generalSettings.roomType === "RANKED" && (
+          <span className="rounded-full border border-[#ffd700] bg-black/80 px-4 py-2 text-sm font-bold tracking-widest text-[#ffd700]">
+            RANKED
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={() => setLanguage((current) => current === "en" ? "th" : "en")}
+          aria-label={language === "en"
+            ? enDictionary.game.switchToThaiLabel
+            : thDictionary.game.switchToEnglishLabel}
+          className="rounded-full bg-sky-500 px-4 py-2 text-sm font-bold text-white hover:bg-white hover:text-black"
+        >
+          {language === "en"
+            ? enDictionary.game.switchToThai
+            : thDictionary.game.switchToEnglish}
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowHandInfo((visible) => !visible)}
+          className="px-[1.2vw] py-[1.2vh] aspect-square text-[1.2vw] bg-sky-500 rounded-full font-bold uppercase text-white cursor-pointer hover:bg-white hover:text-black active:translate-y-0.5"
+        >
+          ?
+        </button>
+      </div>
+      {showHandInfo && (
+        <HandInfo handleHandInfo={() => setShowHandInfo(false)} />
+      )}
+    </main>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<main className="min-h-screen w-full bg-black" />}>
+      <GamePageContent />
+    </Suspense>
+  );
+}

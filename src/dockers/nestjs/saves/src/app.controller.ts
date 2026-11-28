@@ -1,8 +1,8 @@
 import { Controller, Get, UseFilters } from '@nestjs/common';
 import { AppService } from './app.service.js';
 import { ApiOperation } from '@nestjs/swagger';
-import { Public } from './auth/decorators/public.decorators.js';
-import { HttpAllExceptionsFilter } from './filters/HttpAllExceptionsFilter.js';
+import { Public } from './modules/auth/decorators/public.decorators.js';
+import { HttpAllExceptionsFilter } from './api/filters/HttpAllExceptionsFilter.js';
 
 @Controller()
 @UseFilters(HttpAllExceptionsFilter)

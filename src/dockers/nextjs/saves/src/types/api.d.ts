@@ -4,18 +4,186 @@
  */
 
 export interface paths {
-    "/hello": {
+    "/auth/check": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
+        get: operations["InternalAuthController_authCheck"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/internal/admin/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalAuthController_internalAdminAuthCheck"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/admin/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalAuthController_adminAuthCheck"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["InternalAuthController_registerUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
         /**
-         * Basic Hello world test
-         * @description the most basic simple get to the backend service
+         * User Login
+         * @description Accepts email and password, verifies credentials,     and returns a JWT.
          */
-        get: operations["AppController_getHello"];
+        post: operations["InternalAuthController_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh JWT Token API
+         * @description takes the refresh token from 'Authorization: Bearer refreshToken'     in the header of the request
+         */
+        post: operations["InternalAuthController_refreshToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/signout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke the jwt refresh token
+         * @description take the access_token from Authoriazation: Bearer header     from the POST request and set the hashedRefeshToken in the user table to     NULL
+         */
+        post: operations["InternalAuthController_signOut"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/google/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalAuthController_googleLogin"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/google/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalAuthController_googleCallback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/42/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalAuthController_fortyTwoLogin"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/42/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalAuthController_fortyTwoCallback"];
         put?: never;
         post?: never;
         delete?: never;
@@ -35,7 +203,7 @@ export interface paths {
          * Get user profile
          * @description Retrieves the authenticated user’s profile if no query params are passed. Provide either `id` or `tagId` to view another user’s profile. Providing both will return a 400 error.
          */
-        get: operations["UserController_getProfile"];
+        get: operations["InternalUsersUserController_getProfile"];
         put?: never;
         post?: never;
         delete?: never;
@@ -54,7 +222,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Upload user profile picture */
-        post: operations["UserController_uploadProfilePic"];
+        post: operations["InternalUsersUserController_uploadProfilePic"];
         delete?: never;
         options?: never;
         head?: never;
@@ -78,10 +246,10 @@ export interface paths {
          * update the user profile
          * @description update the user profile
          */
-        patch: operations["UserController_update"];
+        patch: operations["InternalUsersUserController_update"];
         trace?: never;
     };
-    "/user/setRole": {
+    "/user/dev/setRole": {
         parameters: {
             query?: never;
             header?: never;
@@ -91,14 +259,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** set the role of the user */
-        post: operations["UserController_setUserRole"];
+        post: operations["InternalUsersDeveloperController_setUserRole"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/user/create": {
+    "/user/dev/create": {
         parameters: {
             query?: never;
             header?: never;
@@ -111,14 +279,14 @@ export interface paths {
          * Register a new user account
          * @description register new user api for ADMIN role
          */
-        post: operations["UserController_create"];
+        post: operations["InternalUsersDeveloperController_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/user/delete": {
+    "/user/dev/delete": {
         parameters: {
             query?: never;
             header?: never;
@@ -132,13 +300,13 @@ export interface paths {
          * Delete user from the database
          * @description takes access_token from Authorization: Bearer header     and allow only role ADMIN and EDITOR to delete user
          */
-        delete: operations["UserController_remove"];
+        delete: operations["InternalUsersDeveloperController_remove"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/user": {
+    "/user/dev": {
         parameters: {
             query?: never;
             header?: never;
@@ -149,7 +317,7 @@ export interface paths {
          * get multiple user info
          * @description for ADMIN AND EDITOR
          */
-        get: operations["UserController_getBatchUsers"];
+        get: operations["InternalUsersDeveloperController_getBatchUsers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -158,14 +326,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/user/totalCount": {
+    "/user/dev/totalCount": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["UserController_totalUserCount"];
+        get: operations["InternalUsersDeveloperController_totalUserCount"];
         put?: never;
         post?: never;
         delete?: never;
@@ -185,7 +353,7 @@ export interface paths {
          * get all the titles available
          * @description receive an array of all titles       available in the database
          */
-        get: operations["TitleController_getAllTitles"];
+        get: operations["InternalTitlesController_getAllTitles"];
         put?: never;
         post?: never;
         delete?: never;
@@ -205,7 +373,7 @@ export interface paths {
          * get all the titles available for this current user / specific titles
          * @description receive an array of this user titles       available
          */
-        get: operations["TitleController_getUserTitles"];
+        get: operations["InternalTitlesController_getUserTitles"];
         put?: never;
         post?: never;
         delete?: never;
@@ -225,7 +393,7 @@ export interface paths {
          * find the title details
          * @description provide the query to get the detail of the       specific title by id or by name
          */
-        get: operations["TitleController_findTitle"];
+        get: operations["InternalTitlesController_findTitle"];
         put?: never;
         post?: never;
         delete?: never;
@@ -247,7 +415,7 @@ export interface paths {
          * create new title to database
          * @description added new title to the website       NOTE: Only for ADMIN Role
          */
-        post: operations["TitleController_createNewTitle"];
+        post: operations["InternalTitlesController_createNewTitle"];
         delete?: never;
         options?: never;
         head?: never;
@@ -267,7 +435,7 @@ export interface paths {
          * giver user a title
          * @description ADMIN only
          */
-        post: operations["TitleController_giveUserTitle"];
+        post: operations["InternalTitlesController_giveUserTitle"];
         delete?: never;
         options?: never;
         head?: never;
@@ -288,7 +456,7 @@ export interface paths {
          * revoke title from the user
          * @description ADMIN Only
          */
-        delete: operations["TitleController_revokeUserTitle"];
+        delete: operations["InternalTitlesController_revokeUserTitle"];
         options?: never;
         head?: never;
         patch?: never;
@@ -311,7 +479,7 @@ export interface paths {
          * update the title
          * @description update the target title id details
          */
-        patch: operations["TitleController_updateTitle"];
+        patch: operations["InternalTitlesController_updateTitle"];
         trace?: never;
     };
     "/title/delete": {
@@ -328,195 +496,7 @@ export interface paths {
          * delete a title
          * @description delele a sepecific title by title id. ADMIN ONLY
          */
-        delete: operations["TitleController_deleteTitle"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/check": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_authCheck"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/internal/admin/check": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_internalAdminAuthCheck"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/admin/check": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_adminAuthCheck"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/signup": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["AuthController_registerUser"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * User Login
-         * @description Accepts email and password, verifies credentials,     and returns a JWT.
-         */
-        post: operations["AuthController_login"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Refresh JWT Token API
-         * @description takes the refresh token from 'Authorization: Bearer refreshToken'     in the header of the request
-         */
-        post: operations["AuthController_refreshToken"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/signout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Revoke the jwt refresh token
-         * @description take the access_token from Authoriazation: Bearer header     from the POST request and set the hashedRefeshToken in the user table to     NULL
-         */
-        post: operations["AuthController_signOut"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/google/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_googleLogin"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/google/callback": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_googleCallback"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/42/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_fortyTwoLogin"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/42/callback": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_fortyTwoCallback"];
-        put?: never;
-        post?: never;
-        delete?: never;
+        delete: operations["InternalTitlesController_deleteTitle"];
         options?: never;
         head?: never;
         patch?: never;
@@ -529,7 +509,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["ChatController_getAllUserRoom"];
+        get: operations["InternalChatController_getAllUserRoom"];
         put?: never;
         post?: never;
         delete?: never;
@@ -547,7 +527,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["ChatController_dmUser"];
+        post: operations["InternalChatController_dmUser"];
         delete?: never;
         options?: never;
         head?: never;
@@ -561,7 +541,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["ChatController_getMessagesRoom"];
+        get: operations["InternalChatController_getMessagesRoom"];
         put?: never;
         post?: never;
         delete?: never;
@@ -580,7 +560,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** create your own chat room */
-        post: operations["ChatController_createChatRoom"];
+        post: operations["InternalChatController_createChatRoom"];
         delete?: never;
         options?: never;
         head?: never;
@@ -596,7 +576,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["ChatController_inviteToChatRoom"];
+        post: operations["InternalChatController_inviteToChatRoom"];
         delete?: never;
         options?: never;
         head?: never;
@@ -612,7 +592,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["ChatController_leaveTheChatRoom"];
+        post: operations["InternalChatController_leaveTheChatRoom"];
         delete?: never;
         options?: never;
         head?: never;
@@ -628,23 +608,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["ChatController_kickUserChatRoom"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/chat/public": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["PublicChatController_getAllChatMessages"];
-        put?: never;
-        post?: never;
+        post: operations["InternalChatController_kickUserChatRoom"];
         delete?: never;
         options?: never;
         head?: never;
@@ -658,7 +622,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["FriendController_getAllFriends"];
+        get: operations["InternalFriendsController_getAllFriends"];
         put?: never;
         post?: never;
         delete?: never;
@@ -676,7 +640,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["FriendController_makeFriendRequest"];
+        post: operations["InternalFriendsController_makeFriendRequest"];
         delete?: never;
         options?: never;
         head?: never;
@@ -696,7 +660,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["FriendController_acceptFriendRequest"];
+        patch: operations["InternalFriendsController_acceptFriendRequest"];
         trace?: never;
     };
     "/friend/reject": {
@@ -712,7 +676,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["FriendController_rejectFriendRequest"];
+        patch: operations["InternalFriendsController_rejectFriendRequest"];
         trace?: never;
     };
     "/friend/block": {
@@ -724,7 +688,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["FriendController_blockUser"];
+        post: operations["InternalFriendsController_blockUser"];
         delete?: never;
         options?: never;
         head?: never;
@@ -742,7 +706,7 @@ export interface paths {
          * get available lobby formats
          * @description Returns the starting stack and big blind configured for each lobby format.
          */
-        get: operations["LobbyController_getLobbyFormats"];
+        get: operations["InternalLobbyController_getLobbyFormats"];
         put?: never;
         post?: never;
         delete?: never;
@@ -764,7 +728,7 @@ export interface paths {
          * create a lobby room
          * @description Users may create or join up to five lobby rooms at a time.
          */
-        post: operations["LobbyController_createLobbyRoom"];
+        post: operations["InternalLobbyController_createLobbyRoom"];
         delete?: never;
         options?: never;
         head?: never;
@@ -784,7 +748,7 @@ export interface paths {
          * user join the lobby room
          * @description user must not in any room
          */
-        post: operations["LobbyController_joinLobbyRoom"];
+        post: operations["InternalLobbyController_joinLobbyRoom"];
         delete?: never;
         options?: never;
         head?: never;
@@ -805,7 +769,27 @@ export interface paths {
          * user leave the lobby room
          * @description user must in a lobby room to leave
          */
-        delete: operations["LobbyController_leaveLobbyRoom"];
+        delete: operations["InternalLobbyController_leaveLobbyRoom"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/game/lobby/swap-role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * switch between a lobby player and spectator role
+         * @description Role changes are allowed while the lobby is waiting and the target role has capacity.
+         */
+        post: operations["InternalLobbyController_swapLobbyMemberRole"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -822,7 +806,7 @@ export interface paths {
          * get all lobby rooms details
          * @description get all details of the lobby room
          */
-        get: operations["LobbyController_getAllLobbyRoom"];
+        get: operations["InternalLobbyController_getAllLobbyRoom"];
         put?: never;
         post?: never;
         delete?: never;
@@ -838,7 +822,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["LobbyController_getMyLobby"];
+        get: operations["InternalLobbyController_getMyLobby"];
         put?: never;
         post?: never;
         delete?: never;
@@ -858,7 +842,7 @@ export interface paths {
          * get the lobby player and spectator names
          * @description Only members of the lobby can view its member list.
          */
-        get: operations["LobbyController_getLobbyMembers"];
+        get: operations["InternalLobbyController_getLobbyMembers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -884,7 +868,7 @@ export interface paths {
          * update the setting of the lobby room
          * @description user must be the host of the room
          */
-        patch: operations["LobbyController_updateGameSettings"];
+        patch: operations["InternalLobbyController_updateGameSettings"];
         trace?: never;
     };
     "/game/lobby/startgame": {
@@ -900,7 +884,7 @@ export interface paths {
          * for the host to start the lobby game
          * @description the user invoke this must be inside the target lobby, and also is the host of that lobby
          */
-        post: operations["LobbyController_startGame"];
+        post: operations["InternalLobbyController_startGame"];
         delete?: never;
         options?: never;
         head?: never;
@@ -914,9 +898,665 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["LobbyController_oneLobby"];
+        get: operations["InternalLobbyController_oneLobby"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/game/matches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** get the game matches data of the user */
+        get: operations["InternalGameMatchesUserController_getMatches"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/game/matches/find": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalGameMatchesUserController_findMatch"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/game/statistics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * list all users stats
+         * @description Retrieve statistics for all users with optional pagination and rank ordering. Rate limits: IP (100/min), Role-based (ADMIN: 50, DEVELOPER: 30, EDITOR: 15, USER: 8 per min).
+         */
+        get: operations["InternalGameStatisticsUserController_allUserStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/game/statistics/find": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Find user statistics by ID, email, or tag ID
+         * @description Retrieve statistics for a specific user. Exactly ONE query parameter (userId, email, or tagId) must be provided. Rate limits: IP (200/min), Role-based (ADMIN: 200, DEVELOPER: 100, EDITOR: 50, USER: 20 per min).
+         */
+        get: operations["InternalGameStatisticsUserController_findUserStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/game/statistics/findRankIndex": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalGameStatisticsUserController_findUserRankIndex"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/achievements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalAchievementsUserController_getUserAchievements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/achievements/totalUserCount": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalAchievementsUserController_totalAchievementsUserCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/achievements/allTotalCount": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalAchievementsUserController_totalAchievementsCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/achievements/find": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalAchievementsUserController_findAchievement"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/achievements/dev/all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalAchievementsDeveloperController_allAchievements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/achievements/dev/create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["InternalAchievementsDeveloperController_createAchievement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/achievements/dev/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["InternalAchievementsDeveloperController_updateAchievements"];
+        trace?: never;
+    };
+    "/achievements/dev/give": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["InternalAchievementsDeveloperController_giveUserAchievement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/achievements/dev/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["InternalAchievementsDeveloperController_revokeUserAchievement"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/achievements/dev/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["InternalAchievementsDeveloperController_deleteAchievement"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/trophies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalTrophiesUserController_allUserThrophies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/trophies/totalUserCount": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalTrophiesUserController_totalTrophiesCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/trophies/allTotalCount": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalTrophiesUserController_allTotalCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/trophies/find": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalTrophiesUserController_findOneTrophy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/trophies/dev/all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalTrophiesDeveloperController_allTrophies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/trophies/dev/create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["InternalTrophiesDeveloperController_createTrophy"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/trophies/dev/uploadPic": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload user profile picture */
+        post: operations["InternalTrophiesDeveloperController_uploadTrophyPic"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/trophies/dev/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["InternalTrophiesDeveloperController_updateTrophyData"];
+        trace?: never;
+    };
+    "/trophies/dev/give": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["InternalTrophiesDeveloperController_giveUserTrophy"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/trophies/dev/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["InternalTrophiesDeveloperController_revokeUserTrophy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/trophies/dev/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["InternalTrophiesDeveloperController_deleteUserTrophy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users-api": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalUsersApiUserController_yourApis"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users-api/request-new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["InternalUsersApiUserController_requestNewApi"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users-api/totalUserApiCount": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalUsersApiUserController_totalUserApiCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users-api/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["InternalUsersApiUserController_revokeApi"];
+        trace?: never;
+    };
+    "/users-api/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["InternalUsersApiUserController_removeApi"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users-api/find": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalUsersApiUserController_findApi"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users-api/admin/all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalUsersApiDeveloperController_allApis"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users-api/admin/allApiCount": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalUsersApiDeveloperController_totalAllApiCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users-api/admin/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["InternalUsersApiDeveloperController_deleteByApiId"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users-api/admin/find": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InternalUsersApiDeveloperController_findApi"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tournament": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List tournaments */
+        get: operations["InternalTournamentController_list"];
+        put?: never;
+        /** Create a tournament */
+        post: operations["InternalTournamentController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tournament/{tournamentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get tournament details and bracket */
+        get: operations["InternalTournamentController_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tournament/{tournamentId}/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Register for a tournament */
+        post: operations["InternalTournamentController_register"];
+        /** Unregister before registration closes */
+        delete: operations["InternalTournamentController_unregister"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tournament/{tournamentId}/close-registration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close registration and seed the first round */
+        post: operations["InternalTournamentController_closeRegistration"];
         delete?: never;
         options?: never;
         head?: never;
@@ -927,6 +1567,80 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        CreateUserDto: {
+            /**
+             * @description the email of the user
+             * @example user@example.com
+             */
+            email: string;
+            /**
+             * @description the hashed password of the user
+             * @example SecurePassword123
+             */
+            password: string;
+            /**
+             * @description the display name of the user
+             * @example InwZa007
+             */
+            displayName?: string | null;
+            /** @description The url to the profile image of the user */
+            avatarUrl?: string | null;
+        };
+        LoginDto: {
+            /**
+             * @description The email registered to the account
+             * @example user@example.com
+             */
+            email: string;
+            /**
+             * @description The plain-text user password.
+             * @example password123
+             */
+            password: string;
+        };
+        LoginSuccessResponseDto: {
+            /**
+             * @description The authenticated user ID
+             * @example 1
+             */
+            id: number;
+            /**
+             * @description Signed JWT access token
+             * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
+             */
+            accessToken: string;
+            /**
+             * @description Refresh JWT token
+             * @example egrsa9876sgb9788sbhuisdfhoui...
+             */
+            refreshToken: string;
+        };
+        UnauthorizedErrorDto: {
+            /**
+             * @description Http error status code
+             * @example 401
+             */
+            statusCode: number;
+            /** @example Unauthorized */
+            message: string;
+        };
+        RefreshTokenSuccessDto: {
+            /**
+             * @description The authenticated user ID
+             * @example 1
+             */
+            id: number;
+            /**
+             * @description Signed JWT access token
+             * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
+             */
+            accessToken: string;
+            /**
+             * @description Signed REFRESH access token
+             * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
+             */
+            refreshToken: string;
+        };
         UserProfileBase: {
             /**
              * @description the display name of the user
@@ -974,7 +1688,7 @@ export interface components {
              * @example USER
              * @enum {string}
              */
-            role: "ADMIN" | "EDITOR" | "USER";
+            role: "ADMIN" | "DEVELOPER" | "EDITOR" | "USER";
             /**
              * Format: date-time
              * @description The time and date that this user was created
@@ -987,15 +1701,6 @@ export interface components {
             titleName: string | null;
             /** @description the profile details of the user */
             user_profile: components["schemas"]["UserProfileBase"];
-        };
-        UnauthorizedErrorDto: {
-            /**
-             * @description Http error status code
-             * @example 401
-             */
-            statusCode: number;
-            /** @example Unauthorized */
-            message: string;
         };
         BaseUserProfileDto: {
             /**
@@ -1044,7 +1749,7 @@ export interface components {
              * @description target role to set
              * @enum {string}
              */
-            newRole: "ADMIN" | "EDITOR" | "USER";
+            newRole: "ADMIN" | "DEVELOPER" | "EDITOR" | "USER";
         };
         UserProfileDto: {
             /**
@@ -1108,7 +1813,7 @@ export interface components {
              * @example USER
              * @enum {string}
              */
-            role: "ADMIN" | "EDITOR" | "USER";
+            role: "ADMIN" | "DEVELOPER" | "EDITOR" | "USER";
             /**
              * @description the refresh token of the user
              * @example asdflkaeflkasdflkasf
@@ -1120,26 +1825,7 @@ export interface components {
              */
             createdAt: string;
             /** @description the profile details of the user */
-            user_profile: components["schemas"]["UserProfileDto"] | null;
-        };
-        CreateUserDto: {
-            /**
-             * @description the email of the user
-             * @example user@example.com
-             */
-            email: string;
-            /**
-             * @description the hashed password of the user
-             * @example SecurePassword123
-             */
-            password: string;
-            /**
-             * @description the display name of the user
-             * @example InwZa007
-             */
-            displayName?: string | null;
-            /** @description The url to the profile image of the user */
-            avatarUrl?: string | null;
+            user_profile: components["schemas"]["UserProfileDto"];
         };
         GetUserTotalCountDto: {
             /**
@@ -1222,52 +1908,6 @@ export interface components {
              */
             createdAt?: string;
         };
-        LoginDto: {
-            /**
-             * @description The email registered to the account
-             * @example user@example.com
-             */
-            email: string;
-            /**
-             * @description The plain-text user password.
-             * @example password123
-             */
-            password: string;
-        };
-        LoginSuccessResponseDto: {
-            /**
-             * @description The authenticated user ID
-             * @example 1
-             */
-            id: number;
-            /**
-             * @description Signed JWT access token
-             * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
-             */
-            accessToken: string;
-            /**
-             * @description Refresh JWT token
-             * @example egrsa9876sgb9788sbhuisdfhoui...
-             */
-            refreshToken: string;
-        };
-        RefreshTokenSuccessDto: {
-            /**
-             * @description The authenticated user ID
-             * @example 1
-             */
-            id: number;
-            /**
-             * @description Signed JWT access token
-             * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
-             */
-            accessToken: string;
-            /**
-             * @description Signed REFRESH access token
-             * @example lsd234k5j5234k5lj1kj2h3g4341k2313kl2j2h4...
-             */
-            refreshToken: string;
-        };
         ChatRoomDto: {
             /** @description the uuid of the chat room */
             id: string;
@@ -1339,12 +1979,12 @@ export interface components {
         ChatRoomMemberDto: {
             /**
              * @description user uuid
-             * @example 01a20dc5-0b9f-71df-9cee-778f22f7d65f
+             * @example 01a2211e-cb6d-71f9-95dd-e350a8dba10c
              */
             userId: string;
             /**
              * @description chat room uuid
-             * @example 01a20dc5-0ba2-73f6-af41-abceece45ef5
+             * @example 01a2211e-cb6f-73e2-b13a-00009639d07a
              */
             chatRoomId: string;
             /**
@@ -1395,16 +2035,16 @@ export interface components {
              */
             catchPhrase?: string | null;
             /**
+             * @description the password of the room
+             * @example veryStringPassword1234
+             */
+            password?: string | null;
+            /**
              * @description the lobby room type
              * @example PUBLIC
              * @enum {string}
              */
             roomType?: "PUBLIC" | "PRIVATE";
-            /**
-             * @description the password of the room
-             * @example veryStringPassword1234
-             */
-            password?: string | null;
         };
         gameBase: {
             /** @description the max amount of player */
@@ -1430,7 +2070,7 @@ export interface components {
         LobbyDetailsDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a20dc5-0bc0-740a-a572-90a64dc0f242
+             * @example 067821
              */
             gameRoomId: string | null;
             /**
@@ -1487,7 +2127,7 @@ export interface components {
              * @example PUBLIC
              * @enum {string}
              */
-            roomType: "PUBLIC" | "PRIVATE";
+            roomType: "PUBLIC" | "PRIVATE" | "RANKED" | "TOURNAMENT";
             /**
              * @description the password of the room
              * @example veryStringPassword1234
@@ -1519,7 +2159,7 @@ export interface components {
         LobbyDetailsPublicDto: {
             /**
              * @description game room id of the lobby
-             * @example 01a20dc5-0bc0-740a-a572-90a64dc0f242
+             * @example 067821
              */
             gameRoomId: string | null;
             /**
@@ -1543,6 +2183,8 @@ export interface components {
             roomStatus: "UNAVAILABLE" | "WAITING" | "PLAYING";
             /** @description the current player in the lobby room */
             currentPlayerCount: number;
+            /** @description the chat room id of this lobby room */
+            chatRoomId: string;
             /** @description the current spectator count of the lobby room */
             currentSpectatorCount?: number;
             /** @description the host user's display name */
@@ -1559,7 +2201,7 @@ export interface components {
              * @example PUBLIC
              * @enum {string}
              */
-            roomType: "PUBLIC" | "PRIVATE";
+            roomType: "PUBLIC" | "PRIVATE" | "RANKED" | "TOURNAMENT";
             /** @description whether this lobby require password or not */
             hasPassword: boolean;
         };
@@ -1587,7 +2229,7 @@ export interface components {
              * @example PUBLIC
              * @enum {string}
              */
-            roomType?: "PUBLIC" | "PRIVATE";
+            roomType?: "PUBLIC" | "PRIVATE" | "RANKED" | "TOURNAMENT";
             /**
              * @description the password of the room
              * @example veryStringPassword1234
@@ -1615,6 +2257,617 @@ export interface components {
             /** @description field to update in game settings */
             gameSettings: components["schemas"]["baseGameSetting"];
         };
+        GameMatchNoIdDto: {
+            /**
+             * @description the game type of this game match
+             * @example CASUAL
+             * @enum {string}
+             */
+            gameType: "CASUAL" | "RANKED" | "TOURNAMENT";
+            /** @description the total hands of all players in this match */
+            totalHandsPlayed: number;
+            /**
+             * @description the format of the game setting
+             * @example BEGINNER
+             * @enum {string}
+             */
+            gameFormat: "BEGINNER" | "PRO" | "TURBO" | "CUSTOM";
+            /**
+             * @description the starting chips of this game matches
+             * @example 2000
+             */
+            startingChips: number;
+            /** @description the bigblind amount */
+            bigBlind: number;
+            /** @description the ante amount */
+            ante: number;
+            /** @description the amount of player that played in this match */
+            totalPlayer: number;
+            /** @description the userId that created this room */
+            createdByUserId: string | null;
+            /**
+             * Format: date-time
+             * @description the timestamp when the match was started
+             */
+            startedAt: string;
+            /**
+             * Format: date-time
+             * @description the timestamp when the match was ended
+             */
+            endedAt: string;
+        };
+        GetGameMatchDto: {
+            /** @description the game match id */
+            gameMatchId: string;
+            /** @description the place for this player for this match */
+            playerPlace: number;
+            /** @description describe how many hands this user was played. */
+            playCount: number;
+            /** @description total win count of this match */
+            winCount: number;
+            /** @description the rank that earned from this match */
+            rankEarned: number;
+            /** @description the exp that earn from this match */
+            expEarned: number;
+            /** @description the game match details */
+            gameMatch: components["schemas"]["GameMatchNoIdDto"];
+        };
+        UserGameMatchNoGameMatchId: {
+            /** @description the user id */
+            userId: string;
+            /** @description the place for this player for this match */
+            playerPlace: number;
+            /** @description describe how many hands this user was played. */
+            playCount: number;
+            /** @description total win count of this match */
+            winCount: number;
+            /** @description the rank that earned from this match */
+            rankEarned: number;
+            /** @description the exp that earn from this match */
+            expEarned: number;
+        };
+        FullGameMatchDto: {
+            /** @description the id of this game matches */
+            id: string;
+            /**
+             * @description the game type of this game match
+             * @example CASUAL
+             * @enum {string}
+             */
+            gameType: "CASUAL" | "RANKED" | "TOURNAMENT";
+            /** @description the total hands of all players in this match */
+            totalHandsPlayed: number;
+            /**
+             * @description the format of the game setting
+             * @example BEGINNER
+             * @enum {string}
+             */
+            gameFormat: "BEGINNER" | "PRO" | "TURBO" | "CUSTOM";
+            /**
+             * @description the starting chips of this game matches
+             * @example 2000
+             */
+            startingChips: number;
+            /** @description the bigblind amount */
+            bigBlind: number;
+            /** @description the ante amount */
+            ante: number;
+            /** @description the amount of player that played in this match */
+            totalPlayer: number;
+            /** @description the userId that created this room */
+            createdByUserId: string | null;
+            /**
+             * Format: date-time
+             * @description the timestamp when the match was started
+             */
+            startedAt: string;
+            /**
+             * Format: date-time
+             * @description the timestamp when the match was ended
+             */
+            endedAt: string;
+            /** @description each user match result */
+            userMatchResult: components["schemas"]["UserGameMatchNoGameMatchId"][];
+        };
+        UserRankIndexDto: {
+            /** @description the rank index position of this user */
+            rankIndex: number;
+            /** @description the total user count in the system for percentile calculation */
+            totalUserCount: number;
+        };
+        TitleNoIdDto: {
+            /**
+             * @description the name of the title
+             * @example all in one
+             */
+            name: string;
+            /**
+             * @description the description of the title
+             * @example the person really likes to all in.
+             */
+            description: string | null;
+            /**
+             * Format: date-time
+             * @description The time and date of when this title was added
+             */
+            createdAt: string;
+        };
+        TrophyNoIdDto: {
+            /**
+             * @description name of the trophy
+             * @example champion trophy
+             */
+            name: string;
+            /** @description the description detail of the trophy */
+            description: string | null;
+            /** @description the image url of the trophy */
+            imageUrl: string | null;
+            /**
+             * Format: date-time
+             * @description the date this trophy was created
+             */
+            createdAt: string;
+        };
+        GetAchievementNoIdDto: {
+            /**
+             * @description the name of the achievement
+             * @example Get High
+             */
+            name: string;
+            /**
+             * @description the description of the achivement.
+             * @example Am i High?
+             */
+            description: string | null;
+            /**
+             * @description the condition for this achievement to triggered
+             * @example won by high cards 100 times
+             */
+            condition: string | null;
+            /**
+             * @description title uuid linked to this achievement.
+             * @example 01a2211e-cb7b-73db-ba93-eca61ebe0a5f
+             */
+            titleId: string | null;
+            /**
+             * @description trophy uuid linked to this achievement
+             * @example 01a2211e-cb7b-73db-ba93-f34978b894cc
+             */
+            trophyId: string | null;
+            /**
+             * Format: date-time
+             * @description the time this achivement was created
+             * @example 2026-11-28T07:46:36.027Z
+             */
+            createdAt: string;
+            /** @description the title details */
+            title: components["schemas"]["TitleNoIdDto"] | null;
+            /** @description the trophy details */
+            trophy: components["schemas"]["TrophyNoIdDto"] | null;
+        };
+        GetUserAchievementDto: {
+            /**
+             * @description the uuid of user that have this achievement
+             * @example 01a2211e-cb7c-7173-9d20-7ba24bf6ce93
+             */
+            userId: string;
+            /**
+             * @description this uuid of the achievement this user got
+             * @example 01a2211e-cb7c-7173-9d20-7dd7bb9661d7
+             */
+            achievementId: string;
+            /**
+             * Format: date-time
+             * @description the date when this user got the achievement
+             * @example 2026-11-28T07:46:36.028Z
+             */
+            unlockedAt: string;
+            /** @description the achievement data */
+            achievement: components["schemas"]["GetAchievementNoIdDto"];
+        };
+        GetTotalUserAchievementCountDto: {
+            /** @description total count of the user achievements */
+            totalCount: number;
+        };
+        GetTotalAllAchievementCountDto: {
+            /** @description total count of all the achievements */
+            totalCount: number;
+        };
+        GetAchievementDto: {
+            /**
+             * @description the uuid
+             * @example 01a2211e-cb7b-73db-ba93-e8b5b3edc820
+             */
+            id: string;
+            /**
+             * @description the name of the achievement
+             * @example Get High
+             */
+            name: string;
+            /**
+             * @description the description of the achivement.
+             * @example Am i High?
+             */
+            description: string | null;
+            /**
+             * @description the condition for this achievement to triggered
+             * @example won by high cards 100 times
+             */
+            condition: string | null;
+            /**
+             * @description title uuid linked to this achievement.
+             * @example 01a2211e-cb7b-73db-ba93-eca61ebe0a5f
+             */
+            titleId: string | null;
+            /**
+             * @description trophy uuid linked to this achievement
+             * @example 01a2211e-cb7b-73db-ba93-f34978b894cc
+             */
+            trophyId: string | null;
+            /**
+             * Format: date-time
+             * @description the time this achivement was created
+             * @example 2026-11-28T07:46:36.027Z
+             */
+            createdAt: string;
+            /** @description the title details */
+            title: components["schemas"]["TitleNoIdDto"] | null;
+            /** @description the trophy details */
+            trophy: components["schemas"]["TrophyNoIdDto"] | null;
+        };
+        AchievementCreateDto: {
+            /**
+             * @description the name of the achievement
+             * @example Get High
+             */
+            name: string;
+            /**
+             * @description the description of the achivement.
+             * @example Am i High?
+             */
+            description?: string | null;
+            /**
+             * @description the condition for this achievement to triggered
+             * @example won by high cards 100 times
+             */
+            condition?: string | null;
+            /**
+             * @description title uuid linked to this achievement.
+             * @example 01a2211e-cb7b-73db-ba93-eca61ebe0a5f
+             */
+            titleId?: string | null;
+            /**
+             * @description trophy uuid linked to this achievement
+             * @example 01a2211e-cb7b-73db-ba93-f34978b894cc
+             */
+            trophyId?: string | null;
+            /**
+             * Format: date-time
+             * @description the time this achivement was created
+             * @example 2026-11-28T07:46:36.027Z
+             */
+            createdAt?: string;
+        };
+        AchievementDto: {
+            /**
+             * @description the uuid
+             * @example 01a2211e-cb7b-73db-ba93-e8b5b3edc820
+             */
+            id: string;
+            /**
+             * @description the name of the achievement
+             * @example Get High
+             */
+            name: string;
+            /**
+             * @description the description of the achivement.
+             * @example Am i High?
+             */
+            description: string | null;
+            /**
+             * @description the condition for this achievement to triggered
+             * @example won by high cards 100 times
+             */
+            condition: string | null;
+            /**
+             * @description title uuid linked to this achievement.
+             * @example 01a2211e-cb7b-73db-ba93-eca61ebe0a5f
+             */
+            titleId: string | null;
+            /**
+             * @description trophy uuid linked to this achievement
+             * @example 01a2211e-cb7b-73db-ba93-f34978b894cc
+             */
+            trophyId: string | null;
+            /**
+             * Format: date-time
+             * @description the time this achivement was created
+             * @example 2026-11-28T07:46:36.027Z
+             */
+            createdAt: string;
+        };
+        AchievementUpdateDto: {
+            /**
+             * @description the name of the achievement
+             * @example Get High
+             */
+            name: string;
+            /**
+             * @description the description of the achivement.
+             * @example Am i High?
+             */
+            description: string | null;
+            /**
+             * @description the condition for this achievement to triggered
+             * @example won by high cards 100 times
+             */
+            condition: string | null;
+            /**
+             * @description title uuid linked to this achievement.
+             * @example 01a2211e-cb7b-73db-ba93-eca61ebe0a5f
+             */
+            titleId: string | null;
+            /**
+             * @description trophy uuid linked to this achievement
+             * @example 01a2211e-cb7b-73db-ba93-f34978b894cc
+             */
+            trophyId: string | null;
+            /**
+             * Format: date-time
+             * @description the time this achivement was created
+             * @example 2026-11-28T07:46:36.027Z
+             */
+            createdAt: string;
+        };
+        UserAchievementDto: {
+            /**
+             * @description the uuid of user that have this achievement
+             * @example 01a2211e-cb7c-7173-9d20-7ba24bf6ce93
+             */
+            userId: string;
+            /**
+             * @description this uuid of the achievement this user got
+             * @example 01a2211e-cb7c-7173-9d20-7dd7bb9661d7
+             */
+            achievementId: string;
+            /**
+             * Format: date-time
+             * @description the date when this user got the achievement
+             * @example 2026-11-28T07:46:36.028Z
+             */
+            unlockedAt: string;
+        };
+        TrophyDto: {
+            /**
+             * @description the id of the trophy
+             * @example 01a2211e-cb7b-73db-ba93-f7c8a249d602
+             */
+            id: string;
+            /**
+             * @description name of the trophy
+             * @example champion trophy
+             */
+            name: string;
+            /** @description the description detail of the trophy */
+            description: string | null;
+            /** @description the image url of the trophy */
+            imageUrl: string | null;
+            /**
+             * Format: date-time
+             * @description the date this trophy was created
+             */
+            createdAt: string;
+        };
+        GetUserTrophyDto: {
+            /**
+             * Format: date-time
+             * @description the date this trophy unlocked to this user
+             * @example 2026-11-28T07:46:36.030Z
+             */
+            unlockedAt: string;
+            /** @description the trophy details */
+            trophy: components["schemas"]["TrophyDto"];
+        };
+        GetAllUserTrophiesCountDto: {
+            /** @description totalCount of all the trophies this user got */
+            totalCount: number;
+        };
+        GetAllTrophiesCountDto: {
+            /** @description the total count of overall trophies available */
+            totalCount: number;
+        };
+        GetTrophyDto: {
+            /**
+             * @description the id of the trophy
+             * @example 01a2211e-cb7b-73db-ba93-f7c8a249d602
+             */
+            id: string;
+            /**
+             * @description name of the trophy
+             * @example champion trophy
+             */
+            name: string;
+            /** @description the description detail of the trophy */
+            description: string | null;
+            /** @description the image url of the trophy */
+            imageUrl: string | null;
+            /**
+             * Format: date-time
+             * @description the date this trophy was created
+             */
+            createdAt: string;
+        };
+        CreateNewTrophyDto: {
+            /**
+             * @description name of the trophy
+             * @example champion trophy
+             */
+            name?: string;
+            /** @description the description detail of the trophy */
+            description?: string | null;
+            /** @description the image url of the trophy */
+            imageUrl?: string | null;
+            /**
+             * Format: date-time
+             * @description the date this trophy was created
+             */
+            createdAt?: string;
+        };
+        TrophiesUpdateDto: {
+            /**
+             * @description name of the trophy
+             * @example champion trophy
+             */
+            name?: string;
+            /** @description the description detail of the trophy */
+            description?: string | null;
+            /** @description the image url of the trophy */
+            imageUrl?: string | null;
+            /**
+             * Format: date-time
+             * @description the date this trophy was created
+             */
+            createdAt?: string;
+        };
+        NewUserTrophyDto: {
+            /**
+             * @description the uuid of the user that got this trophy
+             * @example 01a2211e-cb7e-7672-9e84-a5ad34bb215d
+             */
+            userId: string;
+            /**
+             * @description the uuid of the trophy
+             * @example 01a2211e-cb7e-7672-9e84-a9f0ee9c81aa
+             */
+            trophyId: string;
+            /**
+             * Format: date-time
+             * @description the date this trophy unlocked to this user
+             * @example 2026-11-28T07:46:36.030Z
+             */
+            unlockedAt: string;
+        };
+        UserTrophyDto: {
+            /**
+             * @description the uuid of the user that got this trophy
+             * @example 01a2211e-cb7e-7672-9e84-a5ad34bb215d
+             */
+            userId: string;
+            /**
+             * @description the uuid of the trophy
+             * @example 01a2211e-cb7e-7672-9e84-a9f0ee9c81aa
+             */
+            trophyId: string;
+            /**
+             * Format: date-time
+             * @description the date this trophy unlocked to this user
+             * @example 2026-11-28T07:46:36.030Z
+             */
+            unlockedAt: string;
+        };
+        UsersApiKeyNoHashedDto: {
+            /** @description id of the api key in database */
+            id: string;
+            /** @description user id that own this api key */
+            userId: string;
+            /** @description the name of the key */
+            keyName: string;
+            /** @description the prefix of the key. used for displayed on request */
+            keyPrefix: string;
+            /** @description whether this key is revoked or not */
+            isRevoked: boolean;
+            /**
+             * Format: date-time
+             * @description the date this api was created
+             */
+            createdAt: string;
+        };
+        UsersApiCreateDto: {
+            /** @description the name of the key */
+            keyName: string;
+        };
+        UsersApiCreateRawApiKeyDto: {
+            /** @description id of the api key in database */
+            id: string;
+            /** @description user id that own this api key */
+            userId: string;
+            /** @description the name of the key */
+            keyName: string;
+            /** @description the prefix of the key. used for displayed on request */
+            keyPrefix: string;
+            /** @description whether this key is revoked or not */
+            isRevoked: boolean;
+            /**
+             * Format: date-time
+             * @description the date this api was created
+             */
+            createdAt: string;
+            /** @description the raw api key for user to store. DISPLAY ONE TIME ONLY!! */
+            rawApiKey: string;
+        };
+        UsersApiTotalUserApiCountDto: {
+            /** @description the total amount of api that the user own */
+            totalCount: number;
+        };
+        UserDto: {
+            /**
+             * @description the uuid main id for user table
+             * @example 01a105d0-bf8f-758a-a1ab-cf9098fded20
+             */
+            id: string;
+            /**
+             * @description tag id of user
+             * @example YYMMDD_0000
+             */
+            tagId: string;
+            /**
+             * @description the email of the user
+             * @example user@example.com
+             */
+            email: string;
+            /**
+             * @description the hashed password of the user
+             * @example SecurePassword123
+             */
+            password: string;
+            /**
+             * @description The role of the user
+             * @example USER
+             * @enum {string}
+             */
+            role: "ADMIN" | "DEVELOPER" | "EDITOR" | "USER";
+            /**
+             * @description the refresh token of the user
+             * @example asdflkaeflkasdflkasf
+             */
+            hashedRefreshToken: string | null;
+            /**
+             * Format: date-time
+             * @description The time and date that this user was created
+             */
+            createdAt: string;
+        };
+        UsersApiAllApiDto: {
+            /** @description id of the api key in database */
+            id: string;
+            /** @description user id that own this api key */
+            userId: string;
+            /** @description the name of the key */
+            keyName: string;
+            /** @description the prefix of the key. used for displayed on request */
+            keyPrefix: string;
+            /** @description the actual key hashed */
+            keyHashed: string;
+            /** @description whether this key is revoked or not */
+            isRevoked: boolean;
+            /**
+             * Format: date-time
+             * @description the date this api was created
+             */
+            createdAt: string;
+            /** @description the user infomation */
+            user: components["schemas"]["UserDto"];
+        };
     };
     responses: never;
     parameters: never;
@@ -1624,7 +2877,169 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    AppController_getHello: {
+    InternalAuthController_authCheck: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalAuthController_internalAdminAuthCheck: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalAuthController_adminAuthCheck: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalAuthController_registerUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUserDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalAuthController_login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description User login credentials */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginDto"];
+            };
+        };
+        responses: {
+            /** @description Logged in successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginSuccessResponseDto"];
+                };
+            };
+            /** @description Invalid email or password */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
+                };
+            };
+        };
+    };
+    InternalAuthController_refreshToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description upon success would return new JWT token back */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefreshTokenSuccessDto"];
+                };
+            };
+            /** @description invalid to expired refresh token. need to re-login for new generated one. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
+                };
+            };
+        };
+    };
+    InternalAuthController_signOut: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description successfully logged out */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description invalid access_token or expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
+                };
+            };
+        };
+    };
+    InternalAuthController_googleLogin: {
         parameters: {
             query?: never;
             header?: never;
@@ -1637,13 +3052,66 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": string;
-                };
+                content?: never;
             };
         };
     };
-    UserController_getProfile: {
+    InternalAuthController_googleCallback: {
+        parameters: {
+            query: {
+                state: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalAuthController_fortyTwoLogin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalAuthController_fortyTwoCallback: {
+        parameters: {
+            query: {
+                state: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalUsersUserController_getProfile: {
         parameters: {
             query?: {
                 /** @description Lookup target profile by User ID (mutually exclusive with tagId) */
@@ -1684,7 +3152,7 @@ export interface operations {
             };
         };
     };
-    UserController_uploadProfilePic: {
+    InternalUsersUserController_uploadProfilePic: {
         parameters: {
             query?: never;
             header?: never;
@@ -1711,7 +3179,7 @@ export interface operations {
             };
         };
     };
-    UserController_update: {
+    InternalUsersUserController_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -1734,7 +3202,7 @@ export interface operations {
             };
         };
     };
-    UserController_setUserRole: {
+    InternalUsersDeveloperController_setUserRole: {
         parameters: {
             query?: never;
             header?: never;
@@ -1757,7 +3225,7 @@ export interface operations {
             };
         };
     };
-    UserController_create: {
+    InternalUsersDeveloperController_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -1788,7 +3256,7 @@ export interface operations {
             };
         };
     };
-    UserController_remove: {
+    InternalUsersDeveloperController_remove: {
         parameters: {
             query: {
                 userId: string;
@@ -1824,7 +3292,7 @@ export interface operations {
             };
         };
     };
-    UserController_getBatchUsers: {
+    InternalUsersDeveloperController_getBatchUsers: {
         parameters: {
             query: {
                 limit: number;
@@ -1846,7 +3314,7 @@ export interface operations {
             };
         };
     };
-    UserController_totalUserCount: {
+    InternalUsersDeveloperController_totalUserCount: {
         parameters: {
             query?: never;
             header?: never;
@@ -1865,7 +3333,7 @@ export interface operations {
             };
         };
     };
-    TitleController_getAllTitles: {
+    InternalTitlesController_getAllTitles: {
         parameters: {
             query?: never;
             header?: never;
@@ -1884,7 +3352,7 @@ export interface operations {
             };
         };
     };
-    TitleController_getUserTitles: {
+    InternalTitlesController_getUserTitles: {
         parameters: {
             query?: never;
             header?: never;
@@ -1903,7 +3371,7 @@ export interface operations {
             };
         };
     };
-    TitleController_findTitle: {
+    InternalTitlesController_findTitle: {
         parameters: {
             query?: {
                 /** @description the id of the title */
@@ -1934,7 +3402,7 @@ export interface operations {
             };
         };
     };
-    TitleController_createNewTitle: {
+    InternalTitlesController_createNewTitle: {
         parameters: {
             query?: never;
             header?: never;
@@ -1957,7 +3425,7 @@ export interface operations {
             };
         };
     };
-    TitleController_giveUserTitle: {
+    InternalTitlesController_giveUserTitle: {
         parameters: {
             query: {
                 /** @description the target User to give the title */
@@ -1981,7 +3449,7 @@ export interface operations {
             };
         };
     };
-    TitleController_revokeUserTitle: {
+    InternalTitlesController_revokeUserTitle: {
         parameters: {
             query: {
                 /** @description the target User to revoke the title */
@@ -2003,7 +3471,7 @@ export interface operations {
             };
         };
     };
-    TitleController_updateTitle: {
+    InternalTitlesController_updateTitle: {
         parameters: {
             query: {
                 /** @description the title id of the title you want to change */
@@ -2027,7 +3495,7 @@ export interface operations {
             };
         };
     };
-    TitleController_deleteTitle: {
+    InternalTitlesController_deleteTitle: {
         parameters: {
             query: {
                 /** @description the title id you want to delete */
@@ -2047,241 +3515,7 @@ export interface operations {
             };
         };
     };
-    AuthController_authCheck: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_internalAdminAuthCheck: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_adminAuthCheck: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_registerUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateUserDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_login: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description User login credentials */
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LoginDto"];
-            };
-        };
-        responses: {
-            /** @description Logged in successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LoginSuccessResponseDto"];
-                };
-            };
-            /** @description Invalid email or password */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
-                };
-            };
-        };
-    };
-    AuthController_refreshToken: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description upon success would return new JWT token back */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RefreshTokenSuccessDto"];
-                };
-            };
-            /** @description invalid to expired refresh token. need to re-login for new generated one. */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
-                };
-            };
-        };
-    };
-    AuthController_signOut: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description successfully logged out */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description invalid access_token or expired */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnauthorizedErrorDto"];
-                };
-            };
-        };
-    };
-    AuthController_googleLogin: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_googleCallback: {
-        parameters: {
-            query: {
-                state: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_fortyTwoLogin: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_fortyTwoCallback: {
-        parameters: {
-            query: {
-                state: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ChatController_getAllUserRoom: {
+    InternalChatController_getAllUserRoom: {
         parameters: {
             query?: never;
             header?: never;
@@ -2300,7 +3534,7 @@ export interface operations {
             };
         };
     };
-    ChatController_dmUser: {
+    InternalChatController_dmUser: {
         parameters: {
             query: {
                 targetUserId: string;
@@ -2321,7 +3555,7 @@ export interface operations {
             };
         };
     };
-    ChatController_getMessagesRoom: {
+    InternalChatController_getMessagesRoom: {
         parameters: {
             query: {
                 chatRoomId: string;
@@ -2342,7 +3576,7 @@ export interface operations {
             };
         };
     };
-    ChatController_createChatRoom: {
+    InternalChatController_createChatRoom: {
         parameters: {
             query?: never;
             header?: never;
@@ -2365,7 +3599,7 @@ export interface operations {
             };
         };
     };
-    ChatController_inviteToChatRoom: {
+    InternalChatController_inviteToChatRoom: {
         parameters: {
             query?: never;
             header?: never;
@@ -2388,7 +3622,7 @@ export interface operations {
             };
         };
     };
-    ChatController_leaveTheChatRoom: {
+    InternalChatController_leaveTheChatRoom: {
         parameters: {
             query: {
                 chatRoomId: string;
@@ -2409,7 +3643,7 @@ export interface operations {
             };
         };
     };
-    ChatController_kickUserChatRoom: {
+    InternalChatController_kickUserChatRoom: {
         parameters: {
             query?: never;
             header?: never;
@@ -2432,26 +3666,7 @@ export interface operations {
             };
         };
     };
-    PublicChatController_getAllChatMessages: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChatMessageDto"][];
-                };
-            };
-        };
-    };
-    FriendController_getAllFriends: {
+    InternalFriendsController_getAllFriends: {
         parameters: {
             query?: never;
             header?: never;
@@ -2470,10 +3685,11 @@ export interface operations {
             };
         };
     };
-    FriendController_makeFriendRequest: {
+    InternalFriendsController_makeFriendRequest: {
         parameters: {
-            query: {
-                targetUserId: string;
+            query?: {
+                targetUserId?: string;
+                targetTagId?: string;
             };
             header?: never;
             path?: never;
@@ -2489,10 +3705,11 @@ export interface operations {
             };
         };
     };
-    FriendController_acceptFriendRequest: {
+    InternalFriendsController_acceptFriendRequest: {
         parameters: {
-            query: {
-                targetUserId: string;
+            query?: {
+                targetUserId?: string;
+                targetTagId?: string;
             };
             header?: never;
             path?: never;
@@ -2508,10 +3725,11 @@ export interface operations {
             };
         };
     };
-    FriendController_rejectFriendRequest: {
+    InternalFriendsController_rejectFriendRequest: {
         parameters: {
-            query: {
-                targetUserId: string;
+            query?: {
+                targetUserId?: string;
+                targetTagId?: string;
             };
             header?: never;
             path?: never;
@@ -2527,10 +3745,11 @@ export interface operations {
             };
         };
     };
-    FriendController_blockUser: {
+    InternalFriendsController_blockUser: {
         parameters: {
-            query: {
-                targetUserId: string;
+            query?: {
+                targetUserId?: string;
+                targetTagId?: string;
             };
             header?: never;
             path?: never;
@@ -2546,7 +3765,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_getLobbyFormats: {
+    InternalLobbyController_getLobbyFormats: {
         parameters: {
             query?: never;
             header?: never;
@@ -2563,7 +3782,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_createLobbyRoom: {
+    InternalLobbyController_createLobbyRoom: {
         parameters: {
             query?: never;
             header?: never;
@@ -2586,7 +3805,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_joinLobbyRoom: {
+    InternalLobbyController_joinLobbyRoom: {
         parameters: {
             query?: never;
             header?: never;
@@ -2609,7 +3828,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_leaveLobbyRoom: {
+    InternalLobbyController_leaveLobbyRoom: {
         parameters: {
             query: {
                 lobbyPinId: string;
@@ -2628,7 +3847,26 @@ export interface operations {
             };
         };
     };
-    LobbyController_getAllLobbyRoom: {
+    InternalLobbyController_swapLobbyMemberRole: {
+        parameters: {
+            query: {
+                lobbyPinId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalLobbyController_getAllLobbyRoom: {
         parameters: {
             query?: never;
             header?: never;
@@ -2647,7 +3885,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_getMyLobby: {
+    InternalLobbyController_getMyLobby: {
         parameters: {
             query?: never;
             header?: never;
@@ -2666,7 +3904,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_getLobbyMembers: {
+    InternalLobbyController_getLobbyMembers: {
         parameters: {
             query: {
                 lobbyPinId: string;
@@ -2687,7 +3925,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_updateGameSettings: {
+    InternalLobbyController_updateGameSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -2710,7 +3948,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_startGame: {
+    InternalLobbyController_startGame: {
         parameters: {
             query: {
                 lobbyPinId: string;
@@ -2731,7 +3969,7 @@ export interface operations {
             };
         };
     };
-    LobbyController_oneLobby: {
+    InternalLobbyController_oneLobby: {
         parameters: {
             query: {
                 lobbyPinId: string;
@@ -2749,6 +3987,935 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["GetLobbyPublicDto"];
                 };
+            };
+        };
+    };
+    InternalGameMatchesUserController_getMatches: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                userId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetGameMatchDto"][];
+                };
+            };
+        };
+    };
+    InternalGameMatchesUserController_findMatch: {
+        parameters: {
+            query: {
+                gameMatchId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FullGameMatchDto"];
+                };
+            };
+        };
+    };
+    InternalGameStatisticsUserController_allUserStats: {
+        parameters: {
+            query?: {
+                /** @description Number of records to return (0 - 1000) */
+                limit?: number;
+                /** @description Number of records to skip (>= 0) */
+                offset?: number;
+                /** @description Order results by user rank */
+                orderByRank?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successfully retrieved list of user statistics */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid limit or offset query (limit must be 0-1000, offset >= 0), or invalid boolean for orderByRank */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalGameStatisticsUserController_findUserStats: {
+        parameters: {
+            query?: {
+                /** @description UUID of the user (provide only 1 of userId, email, or tagId) */
+                userId?: string;
+                /** @description Email address of the user (provide only 1 of userId, email, or tagId) */
+                email?: string;
+                /** @description Tag ID of the user (provide only 1 of userId, email, or tagId) */
+                tagId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successfully retrieved user statistics */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Must provide 1 query param only, or invalid UUID format for userId */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalGameStatisticsUserController_findUserRankIndex: {
+        parameters: {
+            query?: {
+                userId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRankIndexDto"];
+                };
+            };
+        };
+    };
+    InternalAchievementsUserController_getUserAchievements: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                userId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetUserAchievementDto"][];
+                };
+            };
+        };
+    };
+    InternalAchievementsUserController_totalAchievementsUserCount: {
+        parameters: {
+            query?: {
+                userId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetTotalUserAchievementCountDto"];
+                };
+            };
+        };
+    };
+    InternalAchievementsUserController_totalAchievementsCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetTotalAllAchievementCountDto"];
+                };
+            };
+        };
+    };
+    InternalAchievementsUserController_findAchievement: {
+        parameters: {
+            query: {
+                achievementId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetAchievementDto"];
+                };
+            };
+        };
+    };
+    InternalAchievementsDeveloperController_allAchievements: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetAchievementDto"][];
+                };
+            };
+        };
+    };
+    InternalAchievementsDeveloperController_createAchievement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AchievementCreateDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AchievementDto"];
+                };
+            };
+        };
+    };
+    InternalAchievementsDeveloperController_updateAchievements: {
+        parameters: {
+            query: {
+                achievementId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AchievementUpdateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetAchievementDto"];
+                };
+            };
+        };
+    };
+    InternalAchievementsDeveloperController_giveUserAchievement: {
+        parameters: {
+            query: {
+                userId: string;
+                achievementId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserAchievementDto"];
+                };
+            };
+        };
+    };
+    InternalAchievementsDeveloperController_revokeUserAchievement: {
+        parameters: {
+            query: {
+                userId: string;
+                achievementId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserAchievementDto"];
+                };
+            };
+        };
+    };
+    InternalAchievementsDeveloperController_deleteAchievement: {
+        parameters: {
+            query: {
+                achievementId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AchievementDto"];
+                };
+            };
+        };
+    };
+    InternalTrophiesUserController_allUserThrophies: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                userId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetUserTrophyDto"][];
+                };
+            };
+        };
+    };
+    InternalTrophiesUserController_totalTrophiesCount: {
+        parameters: {
+            query?: {
+                userId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetAllUserTrophiesCountDto"];
+                };
+            };
+        };
+    };
+    InternalTrophiesUserController_allTotalCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetAllTrophiesCountDto"];
+                };
+            };
+        };
+    };
+    InternalTrophiesUserController_findOneTrophy: {
+        parameters: {
+            query: {
+                trophyId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetTrophyDto"];
+                };
+            };
+        };
+    };
+    InternalTrophiesDeveloperController_allTrophies: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrophyDto"][];
+                };
+            };
+        };
+    };
+    InternalTrophiesDeveloperController_createTrophy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateNewTrophyDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetTrophyDto"];
+                };
+            };
+        };
+    };
+    InternalTrophiesDeveloperController_uploadTrophyPic: {
+        parameters: {
+            query: {
+                trophyId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description Trophy image file (JPG)
+                     */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetTrophyDto"];
+                };
+            };
+        };
+    };
+    InternalTrophiesDeveloperController_updateTrophyData: {
+        parameters: {
+            query: {
+                trophyId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TrophiesUpdateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetTrophyDto"];
+                };
+            };
+        };
+    };
+    InternalTrophiesDeveloperController_giveUserTrophy: {
+        parameters: {
+            query: {
+                targetUserId: string;
+                targetTrophyId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewUserTrophyDto"];
+                };
+            };
+        };
+    };
+    InternalTrophiesDeveloperController_revokeUserTrophy: {
+        parameters: {
+            query: {
+                userId: string;
+                trophyId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserTrophyDto"];
+                };
+            };
+        };
+    };
+    InternalTrophiesDeveloperController_deleteUserTrophy: {
+        parameters: {
+            query: {
+                trophyId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrophyDto"];
+                };
+            };
+        };
+    };
+    InternalUsersApiUserController_yourApis: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersApiKeyNoHashedDto"][];
+                };
+            };
+        };
+    };
+    InternalUsersApiUserController_requestNewApi: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UsersApiCreateDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersApiCreateRawApiKeyDto"];
+                };
+            };
+        };
+    };
+    InternalUsersApiUserController_totalUserApiCount: {
+        parameters: {
+            query?: {
+                userId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersApiTotalUserApiCountDto"];
+                };
+            };
+        };
+    };
+    InternalUsersApiUserController_revokeApi: {
+        parameters: {
+            query: {
+                apiId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersApiKeyNoHashedDto"];
+                };
+            };
+        };
+    };
+    InternalUsersApiUserController_removeApi: {
+        parameters: {
+            query: {
+                apiId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersApiKeyNoHashedDto"];
+                };
+            };
+        };
+    };
+    InternalUsersApiUserController_findApi: {
+        parameters: {
+            query?: {
+                apiId?: string;
+                apiKey?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersApiKeyNoHashedDto"];
+                };
+            };
+        };
+    };
+    InternalUsersApiDeveloperController_allApis: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersApiAllApiDto"][];
+                };
+            };
+        };
+    };
+    InternalUsersApiDeveloperController_totalAllApiCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersApiTotalUserApiCountDto"];
+                };
+            };
+        };
+    };
+    InternalUsersApiDeveloperController_deleteByApiId: {
+        parameters: {
+            query: {
+                apiId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersApiKeyNoHashedDto"];
+                };
+            };
+        };
+    };
+    InternalUsersApiDeveloperController_findApi: {
+        parameters: {
+            query?: {
+                apiId?: string;
+                apiKey?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersApiKeyNoHashedDto"];
+                };
+            };
+        };
+    };
+    InternalTournamentController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalTournamentController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalTournamentController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tournamentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalTournamentController_register: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tournamentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalTournamentController_unregister: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tournamentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InternalTournamentController_closeRegistration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tournamentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

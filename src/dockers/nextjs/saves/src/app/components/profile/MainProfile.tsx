@@ -1,13 +1,14 @@
 import Image from "next/image";
 
 import ProfileImage from "./ProfileImage";
+import { useLanguage } from "../language/LanguageProvider";
 
 import type {
   UserProfileResponse,
 } from "../../../lib/profile-api";
 
-import defaultProfilePic from "../../../public/defaultProfilePic.svg";
-import iconLogo from "../../../public/iconLogo.svg";
+// import defaultProfilePic from "";
+import iconLogo from "../../../assets/iconLogo.svg";
 
 // hard coded still have no stats
 const mockStatistics = {
@@ -27,6 +28,8 @@ export default function MainProfile({
     profile.createdAt,
   ).toLocaleDateString();
 
+  const { dictionary } = useLanguage();
+
   return (
     <section className="content active">
       <div className="blogbox profile-card">
@@ -43,37 +46,37 @@ export default function MainProfile({
               <tbody>
                 <tr>
                   <td>
-                    Join: {joinedDate}
+                    {dictionary.profile.joined}: {joinedDate}
                   </td>
 
                   <td>
-                    Level:{" "}
+                    {dictionary.profile.level}:{" "}
                     {mockStatistics.level}
                   </td>
 
                   <td>
-                    Status:{" "}
+                    {dictionary.profile.status}:{" "}
                     {mockStatistics.status}
                   </td>
                 </tr>
 
                 <tr>
                   <td>
-                    Matches Played:{" "}
+                    {dictionary.profile.matchesPlayed}:{" "}
                     {
                       mockStatistics.matchesPlayed
                     }
                   </td>
 
                   <td>
-                    Rounds Won:{" "}
+                    {dictionary.profile.roundsWon}:{" "}
                     {
                       mockStatistics.roundsWon
                     }
                   </td>
 
                   <td>
-                    Win Rate:{" "}
+                    {dictionary.profile.winRate}:{" "}
                     {mockStatistics.winRate}
                   </td>
                 </tr>
@@ -88,7 +91,7 @@ export default function MainProfile({
           <br />
 
           <div>
-            Signature:{" "}
+            {dictionary.profile.signature}:{" "}
             {profile.user_profile?.signature ??
               "No signature"}
           </div>
@@ -98,7 +101,7 @@ export default function MainProfile({
       <div className="blogbox collections-card">
         <IconCollection
           title="Friends"
-          image={defaultProfilePic}
+          image={`/img/defaultProfilePic.svg`}
         />
 
         <IconCollection

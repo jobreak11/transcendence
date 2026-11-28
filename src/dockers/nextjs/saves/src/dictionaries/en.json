@@ -1,9 +1,17 @@
 {
+  "language" :{
+    "select": "Select language",
+    "english": "English",
+    "Thai": "ไทย",
+    "chinese": "中文"
+  },
+  
   "game": {
     "fold": "Fold",
     "call": "Call",
     "check": "Check",
     "raise": "Raise",
+    "allIn": "All in",
     "cancelRaise": "Cancel raise",
     "additionalChips": "Additional chips to raise",
     "confirmRaise": "Confirm raise",
@@ -11,6 +19,168 @@
     "switchToThai": "ไทย",
     "switchToThaiLabel": "Switch language to Thai",
     "switchToEnglish": "English",
-    "switchToEnglishLabel": "Switch language to English"
+    "switchToEnglishLabel": "Switch language to English",
+    "switchToChinese": "中文",
+    "switchToChineseLabel": "Switch language to Chinese"
+  },
+  
+  "common": {
+    "play": "Play",
+    "login": "Login",
+    "logout": "Logout",
+    "save": "Save",
+    "backToMain": "Back to Main",
+    "goToTop": "Go to top",
+    "join": "Join",
+    "yes": "Yes",
+    "no": "No",
+    "lobby": "Lobby"
+  },
+
+  "auth": {
+    "signInWithGoogle": "Sign in with Google",
+    "signInWithTikTok": "Sign in with TikTok",
+    "signInWithLine": "Sign in with LINE",
+    "signInWithFacebook": "Sign in with Facebook",
+    "signInWith42Intra": "Sign in with 42 Intra"
+  },
+
+  "navigation": {
+    "about": "About",
+    "statistics": "Statistics",
+    "history": "History",
+    "settings": "Settings",
+    "rank": "Rank",
+    "tournament": "Tournament",
+    "custom": "Custom"
+  },
+
+  "home": {
+    "aboutUs": "About Us",
+    "learnMore": "Learn More",
+    "description": "Transcend 888 is an online web poker game, created as part of the 42 project, Transcendence. This project is non-commercial and will always be free of charge.",
+    "paragraph": "Here, you can play the well-known poker card game anywhere. Having short fun testing your luck with your friends, or login with an account that tracks your progress to show the world how good you are, we all have it covered. With no coins, chips, nor payment, you can enjoy poker to its fullest."
+  },
+
+  "profile": {
+    "joined": "Joined",
+    "level": "Level",
+    "status": "Status",
+    "matchesPlayed": "Matches Played",
+    "roundsWon": "Rounds Won",
+    "winRate": "Win Rate",
+    "signature": "Signature",
+    "friends": "Friends",
+    "trophies": "Trophies",
+    "likes": "Likes",
+    "blackjackRate": "Blackjack Rate",
+    "playstyle": "Playstyle",
+    "displayName": "Display Name",
+    "pronoun": "Pronoun",
+    "title": "Title",
+    "id": "ID",
+    "highestGain": "Highest Gain",
+    "highestLoss": "Highest Loss",
+    "highestRank": "Highest Rank"
+  },
+
+  "history": {
+    "time": "Time",
+    "mode": "Mode",
+    "enemy": "Opponent",
+    "results": "Result",
+    "win": "Win",
+    "loss": "Loss",
+    "rounds": "Rounds",
+    "points": "Points"
+  },
+
+  "lobby": {
+    "casual": "Casual",
+    "host": "Host",
+    "catchphrase": "Catchphrase",
+    "private": "Private",
+    "players": "Players",
+    "spectators": "Spectators",
+    "joinSpectators": "Join as Spectator",
+    "rank": "Rank",
+    "rankMode": "Rank Mode",
+    "point": "Point",
+    "position": "Position",
+    "winstreak": "Winstreak",
+    "highestStreak": "Highest Streak",
+    "topRanking": "Top Ranking",
+    "tournament": "Tournament",
+    "findMatch": "Find Match",
+    "custom": "Custom",
+    "room": "Room",
+    "searchById": "Search by ID",
+    "search": "Search",
+    "createRoom": "Create Room",
+    "jumpIn": "Jump in",
+    "password": "Password",
+    "maxPlayer": "Max Player",
+    "maxSpectator": "Max Spectator",
+    "format": "Format",
+    "startingStack": "Starting Stack",
+    "searchingRankedMatch": "Searching for a ranked match…",
+    "joined": "Joined",
+    "beginner": "Beginner",
+    "pro": "Pro",
+    "turbo": "Turbo",
+    "bigBlind": "Big Blind",
+    "loadingFormats": "Loading game formats…",
+    "loadFormatsFailed": "Could not load game formats.",
+    "invalidFormatSettings": "The server returned invalid game format settings.",
+    "createLobbyFailed": "Could not create the lobby.",
+    "missingLobbyId": "The server response did not include a lobby ID.",
+    "creating": "Creating…"
+  },
+
+  "tournament": {
+    "status": "Status",
+    "registrationDate": "Registration Date",
+    "competitionDate": "Competition Date",
+    "host": "Host",
+    "registered": "Registered",
+    "register": "Register",
+    "details": "Details",
+    "requirements": "Requirements",
+    "prizePools": "Prize Pools",
+    "registeredFor": "Registered for",
+    "open": "Open",
+    "announced": "Announced",
+    "requiredPlayer": "Required Player",
+    "create": "Create",
+
+    "tournament42": {
+      "requirements": [
+        "Participants must be level 30 or above",
+        "Participants must have between 1000 and 3000 rank points",
+        "Participants must have their account linked to 42 Intra"
+      ],
+      "prizes": [
+        "First, second, and third place will receive Gold, Silver, and Bronze Medal Trophies respectively, together with an exclusive title",
+        "The top 8 players will receive a 42 Tournament Trophy and the finalists' exclusive title",
+        "Every participating player will receive a participation title",
+        "The Tournament Host reserves the right to withhold awards from players disqualified from the tournament"
+      ]
+    },
+
+    "transcendOpen": {
+      "requirements": [
+        "Participants must be level 10 or above",
+        "There are no rank requirements"
+      ],
+      "prizes": [
+        "First place will receive a Gold Medal Trophy, a gold card sleeve, and an exclusive profile picture",
+        "Second place will receive a Silver Medal Trophy and a silver card sleeve",
+        "Third place will receive a Bronze Medal Trophy and a bronze card sleeve",
+        "The top 16 players will receive a Transcend Open card sleeve",
+        "Every participating player will receive a participation trophy",
+        "The Tournament Host reserves the right to withhold awards from players disqualified from the tournament"
+      ]
+    }
   }
+
 }
